@@ -51,7 +51,7 @@ public class UserController {
     @GetMapping("/{account}")
     @Operation(summary = "사용자 조회", description = "사용자의 프로필을 조회합니다.")
     @Parameters({
-            @Parameter(name = "account", description = "사용자 계정", required = true, example = "user01")
+            @Parameter(name = "account", description = "사용자 계정", required = true, example = "account01")
     })
     @ApiResponse(
             responseCode = "200",
