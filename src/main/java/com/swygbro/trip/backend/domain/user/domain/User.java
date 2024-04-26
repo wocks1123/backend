@@ -2,13 +2,13 @@ package com.swygbro.trip.backend.domain.user.domain;
 
 import com.swygbro.trip.backend.global.entity.BaseEntity;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@Builder
+@AllArgsConstructor
 public class User extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

@@ -8,6 +8,7 @@ import lombok.Getter;
 public enum ReservationStatus {
     RESERVED("예약완료"),
     CANCELLED("예약취소"),
-    PENDING_CONFIRMATION("예약확정대기");
+    PENDING_CONFIRMATION("예약확정대기"),
+    SETTLED("정산완료");
     private String status;
 }
