@@ -1,26 +1,23 @@
 package com.swygbro.trip.backend.domain.reservation.domain;
 
-import com.swygbro.trip.backend.domain.product.domain.GuideProduct;
+import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProduct;
 import com.swygbro.trip.backend.domain.reservation.dto.SavePaymentRequest;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import com.swygbro.trip.backend.global.entity.BaseEntity;
 import com.swygbro.trip.backend.global.status.PayStatus;
 import com.swygbro.trip.backend.global.status.ReservationStatus;
 import jakarta.persistence.*;
-import jakarta.validation.Valid;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import java.sql.Time;
 import java.sql.Timestamp;
+import java.time.ZonedDateTime;
 
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 @AllArgsConstructor
+@Getter
 public class Reservation extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -50,7 +47,7 @@ public class Reservation extends BaseEntity {
     private String message;
 
     @Column(nullable = false)
-    private String price;
+    private Integer price;
 
     @Column(nullable = false)
     private PayStatus paymentStatus;
@@ -64,9 +61,24 @@ public class Reservation extends BaseEntity {
 
     public void UpdatePaymentReservation(SavePaymentRequest savePaymentRequest) {
         this.impUid = savePaymentRequest.getImpUid();
-        this.paidAt = savePaymentRequest.getPaidAt();
+        this.paidAt = new Timestamp(savePaymentRequest.getPaidAt() * 1000);
         this.paymentStatus = PayStatus.COMPLETE;
     }
 
+    public void cancelReservation() {
+        this.reservationStatus = ReservationStatus.CANCELLED;
+    }
+
+    public void confirmReservation() {
+        this.reservationStatus = ReservationStatus.RESERVED;
+    }
+
+    public void settleReservation() {
+        this.reservationStatus = ReservationStatus.SETTLED;
+    }
+
+    public void refundPayment() {
+        this.paymentStatus = PayStatus.REFUNDED;
+    }
 
 }

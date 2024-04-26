@@ -7,10 +7,14 @@ import com.siot.IamportRestClient.response.Payment;
 import com.swygbro.trip.backend.domain.reservation.domain.Reservation;
 import com.swygbro.trip.backend.domain.reservation.domain.ReservationRepository;
 import com.swygbro.trip.backend.domain.reservation.dto.SavePaymentRequest;
+import com.swygbro.trip.backend.domain.reservation.dto.SaveReservationRequest;
+import com.swygbro.trip.backend.global.status.ReservationStatus;
+import com.swygbro.trip.backend.global.status.PayStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
@@ -22,7 +26,6 @@ public class ReservationService {
 
     /**
      * 아임포트 서버로부터 결제 정보를 검증
-     *
      * @param imp_uid
      */
     public IamportResponse<Payment> validateIamport(String imp_uid) {
@@ -38,7 +41,6 @@ public class ReservationService {
 
     /**
      * 아임포트 서버로부터 결제 취소 요청
-     *
      * @param imp_uid
      * @return
      */
@@ -54,7 +56,6 @@ public class ReservationService {
 
     /**
      * 주문 정보 저장
-     *
      * @param request
      * @return
      */
@@ -69,6 +70,48 @@ public class ReservationService {
             log.info(e.getMessage());
             cancelPayment(request.getImpUid());
             return "주문 정보 저장에 실패했습니다.";
+        }
+    }
+
+    /**
+     * 예약 정보 저장
+     * @param reservation
+     * @return
+     */
+    public String saveReservation(SaveReservationRequest reservation) {
+        try {
+            reservationRepository.save(reservation.toEntity());
+            return "예약 정보가 성공적으로 저장되었습니다.";
+        } catch (Exception e) {
+            log.info(e.getMessage());
+            return "예약 정보 저장에 실패했습니다.";
+        }
+    }
+
+    /**
+     * 예약 취소
+     * @param reservationId
+     * @return
+     */
+    @Transactional
+    public String cancelReservation(String reservationId) {
+        try {
+            Reservation reservation = reservationRepository.findById(Long.parseLong(reservationId))
+                    .orElseThrow(ChangeSetPersister.NotFoundException::new);
+
+            if ((reservation.getReservatedAt().equals(ReservationStatus.CANCELLED)) && (reservation.getPaymentStatus().equals(PayStatus.REFUNDED))) {
+                return "이미 취소된 예약입니다.";
+            }
+
+            reservation.cancelReservation();
+            IamportResponse<Payment> paymentIamportResponse = cancelPayment(reservation.getImpUid());
+            reservation.refundPayment();
+
+            reservationRepository.save(reservation);
+            return paymentIamportResponse.getMessage();
+        } catch (Exception e) {
+            log.info(e.getMessage());
+            return null;
         }
     }
 }

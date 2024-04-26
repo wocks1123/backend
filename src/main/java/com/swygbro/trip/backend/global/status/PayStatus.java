@@ -8,7 +8,7 @@ import lombok.Getter;
 public enum PayStatus {
     PENDING("결제대기"),
     COMPLETE("결제완료"),
-    FAILED("결제취소");
+    REFUNDED("결제취소");
 
     private String status;
 }
