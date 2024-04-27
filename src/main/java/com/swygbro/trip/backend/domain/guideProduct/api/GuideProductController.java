@@ -3,7 +3,6 @@ package com.swygbro.trip.backend.domain.guideProduct.api;
 import com.swygbro.trip.backend.domain.guideProduct.application.GuideProductService;
 import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
-import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductResponse;
 import com.swygbro.trip.backend.global.exception.ApiErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,7 +33,7 @@ public class GuideProductController {
             description = "가이드 상품 등록 성공",
             content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = GuideProductResponse.class)
+                    schema = @Schema(implementation = GuideProductDto.class)
             )
     )
     @ApiResponse(
@@ -49,10 +48,8 @@ public class GuideProductController {
                     )
             )
     )
-    public GuideProductResponse createGuideProduct(@Valid @RequestPart CreateGuideProductRequest request, @RequestPart(value = "file") List<MultipartFile> images) {
-        GuideProductDto product = guideProductService.createGuideProduct(request, images);
-
-        return GuideProductResponse.fromDto(product);
+    public GuideProductDto createGuideProduct(@Valid @RequestPart CreateGuideProductRequest request, @RequestPart(value = "file") List<MultipartFile> images) {
+        return guideProductService.createGuideProduct(request, images);
     }
 
     @GetMapping("/{productId}")
@@ -62,7 +59,7 @@ public class GuideProductController {
             description = "가이드 상품 조회 성공",
             content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = GuideProductResponse.class)
+                    schema = @Schema(implementation = GuideProductDto.class)
             )
     )
     @ApiResponse(
@@ -77,7 +74,7 @@ public class GuideProductController {
                     )
             )
     )
-    public GuideProductResponse getGuideProduct(@PathVariable int productId) {
-        return GuideProductResponse.fromDto(guideProductService.getProduct(productId));
+    public GuideProductDto getGuideProduct(@PathVariable int productId) {
+        return guideProductService.getProduct(productId);
     }
 }
