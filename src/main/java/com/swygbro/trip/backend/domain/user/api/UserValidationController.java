@@ -43,15 +43,15 @@ public class UserValidationController {
     private final UserValidationService userValidationService;
 
 
-    @GetMapping("/account")
-    @Operation(summary = "계정 중복 확인", description = "계정 중복을 확인합니다.")
-    @Parameter(name = "account", description = "사용자 계정", required = true, example = "account01")
-    @ApiResponse(responseCode = "200", description = "중복된 계정이 없습니다.")
+    @GetMapping("/email")
+    @Operation(summary = "이메일 중복 확인", description = "이메일 중복을 확인합니다.")
+    @Parameter(name = "email", description = "사용자 이메일", required = true, example = "email01@email.com")
+    @ApiResponse(responseCode = "200", description = "중복된 이메일이 없습니다.")
     @ValidationErrorResponse
-    @ApiResponse(responseCode = "409", description = "계정 중복")
-    public void checkAccountDuplication(@Valid @NotBlank @Size(max = 50)
-                                        @RequestParam String account) {
-        userValidationService.checkDuplicationData(FieldName.Account, account);
+    @ApiResponse(responseCode = "409", description = "이메일 중복")
+    public void checkEmailDuplication(@Valid @NotBlank @Email
+                                      @RequestParam String email) {
+        userValidationService.checkDuplicationData(FieldName.Email, email);
     }
 
     @GetMapping("/nickname")
@@ -74,17 +74,6 @@ public class UserValidationController {
     public void checkPhoneDuplication(@NotBlank @Size(max = 20) @Phone
                                       @RequestParam String phone) {
         userValidationService.checkDuplicationData(FieldName.Phone, phone);
-    }
-
-    @GetMapping("/email")
-    @Operation(summary = "이메일 중복 확인", description = "이메일 중복을 확인합니다.")
-    @Parameter(name = "email", description = "사용자 이메일", required = true, example = "email01@email.com")
-    @ApiResponse(responseCode = "200", description = "중복된 이메일이 없습니다.")
-    @ValidationErrorResponse
-    @ApiResponse(responseCode = "409", description = "이메일 중복")
-    public void checkEmailDuplication(@Valid @NotBlank @Email
-                                      @RequestParam String email) {
-        userValidationService.checkDuplicationData(FieldName.Email, email);
     }
 
 }

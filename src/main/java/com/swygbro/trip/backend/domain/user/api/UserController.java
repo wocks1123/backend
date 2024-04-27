@@ -56,16 +56,16 @@ public class UserController {
              
             ## 응답
                         
-            - 회원 가입 성공 시 `200` 코드와 함께 회원 계정을 문자열로 반환합니다.
+            - 회원 가입 성공 시 `200` 코드와 함께 회원 이메일을 문자열로 반환합니다.
             - 중복된 값이 있을 경우 `409` 에러를 반환합니다.
             - 입력 양식에 오류가 있을 경우 `400` 에러를 반환합니다.
              
             """)
     @ApiResponse(
             responseCode = "200",
-            description = "생성한 계정을 문자열로 반환합니다.",
+            description = "생성한 계정의 이메일을 문자열로 반환합니다.",
             content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    mediaType = MediaType.TEXT_PLAIN_VALUE,
                     schema = @Schema(implementation = String.class, example = "user01")))
     @ApiResponse(
             responseCode = "409",

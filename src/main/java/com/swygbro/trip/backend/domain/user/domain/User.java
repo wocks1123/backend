@@ -15,8 +15,8 @@ public class User extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true, length = 50, nullable = false)
-    private String account;
+    @Column(unique = true, length = 100, nullable = false)
+    private String email;
 
     @Column(unique = true, length = 20, nullable = false)
     private String nickname;
@@ -30,9 +30,6 @@ public class User extends BaseEntity {
     @Column(length = 30, nullable = false)
     private String nationality;
 
-    @Column(unique = true, length = 100, nullable = false)
-    private String email;
-
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
@@ -43,12 +40,11 @@ public class User extends BaseEntity {
     private SignUpType signUpType;
 
     public User(CreateUserRequest dto, SignUpType signUpType, String encodedPassword) {
-        this.account = dto.getAccount();
+        this.email = dto.getEmail();
         this.nickname = dto.getNickname();
         this.name = dto.getName();
         this.phone = dto.getPhone();
         this.nationality = dto.getNationality();
-        this.email = dto.getEmail();
         this.gender = dto.getGender();
         this.password = encodedPassword;
         this.signUpType = signUpType;

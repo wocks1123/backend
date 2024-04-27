@@ -16,7 +16,6 @@ public class UserValidationService {
 
     public UserValidationService(UserRepository userRepository) {
         checkers = Map.of(
-                FieldName.Account, userRepository::existsByAccount,
                 FieldName.Nickname, userRepository::existsByNickname,
                 FieldName.Phone, userRepository::existsByPhone,
                 FieldName.Email, userRepository::existsByEmail
@@ -30,11 +29,14 @@ public class UserValidationService {
     }
 
     public void checkUniqueUser(CreateUserRequest dto) {
-        if (checkers.get(FieldName.Account).check(dto.getAccount()) &&
-                checkers.get(FieldName.Nickname).check(dto.getNickname()) &&
-                checkers.get(FieldName.Phone).check(dto.getPhone()) &&
-                checkers.get(FieldName.Email).check(dto.getEmail())) {
-            throw new DuplicateDataException(dto.getAccount());
+        if (checkers.get(FieldName.Email).check(dto.getEmail())) {
+            throw new DuplicateDataException(dto.getEmail());
+        }
+        if (checkers.get(FieldName.Nickname).check(dto.getNickname())) {
+            throw new DuplicateDataException(dto.getNickname());
+        }
+        if (checkers.get(FieldName.Phone).check(dto.getPhone())) {
+            throw new DuplicateDataException(dto.getPhone());
         }
     }
 

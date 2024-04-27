@@ -31,13 +31,13 @@ public class UserService {
                 new User(dto, SignUpType.Local, passwordEncoder.encode(dto.getPassword()))
         );
 
-        return createdUser.getAccount();
+        return createdUser.getEmail();
     }
 
     public UserProfileDto getUser(String account) {
         User user = userRepository.findByAccount(account)
                 .orElseThrow(() -> new UserNotFoundException(account));
-        return new UserProfileDto(user.getAccount(), user.getEmail());
+        return new UserProfileDto(user.getEmail());
     }
 
 }
