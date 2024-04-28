@@ -1,13 +1,18 @@
 package com.swygbro.trip.backend.domain.guideProduct.application;
 
 
+import com.swygbro.trip.backend.domain.guideProduct.domain.GuideCategory;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideImage;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProduct;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProductRepository;
 import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
 import com.swygbro.trip.backend.domain.guideProduct.exception.GuideProductNotFoundException;
+import com.swygbro.trip.backend.domain.guideProduct.fixture.CreateGuideProductRequestFixture;
+import com.swygbro.trip.backend.domain.guideProduct.fixture.GuideProductFixture;
 import com.swygbro.trip.backend.domain.s3.application.S3Service;
+import com.swygbro.trip.backend.domain.user.domain.User;
+import com.swygbro.trip.backend.domain.user.domain.UserRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,7 +22,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -36,15 +41,16 @@ public class GuideProductServiceTest {
     @Mock
     GuideProductRepository guideProductRepository;
     @Mock
+    UserRepository userRepository;
+    @Mock
     S3Service s3Service;
 
-    @DisplayName("이미지 업로드 성공")
+    @DisplayName("게시물 생성 성공")
     @Test
-    void createProduct() throws IOException {
+    void createProduct() {
         // given
-        String title = "test";
-        String description = "test";
-        CreateGuideProductRequest request = new CreateGuideProductRequest(title, description);
+        CreateGuideProductRequest request = CreateGuideProductRequestFixture.getGuideProductRequest();
+        User user = new User(request.getAccount(), "email", "password");
 
         List<MultipartFile> images = new ArrayList<>();
         MockMultipartFile mockMultipartFile1 = new MockMultipartFile("image1", "test1.jpg", "image/jpg", "test image1".getBytes());
@@ -52,10 +58,18 @@ public class GuideProductServiceTest {
         images.add(mockMultipartFile1);
         images.add(mockMultipartFile2);
 
-        GuideProduct product = new GuideProduct(title, description);
+        given(userRepository.findByAccount(any())).willReturn(Optional.of(user));
+
+        GuideProduct product = new GuideProduct(user, request.getTitle(), request.getDescription(), request.getPrice(),
+                request.getLongitude(), request.getLatitude(), request.getGuideStart(), request.getGuideEnd());
+
         images.forEach(image -> {
             given(s3Service.uploadImage(image)).willReturn("test utl");
             product.addGuideImage(new GuideImage("test url"));
+        });
+
+        request.getCategories().forEach(category -> {
+            product.addGuideCategory(new GuideCategory(category));
         });
 
         given(guideProductRepository.saveAndFlush(any())).willReturn(product);
@@ -64,9 +78,16 @@ public class GuideProductServiceTest {
         GuideProductDto result = guideProductService.createGuideProduct(request, images);
 
         // then
-        assertThat(result.getTitle()).isEqualTo(title);
-        assertThat(result.getDescription()).isEqualTo(description);
-        assertThat(result.getImages().get(0).getUrl()).isEqualTo("test url");
+        assertThat(result.getAccount()).isEqualTo(product.getUser().getAccount());
+        assertThat(result.getTitle()).isEqualTo(product.getTitle());
+        assertThat(result.getDescription()).isEqualTo(product.getDescription());
+        assertThat(result.getPrice()).isEqualTo(product.getPrice());
+        assertThat(result.getLocation().getX()).isEqualTo(product.getLocation().getX());
+        assertThat(result.getLocation().getY()).isEqualTo(product.getLocation().getY());
+        assertThat(result.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))).isEqualTo(product.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+        assertThat(result.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))).isEqualTo(product.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+        assertThat(result.getCategories().get(0).name()).isEqualTo(product.getCategories().get(0).getCategoryCode().name());
+        assertThat(result.getImages().get(0).getUrl()).isEqualTo(product.getImages().get(0).getUrl());
     }
 
     @DisplayName("상품 불러오기 성공")
@@ -74,17 +95,24 @@ public class GuideProductServiceTest {
     void getProduct() {
         // given
         int productId = 1;
-        String title = "test";
-        String description = "test";
 
-        given(guideProductRepository.findById(productId)).willReturn(Optional.of(new GuideProduct(title, description)));
+        GuideProduct product = GuideProductFixture.getGuideProduct();
+        given(guideProductRepository.findById(productId)).willReturn(Optional.of(product));
 
         // when
         GuideProductDto result = guideProductService.getProduct(productId);
 
         // then
-        assertThat(result.getTitle()).isEqualTo(title);
-        assertThat(result.getDescription()).isEqualTo(description);
+        assertThat(result.getAccount()).isEqualTo(product.getUser().getAccount());
+        assertThat(result.getTitle()).isEqualTo(product.getTitle());
+        assertThat(result.getDescription()).isEqualTo(product.getDescription());
+        assertThat(result.getPrice()).isEqualTo(product.getPrice());
+        assertThat(result.getLocation().getX()).isEqualTo(product.getLocation().getX());
+        assertThat(result.getLocation().getY()).isEqualTo(product.getLocation().getY());
+        assertThat(result.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))).isEqualTo(product.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+        assertThat(result.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))).isEqualTo(product.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
+        assertThat(result.getCategories().get(0).name()).isEqualTo(product.getCategories().get(0).getCategoryCode().name());
+        assertThat(result.getImages().get(0).getUrl()).isEqualTo(product.getImages().get(0).getUrl());
     }
 
     @DisplayName("상품 불러오기 실패")
@@ -104,6 +132,4 @@ public class GuideProductServiceTest {
         assertThat(throwable).isInstanceOf(GuideProductNotFoundException.class)
                 .hasMessage("해당 (%s) 가이드 상품을 찾을 수 없습니다.".formatted(productId));
     }
-
-
 }

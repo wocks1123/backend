@@ -1,9 +1,12 @@
 package com.swygbro.trip.backend.domain.guideProduct.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.swygbro.trip.backend.domain.guideProduct.application.GuideProductService;
 import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
 import com.swygbro.trip.backend.domain.guideProduct.exception.GuideProductNotFoundException;
+import com.swygbro.trip.backend.domain.guideProduct.fixture.CreateGuideProductRequestFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,10 +41,13 @@ public class GuideProductControllerTest {
     @DisplayName("이미지 등록 API")
     @Test
     void createProduct() throws Exception {
-        String title = "test";
-        String description = "test";
-        CreateGuideProductRequest request = new CreateGuideProductRequest(title, description);
-        MockMultipartFile product = new MockMultipartFile("request", "product", "application/json", "{ \"title\": \"Test Title\", \"description\": \"Test Description\"}".getBytes());
+        CreateGuideProductRequest request = CreateGuideProductRequestFixture.getGuideProductRequest();
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        String jsonProduct = mapper.writeValueAsString(request);
+        System.out.println(jsonProduct);
+        MockMultipartFile product = new MockMultipartFile("request", "product", "application/json", jsonProduct.getBytes());
 
         List<MultipartFile> images = new ArrayList<>();
         MockMultipartFile mockMultipartFile1 = new MockMultipartFile("file", "test1.jpg", "image/jpg", "test image1".getBytes());
