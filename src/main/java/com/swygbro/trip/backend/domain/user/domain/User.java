@@ -27,8 +27,8 @@ public class User extends BaseEntity {
     @Column(unique = true, length = 20, nullable = false)
     private String phone;
 
-    @Column(length = 30, nullable = false)
-    private String nationality;
+    @Enumerated(EnumType.STRING)
+    private Nationality nationality;
 
     @Enumerated(EnumType.STRING)
     private Gender gender;
@@ -39,6 +39,9 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private SignUpType signUpType;
 
+    @Enumerated
+    private UserRole userRole;
+
     public User(CreateUserRequest dto, SignUpType signUpType, String encodedPassword) {
         this.email = dto.getEmail();
         this.nickname = dto.getNickname();
@@ -48,6 +51,7 @@ public class User extends BaseEntity {
         this.gender = dto.getGender();
         this.password = encodedPassword;
         this.signUpType = signUpType;
+        this.userRole = UserRole.USER;
     }
 
 }

@@ -34,9 +34,9 @@ public class UserService {
         return createdUser.getEmail();
     }
 
-    public UserProfileDto getUser(String account) {
-        User user = userRepository.findByAccount(account)
-                .orElseThrow(() -> new UserNotFoundException(account));
+    public UserProfileDto getUser(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException(email));
         return new UserProfileDto(user.getEmail());
     }
 

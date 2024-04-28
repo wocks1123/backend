@@ -12,14 +12,18 @@ public class ApiErrorResponse {
     @Schema(title = "에러 메시지", example = "에러가 발생했습니다.")
     private final String message;
 
-    public ApiErrorResponse(HttpStatusCode httpStatus, String message) {
-        this.status = httpStatus;
-        this.message = message;
-    }
-
     public ApiErrorResponse(BaseException ex) {
         status = ex.getHttpStatus();
         message = ex.getMessage();
+    }
+
+    public ApiErrorResponse(HttpStatusCode status, String message) {
+        this.status = status;
+        this.message = message;
+    }
+
+    public static ApiErrorResponse of(HttpStatusCode status, String message) {
+        return new ApiErrorResponse(status, message);
     }
 
     public static ResponseEntity<ApiErrorResponse> toResponseEntity(HttpStatusCode httpStatusCode, String message) {
