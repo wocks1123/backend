@@ -1,5 +1,6 @@
 package com.swygbro.trip.backend.domain.guideProduct.domain;
 
+import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductRequest;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import com.swygbro.trip.backend.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -59,7 +60,6 @@ public class GuideProduct extends BaseEntity {
 
 
     public GuideProduct(User user, String title, String description, Long price, double longitude, double latitude, ZonedDateTime guideStart, ZonedDateTime guideEnd) {
-
         GeometryFactory geometryFactory = new GeometryFactory();
         Point point = geometryFactory.createPoint(new Coordinate(latitude, longitude));
         point.setSRID(4326);
@@ -81,5 +81,28 @@ public class GuideProduct extends BaseEntity {
     public void addGuideCategory(GuideCategory category) {
         this.categories.add(category);
         category.setProduct(this);
+    }
+
+    public void setGuideImage(List<GuideCategoryCode> categoryCodes) {
+        for (int i = 0; i < categoryCodes.size(); i++) {
+            if (i >= this.categories.size()) {
+                GuideCategory category = new GuideCategory(categoryCodes.get(i));
+                category.setProduct(this);
+                this.categories.add(category);
+            } else this.categories.get(i).setCategoryCode(categoryCodes.get(i));
+        }
+    }
+
+    public void setGuideProduct(GuideProductRequest request) {
+        GeometryFactory geometryFactory = new GeometryFactory();
+        Point point = geometryFactory.createPoint(new Coordinate(request.getLatitude(), request.getLongitude()));
+        point.setSRID(4326);
+
+        this.title = request.getTitle();
+        this.description = request.getDescription();
+        this.price = request.getPrice();
+        this.location = point;
+        this.guideStart = request.getGuideStart();
+        this.guideEnd = request.getGuideEnd();
     }
 }

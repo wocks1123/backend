@@ -4,10 +4,12 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
+@Setter(AccessLevel.PACKAGE)
 @Table(name = "guide_image")
 public class GuideImage {
 
@@ -26,7 +28,4 @@ public class GuideImage {
         this.url = url;
     }
 
-    public void setProduct(GuideProduct product) {
-        this.product = product;
-    }
 }

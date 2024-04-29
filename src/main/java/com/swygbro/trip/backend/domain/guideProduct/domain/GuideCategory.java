@@ -1,12 +1,15 @@
 package com.swygbro.trip.backend.domain.guideProduct.domain;
 
 import jakarta.persistence.*;
+import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @NoArgsConstructor
 @Getter
+@Setter(AccessLevel.PACKAGE)
 @Table(name = "guide_category")
 public class GuideCategory {
 
@@ -26,7 +29,4 @@ public class GuideCategory {
         this.categoryCode = code;
     }
 
-    public void setProduct(GuideProduct product) {
-        this.product = product;
-    }
 }

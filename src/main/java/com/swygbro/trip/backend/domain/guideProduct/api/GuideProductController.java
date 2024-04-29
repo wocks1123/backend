@@ -1,8 +1,8 @@
 package com.swygbro.trip.backend.domain.guideProduct.api;
 
 import com.swygbro.trip.backend.domain.guideProduct.application.GuideProductService;
-import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
+import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductRequest;
 import com.swygbro.trip.backend.global.exception.ApiErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -48,7 +48,7 @@ public class GuideProductController {
                     )
             )
     )
-    public GuideProductDto createGuideProduct(@Valid @RequestPart CreateGuideProductRequest request, @RequestPart(value = "file") List<MultipartFile> images) {
+    public GuideProductDto createGuideProduct(@Valid @RequestPart GuideProductRequest request, @RequestPart(value = "file") List<MultipartFile> images) {
         return guideProductService.createGuideProduct(request, images);
     }
 
@@ -77,4 +77,10 @@ public class GuideProductController {
     public GuideProductDto getGuideProduct(@PathVariable Long productId) {
         return guideProductService.getProduct(productId);
     }
+
+    @PutMapping("/{productId}")
+    public GuideProductDto modifyGuideProduct(@PathVariable Long productId, @Valid @RequestBody GuideProductRequest edit) {
+        return guideProductService.modifyGuideProduct(productId, edit);
+    }
+
 }
