@@ -3,12 +3,15 @@ package com.swygbro.trip.backend.domain.reservation.dto;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProduct;
 import com.swygbro.trip.backend.domain.reservation.domain.Reservation;
 import com.swygbro.trip.backend.domain.user.domain.User;
+import com.swygbro.trip.backend.global.status.PayStatus;
+import com.swygbro.trip.backend.global.status.ReservationStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import lombok.Data;
 
 import java.sql.Timestamp;
 
+@Data
 public class SaveReservationRequest {
     @NotNull
     @Schema(description = "가이드 ID", example = "1")
@@ -39,6 +42,8 @@ public class SaveReservationRequest {
                 .personnel(personnel != null ? personnel : null)
                 .message(message != null ? message : null)
                 .price(price != null ? price : null)
+                .paymentStatus(PayStatus.PENDING)
+                .reservationStatus(ReservationStatus.PENDING_CONFIRMATION)
                 .build();
     }
 }
