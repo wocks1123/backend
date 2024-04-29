@@ -37,7 +37,7 @@ public class SaveReservationRequest {
     public Reservation toEntity() {
         return Reservation.builder()
                 .guide(User.builder().id(guideId).build())
-                .productId(GuideProduct.builder().id(productId).build())
+                .product(GuideProduct.builder().id(productId).build())
                 .reservatedAt(reservatedAt != null ? reservatedAt : null)
                 .personnel(personnel != null ? personnel : null)
                 .message(message != null ? message : null)
