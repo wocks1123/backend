@@ -6,7 +6,6 @@ plugins {
 }
 
 group = 'com.swygbro.trip'
-version = '0.0.1-SNAPSHOT'
 
 java {
     sourceCompatibility = '17'
@@ -36,4 +35,10 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+processResources {
+    filesMatching('**/application.properties') {
+        expand(project.properties)
+    }
 }
