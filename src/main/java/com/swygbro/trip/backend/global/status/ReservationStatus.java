@@ -13,4 +13,13 @@ public enum ReservationStatus {
 
     private int code;
     private String status;
+
+    public static ReservationStatus of(int code) {
+        for (ReservationStatus reservationStatus : ReservationStatus.values()) {
+            if (reservationStatus.getCode() == code) {
+                return reservationStatus;
+            }
+        }
+        throw new IllegalArgumentException("Unknown code: " + code);
+    }
 }

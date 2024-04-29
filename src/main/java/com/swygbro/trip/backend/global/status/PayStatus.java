@@ -12,4 +12,13 @@ public enum PayStatus {
 
     private int code;
     private String status;
+
+    public static PayStatus of(int code) {
+        for (PayStatus payStatus : PayStatus.values()) {
+            if (payStatus.getCode() == code) {
+                return payStatus;
+            }
+        }
+        throw new IllegalArgumentException("Unknown code: " + code);
+    }
 }
