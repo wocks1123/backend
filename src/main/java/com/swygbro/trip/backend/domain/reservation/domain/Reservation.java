@@ -11,11 +11,10 @@ import com.swygbro.trip.backend.global.status.ReservationStatusConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.UUID;
 
 
 @Entity
@@ -65,6 +64,8 @@ public class Reservation extends BaseEntity {
 
     private Timestamp paidAt;
 
+    private Timestamp cancelledAt;
+
     public void UpdatePaymentReservation(SavePaymentRequest savePaymentRequest) {
         this.impUid = savePaymentRequest.getImpUid();
         this.paidAt = new Timestamp(savePaymentRequest.getPaidAt() * 1000);
@@ -83,33 +84,19 @@ public class Reservation extends BaseEntity {
         this.reservationStatus = ReservationStatus.SETTLED;
     }
 
-    public void refundPayment() {
+    public void refundPayment(Date cancelledAt) {
         this.paymentStatus = PayStatus.REFUNDED;
+        this.cancelledAt = new Timestamp(cancelledAt.getTime());
     }
 
     public void generateMerchantUid() {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyMMddHHmmss-");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyyMMdd-");
         String prefix = dateFormat.format(new Date());
 
-        try {
-            String number = this.client.getId().toString() + this.product.getId();
-            // 숫자를 바이트 배열로 변환하여 해시 함수에 전달
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] encodedHash = digest.digest(number.getBytes());
+        UUID uuid = UUID.randomUUID();
+        String suffix = uuid.toString().substring(0, 6);
 
-            // 해시를 16진수 문자열로 변환
-            StringBuilder hexString = new StringBuilder();
-            for (byte b : encodedHash) {
-                String hex = Integer.toHexString(0xff & b);
-                if (hex.length() == 1) hexString.append('0');
-                hexString.append(hex);
-            }
-
-            this.merchantUid = prefix + hexString.toString();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-            this.merchantUid = null;
-        }
+        this.merchantUid = prefix + suffix;
     }
 
 }

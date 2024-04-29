@@ -1,14 +1,16 @@
 package com.swygbro.trip.backend.domain.reservation.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 import lombok.Data;
 
 import java.sql.Timestamp;
 
 @Data
+@Builder
 public class SavePaymentRequest {
     @Schema(description = "상품 ID", example = "1")
-    Long merchantUid;
+    String merchantUid;
 
     @Schema(description = "결제 상품 ID", example = "1")
     Long productId;

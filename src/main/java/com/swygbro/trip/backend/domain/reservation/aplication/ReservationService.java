@@ -10,11 +10,10 @@ import com.swygbro.trip.backend.domain.reservation.dto.ReservationDto;
 import com.swygbro.trip.backend.domain.reservation.dto.SavePaymentRequest;
 import com.swygbro.trip.backend.domain.reservation.dto.SaveReservationRequest;
 import com.swygbro.trip.backend.domain.reservation.exception.ReservationNotFoundException;
-import com.swygbro.trip.backend.global.status.ReservationStatus;
 import com.swygbro.trip.backend.global.status.PayStatus;
+import com.swygbro.trip.backend.global.status.ReservationStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,13 +23,33 @@ import java.util.List;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional
 public class ReservationService {
 
     private final IamportClient iamportClient;
     private final ReservationRepository reservationRepository;
 
     /**
+     * 예약 정보 저장
+     *
+     * @param reservation
+     * @return TODO: LOGIN USER ID 추가
+     */
+    public String saveReservation(SaveReservationRequest reservation) {
+        try {
+            Reservation entity = reservation.toEntity();
+            entity.generateMerchantUid();
+            Reservation save = reservationRepository.save(entity);
+            return save.getMerchantUid();
+        } catch (Exception e) {
+            log.info(e.getMessage());
+            return "예약 정보 저장에 실패했습니다.";
+        }
+    }
+
+    /**
      * 아임포트 서버로부터 결제 정보를 검증
+     *
      * @param imp_uid
      */
     public IamportResponse<Payment> validateIamport(String imp_uid) {
@@ -47,6 +66,7 @@ public class ReservationService {
 
     /**
      * 아임포트 서버로부터 결제 취소 요청
+     *
      * @param imp_uid
      * @return
      */
@@ -61,43 +81,32 @@ public class ReservationService {
     }
 
     /**
-     * 주문 정보 저장
+     * 결제 정보 저장
+     *
      * @param request
      * @return
      */
-    public String updatePaymentReservation(SavePaymentRequest request) {
+    public String savePayment(SavePaymentRequest request) {
         try {
-            Reservation reservation = reservationRepository.findById(request.getMerchantUid())
-                    .orElseThrow(ChangeSetPersister.NotFoundException::new);
+            Reservation reservation = reservationRepository.findByMerchantUid(request.getMerchantUid());
+
+            if (reservation == null) {
+                throw new ReservationNotFoundException(request.getMerchantUid());
+            }
+
             reservation.UpdatePaymentReservation(request);
             reservationRepository.save(reservation);
-            return "주문 정보가 성공적으로 저장되었습니다.";
+            return "결제 정보가 성공적으로 저장되었습니다.";
         } catch (Exception e) {
             log.info(e.getMessage());
             cancelPayment(request.getImpUid());
-            return "주문 정보 저장에 실패했습니다.";
-        }
-    }
-
-    /**
-     * 예약 정보 저장
-     * @param reservation
-     * @return
-     */
-    public String saveReservation(SaveReservationRequest reservation) {
-        try {
-            Reservation entity = reservation.toEntity();
-            entity.generateMerchantUid();
-            Reservation save = reservationRepository.save(entity);
-            return save.getMerchantUid();
-        } catch (Exception e) {
-            log.info(e.getMessage());
-            return "예약 정보 저장에 실패했습니다.";
+            return "결제 정보 저장에 실패했습니다.";
         }
     }
 
     /**
      * 예약 취소
+     *
      * @param merchant_uid
      * @return
      */
@@ -116,10 +125,10 @@ public class ReservationService {
 
             reservation.cancelReservation();
             IamportResponse<Payment> paymentIamportResponse = cancelPayment(reservation.getImpUid());
-            reservation.refundPayment();
+            reservation.refundPayment(paymentIamportResponse.getResponse().getCancelledAt());
 
             reservationRepository.save(reservation);
-            return paymentIamportResponse.getMessage();
+            return "취소 및 환불이 완료되었습니다.";
         } catch (Exception e) {
             log.info(e.getMessage());
             return null;
@@ -139,6 +148,7 @@ public class ReservationService {
         return reservationDtos;
     }
 
+    //TODO: LOGIN USER ID 검증 추가
     public ReservationDto getReservation(String merchant_uid) {
         Reservation reservation = reservationRepository.findByMerchantUid(merchant_uid);
         if (reservation == null) {

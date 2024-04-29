@@ -89,7 +89,7 @@ public class ReservationController {
     public ResponseEntity<String> processOrder(@RequestBody SavePaymentRequest orderDto) {
         try {
             log.info("Received orders: {}", orderDto.toString());
-            return ResponseEntity.ok(reservationService.updatePaymentReservation(orderDto));
+            return ResponseEntity.ok(reservationService.savePayment(orderDto));
         } catch (Exception e) {
             log.info("Failed to receive orders: {}", orderDto.toString());
             return ResponseEntity.badRequest().body("결제 정보 저장에 실패했습니다.");
