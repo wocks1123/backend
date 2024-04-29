@@ -38,3 +38,5 @@ out/
 
 application-dev.properties
 /src/main/resources/application-local.yml
+
+.env
