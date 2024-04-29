@@ -171,7 +171,7 @@ class ReservationServiceTest {
                 .personnel(1)
                 .message("두 번째 예약")
                 .price(15000)
-                .paymentStatus(PayStadtus.COMPLETE)
+                .paymentStatus(PayStatus.COMPLETE)
                 .reservationStatus(ReservationStatus.RESERVED)
                 .merchantUid("merchant_uid_3")
                 .impUid("imp_uid_3")
