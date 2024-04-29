@@ -74,7 +74,7 @@ public class GuideProductController {
                     )
             )
     )
-    public GuideProductDto getGuideProduct(@PathVariable int productId) {
+    public GuideProductDto getGuideProduct(@PathVariable Long productId) {
         return guideProductService.getProduct(productId);
     }
 }

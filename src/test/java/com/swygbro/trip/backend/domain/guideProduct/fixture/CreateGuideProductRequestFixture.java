@@ -1,7 +1,7 @@
 package com.swygbro.trip.backend.domain.guideProduct.fixture;
 
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideCategoryCode;
-import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductRequest;
+import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductRequest;
 
 import java.time.Year;
 import java.time.ZoneId;
@@ -10,12 +10,12 @@ import java.util.List;
 
 public class CreateGuideProductRequestFixture {
 
-    public static CreateGuideProductRequest getGuideProductRequest() {
+    public static GuideProductRequest getGuideProductRequest() {
         List<GuideCategoryCode> categories = new ArrayList<>();
         categories.add(GuideCategoryCode.C1);
         categories.add(GuideCategoryCode.C2);
 
-        return new CreateGuideProductRequest(
+        return new GuideProductRequest(
                 "account1",
                 "test title",
                 "test description",

@@ -51,7 +51,7 @@ public class GuideProductService {
     // TODO: fetch join 사용으로 쿼리문 단축
     // 가이드 상품 조회
     @Transactional(readOnly = true)
-    public GuideProductDto getProduct(int productId) {
+    public GuideProductDto getProduct(Long productId) {
         GuideProduct product = guideProductRepository.findById(productId).orElseThrow(() -> new GuideProductNotFoundException(productId));
 
         return GuideProductDto.fromEntity(product);
@@ -64,7 +64,7 @@ public class GuideProductService {
 
     // 가이드 위치 유효한지 검사
     private void isValidLocation(double longitude, double latitude) throws NotValidLocationException {
-        if (longitude < -180 || longitude > 180 || latitude < -90 || latitude > 90)
+        if (longitude < -90 || longitude > 90 || latitude < -180 || latitude > 180)
             throw new NotValidLocationException();
     }
 }

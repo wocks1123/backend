@@ -1,5 +1,6 @@
 package com.swygbro.trip.backend.domain.guideProduct.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideCategory;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideCategoryCode;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProduct;
@@ -7,7 +8,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import org.locationtech.jts.geom.Point;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -16,15 +16,18 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GuideProductDto {
-    private int id;
+    private Long id;
     private String account;
     @Schema(description = "상품 제목", example = "신나는 서울 투어")
     private String title;
     @Schema(description = "상품 설명", example = "서울 *** 여행 가이드 합니다.")
     private String description;
     private Long price;
-    private Point location;
+    private double longitude;
+    private double latitude;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private ZonedDateTime guideStart;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private ZonedDateTime guideEnd;
     private List<GuideCategoryCode> categories;
     @Schema(description = "상품 이미지")
@@ -40,7 +43,8 @@ public class GuideProductDto {
                 product.getTitle(),
                 product.getDescription(),
                 product.getPrice(),
-                product.getLocation(),
+                product.getLocation().getY(),
+                product.getLocation().getX(),
                 product.getGuideStart(),
                 product.getGuideEnd(),
                 categories,

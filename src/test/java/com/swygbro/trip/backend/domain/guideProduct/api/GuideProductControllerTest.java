@@ -3,8 +3,8 @@ package com.swygbro.trip.backend.domain.guideProduct.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.swygbro.trip.backend.domain.guideProduct.application.GuideProductService;
-import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
+import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.exception.GuideProductNotFoundException;
 import com.swygbro.trip.backend.domain.guideProduct.fixture.CreateGuideProductRequestFixture;
 import org.junit.jupiter.api.DisplayName;
@@ -41,7 +41,7 @@ public class GuideProductControllerTest {
     @DisplayName("이미지 등록 API")
     @Test
     void createProduct() throws Exception {
-        CreateGuideProductRequest request = CreateGuideProductRequestFixture.getGuideProductRequest();
+        GuideProductRequest request = CreateGuideProductRequestFixture.getGuideProductRequest();
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
@@ -70,7 +70,7 @@ public class GuideProductControllerTest {
     @DisplayName("상품 조회 API")
     @Test
     void getProduct() throws Exception {
-        int productId = 1;
+        Long productId = 1L;
 
         given(guideProductService.getProduct(productId)).willReturn(new GuideProductDto());
 
@@ -85,7 +85,7 @@ public class GuideProductControllerTest {
     @DisplayName("상품 조회 API 실패")
     @Test
     void getProduct_fail() throws Exception {
-        int productId = 1;
+        Long productId = 1L;
 
         doThrow(new GuideProductNotFoundException(productId)).when(guideProductService).getProduct(productId);
 

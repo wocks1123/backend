@@ -27,7 +27,7 @@ public class GuideProduct extends BaseEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Long id;
 
     @ManyToOne
     @JoinColumn(name = "host_id")
@@ -42,7 +42,7 @@ public class GuideProduct extends BaseEntity {
     @Column(nullable = false)
     private Long price;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "POINT SRID 4326")
     private Point location;
 
     @Column(name = "guide_start", nullable = false)

@@ -5,8 +5,8 @@ import com.swygbro.trip.backend.domain.guideProduct.domain.GuideCategory;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideImage;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProduct;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProductRepository;
-import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
+import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.exception.GuideProductNotFoundException;
 import com.swygbro.trip.backend.domain.guideProduct.fixture.CreateGuideProductRequestFixture;
 import com.swygbro.trip.backend.domain.guideProduct.fixture.GuideProductFixture;
@@ -49,7 +49,7 @@ public class GuideProductServiceTest {
     @Test
     void createProduct() {
         // given
-        CreateGuideProductRequest request = CreateGuideProductRequestFixture.getGuideProductRequest();
+        GuideProductRequest request = CreateGuideProductRequestFixture.getGuideProductRequest();
         User user = new User(request.getAccount(), "email", "password");
 
         List<MultipartFile> images = new ArrayList<>();
@@ -82,8 +82,8 @@ public class GuideProductServiceTest {
         assertThat(result.getTitle()).isEqualTo(product.getTitle());
         assertThat(result.getDescription()).isEqualTo(product.getDescription());
         assertThat(result.getPrice()).isEqualTo(product.getPrice());
-        assertThat(result.getLocation().getX()).isEqualTo(product.getLocation().getX());
-        assertThat(result.getLocation().getY()).isEqualTo(product.getLocation().getY());
+        assertThat(result.getLatitude()).isEqualTo(product.getLocation().getX());
+        assertThat(result.getLongitude()).isEqualTo(product.getLocation().getY());
         assertThat(result.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))).isEqualTo(product.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
         assertThat(result.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))).isEqualTo(product.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
         assertThat(result.getCategories().get(0).name()).isEqualTo(product.getCategories().get(0).getCategoryCode().name());
@@ -94,7 +94,7 @@ public class GuideProductServiceTest {
     @Test
     void getProduct() {
         // given
-        int productId = 1;
+        Long productId = 1L;
 
         GuideProduct product = GuideProductFixture.getGuideProduct();
         given(guideProductRepository.findById(productId)).willReturn(Optional.of(product));
@@ -107,8 +107,8 @@ public class GuideProductServiceTest {
         assertThat(result.getTitle()).isEqualTo(product.getTitle());
         assertThat(result.getDescription()).isEqualTo(product.getDescription());
         assertThat(result.getPrice()).isEqualTo(product.getPrice());
-        assertThat(result.getLocation().getX()).isEqualTo(product.getLocation().getX());
-        assertThat(result.getLocation().getY()).isEqualTo(product.getLocation().getY());
+        assertThat(result.getLatitude()).isEqualTo(product.getLocation().getX());
+        assertThat(result.getLongitude()).isEqualTo(product.getLocation().getY());
         assertThat(result.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))).isEqualTo(product.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
         assertThat(result.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))).isEqualTo(product.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
         assertThat(result.getCategories().get(0).name()).isEqualTo(product.getCategories().get(0).getCategoryCode().name());
@@ -119,7 +119,7 @@ public class GuideProductServiceTest {
     @Test
     void getProduct_fail() {
         // given
-        int productId = 1;
+        Long productId = 1L;
 
         given(guideProductRepository.findById(productId)).willReturn(Optional.empty());
 
