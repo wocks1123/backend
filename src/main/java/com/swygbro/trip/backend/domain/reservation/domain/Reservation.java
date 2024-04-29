@@ -38,7 +38,7 @@ public class Reservation extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "product_id")
-    private GuideProduct productId;
+    private GuideProduct product;
 
     @Column(nullable = false)
     private Timestamp reservatedAt;
@@ -92,7 +92,7 @@ public class Reservation extends BaseEntity {
         String prefix = dateFormat.format(new Date());
 
         try {
-            String number = this.client.getId().toString() + this.productId.getId();
+            String number = this.client.getId().toString() + this.product.getId();
             // 숫자를 바이트 배열로 변환하여 해시 함수에 전달
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] encodedHash = digest.digest(number.getBytes());

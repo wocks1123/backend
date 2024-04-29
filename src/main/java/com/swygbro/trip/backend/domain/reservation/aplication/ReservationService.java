@@ -18,6 +18,7 @@ import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -127,12 +128,22 @@ public class ReservationService {
 
     //TODO: LOGIN USER ID 로 교체
     public List<ReservationDto> getReservationList() {
-        List<Reservation> byClientId = reservationRepository.findByClientId(1L);
+        List<Reservation> reservations = reservationRepository.findByClientId(1L);
+        List<ReservationDto> reservationDtos = new ArrayList<>();
 
+        reservations.forEach(reservation -> {
+            ReservationDto reservationDto = new ReservationDto().fromEntity(reservation);
+            reservationDtos.add(reservationDto);
+        });
 
+        return reservationDtos;
     }
 
     public ReservationDto getReservation(String merchant_uid) {
-        return null;
+        Reservation reservation = reservationRepository.findByMerchantUid(merchant_uid);
+        if (reservation == null) {
+            throw new ReservationNotFoundException(merchant_uid);
+        }
+        return new ReservationDto().fromEntity(reservation);
     }
 }
