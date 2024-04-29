@@ -48,7 +48,7 @@ public class ReservationDto {
     @Schema(description = "예약 상태", example = "RESERVED")
     private ReservationStatus reservationStatus;
 
-    @Schema(description = "주문 번호", example = "20240429000001-a490f2e0c5b6")
+    @Schema(description = "주문 번호", example = "20240429-ad5eea")
     private String merchantUid;
 
 
