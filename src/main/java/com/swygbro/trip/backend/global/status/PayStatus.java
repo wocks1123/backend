@@ -3,12 +3,13 @@ package com.swygbro.trip.backend.global.status;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
-@Getter
 @AllArgsConstructor
+@Getter
 public enum PayStatus {
-    PENDING("결제대기"),
-    COMPLETE("결제완료"),
-    REFUNDED("결제취소");
+    PENDING(0, "결제대기"),
+    COMPLETE(1, "결제완료"),
+    REFUNDED(2, "결제취소");
 
+    private int code;
     private String status;
 }

@@ -5,12 +5,17 @@ import com.swygbro.trip.backend.domain.reservation.dto.SavePaymentRequest;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import com.swygbro.trip.backend.global.entity.BaseEntity;
 import com.swygbro.trip.backend.global.status.PayStatus;
+import com.swygbro.trip.backend.global.status.PayStatusConverter;
 import com.swygbro.trip.backend.global.status.ReservationStatus;
+import com.swygbro.trip.backend.global.status.ReservationStatusConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Timestamp;
-import java.time.ZonedDateTime;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 
 @Entity
@@ -25,17 +30,14 @@ public class Reservation extends BaseEntity {
 
     @ManyToOne
     @JoinColumn(name = "client_id")
-    @Column(nullable = false)
     private User client;
 
     @ManyToOne
     @JoinColumn(name = "guide_id")
-    @Column(nullable = false)
     private User guide;
 
     @ManyToOne
     @JoinColumn(name = "product_id")
-    @Column(nullable = false)
     private GuideProduct productId;
 
     @Column(nullable = false)
@@ -50,10 +52,14 @@ public class Reservation extends BaseEntity {
     private Integer price;
 
     @Column(nullable = false)
+    @Convert(converter = PayStatusConverter.class)
     private PayStatus paymentStatus;
 
     @Column(nullable = false)
+    @Convert(converter = ReservationStatusConverter.class)
     private ReservationStatus reservationStatus;
+
+    private String merchantUid;
 
     private String impUid;
 
@@ -79,6 +85,31 @@ public class Reservation extends BaseEntity {
 
     public void refundPayment() {
         this.paymentStatus = PayStatus.REFUNDED;
+    }
+
+    public void generateMerchantUid() {
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyMMddHHmmss-");
+        String prefix = dateFormat.format(new Date());
+
+        try {
+            String number = this.client.getId().toString() + this.productId.getId();
+            // 숫자를 바이트 배열로 변환하여 해시 함수에 전달
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] encodedHash = digest.digest(number.getBytes());
+
+            // 해시를 16진수 문자열로 변환
+            StringBuilder hexString = new StringBuilder();
+            for (byte b : encodedHash) {
+                String hex = Integer.toHexString(0xff & b);
+                if (hex.length() == 1) hexString.append('0');
+                hexString.append(hex);
+            }
+
+            this.merchantUid = prefix + hexString.toString();
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            this.merchantUid = null;
+        }
     }
 
 }
