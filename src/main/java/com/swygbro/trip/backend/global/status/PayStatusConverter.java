@@ -7,18 +7,18 @@ import jakarta.persistence.Converter;
 import java.util.Objects;
 
 @Converter
-public class PayStatusConverter implements AttributeConverter<PayStatus, String> {
+public class PayStatusConverter implements AttributeConverter<PayStatus, Integer> {
     @Override
-    public String convertToDatabaseColumn(PayStatus attribute) {
-        if (Objects.isNull(attribute)){
-            throw new NullPointerException("PayStatus is null");
-        }
-
-        return attribute.toString();
+    public Integer convertToDatabaseColumn(PayStatus attribute) {
+        return attribute.getCode();
     }
 
     @Override
-    public PayStatus convertToEntityAttribute(String dbData) {
-        return PayStatus.valueOf(dbData);
+    public PayStatus convertToEntityAttribute(Integer dbData) {
+        if (Objects.isNull(dbData)) {
+            return null;
+        }
+
+        return PayStatus.of(dbData);
     }
 }
