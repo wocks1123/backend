@@ -83,4 +83,10 @@ public class GuideProductController {
         return guideProductService.modifyGuideProduct(productId, edit);
     }
 
+    @DeleteMapping("/{productId}")
+    public String deleteGuideProduct(@PathVariable Long productId) {
+        guideProductService.deleteGuideProduct(productId);
+
+        return "삭제에 성공했습니다.";
+    }
 }

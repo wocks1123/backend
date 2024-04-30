@@ -72,6 +72,12 @@ public class GuideProductService {
         return GuideProductDto.fromEntity(resultProduct);
     }
 
+    // 가이드 상품 삭제
+    @Transactional
+    public void deleteGuideProduct(Long productId) {
+        guideProductRepository.deleteById(productId);
+    }
+
     // 가이드 상품 생성 시 필요한 호스트 정보 불러오가
     private User getUser(String account) {
         return userRepository.findByAccount(account).orElseThrow(() -> new UserNotFoundException(account));
@@ -82,5 +88,4 @@ public class GuideProductService {
         if (longitude < -90 || longitude > 90 || latitude < -180 || latitude > 180)
             throw new NotValidLocationException();
     }
-
 }
