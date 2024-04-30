@@ -1,6 +1,7 @@
 package com.swygbro.trip.backend.domain.reservation.aplication;
 
 import com.siot.IamportRestClient.IamportClient;
+import com.siot.IamportRestClient.exception.IamportResponseException;
 import com.siot.IamportRestClient.request.CancelData;
 import com.siot.IamportRestClient.response.IamportResponse;
 import com.siot.IamportRestClient.response.Payment;
@@ -9,14 +10,18 @@ import com.swygbro.trip.backend.domain.reservation.domain.ReservationRepository;
 import com.swygbro.trip.backend.domain.reservation.dto.ReservationDto;
 import com.swygbro.trip.backend.domain.reservation.dto.SavePaymentRequest;
 import com.swygbro.trip.backend.domain.reservation.dto.SaveReservationRequest;
+import com.swygbro.trip.backend.domain.reservation.exception.DuplicateCancelReservationException;
+import com.swygbro.trip.backend.domain.reservation.exception.ForeignKeyConstraintViolationException;
 import com.swygbro.trip.backend.domain.reservation.exception.ReservationNotFoundException;
 import com.swygbro.trip.backend.global.status.PayStatus;
 import com.swygbro.trip.backend.global.status.ReservationStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,6 +46,9 @@ public class ReservationService {
             entity.generateMerchantUid();
             Reservation save = reservationRepository.save(entity);
             return save.getMerchantUid();
+        } catch (DataIntegrityViolationException e) {
+            log.info(e.getMessage());
+            throw new ForeignKeyConstraintViolationException("GuideProduct or User");
         } catch (Exception e) {
             log.info(e.getMessage());
             return "예약 정보 저장에 실패했습니다.";
@@ -52,16 +60,10 @@ public class ReservationService {
      *
      * @param imp_uid
      */
-    public IamportResponse<Payment> validateIamport(String imp_uid) {
-
-        try {
-            IamportResponse<Payment> payment = iamportClient.paymentByImpUid(imp_uid);
-            log.info("결제 요청 응답. 결제 내역 - 주문 번호: {}", payment.getResponse());
-            return payment;
-        } catch (Exception e) {
-            log.info(e.getMessage());
-            return null;
-        }
+    public IamportResponse<Payment> validateIamport(String imp_uid) throws IamportResponseException, IOException {
+        IamportResponse<Payment> payment = iamportClient.paymentByImpUid(imp_uid);
+        log.info("결제 요청 응답. 결제 내역 - 주문 번호: {}", payment.getResponse());
+        return payment;
     }
 
     /**
@@ -70,14 +72,9 @@ public class ReservationService {
      * @param imp_uid
      * @return
      */
-    public IamportResponse<Payment> cancelPayment(String imp_uid) {
-        try {
-            CancelData cancelData = new CancelData(imp_uid, true);
-            return iamportClient.cancelPaymentByImpUid(cancelData);
-        } catch (Exception e) {
-            log.info(e.getMessage());
-            return null;
-        }
+    public IamportResponse<Payment> cancelPayment(String imp_uid) throws IamportResponseException, IOException {
+        CancelData cancelData = new CancelData(imp_uid, true);
+        return iamportClient.cancelPaymentByImpUid(cancelData);
     }
 
     /**
@@ -86,7 +83,7 @@ public class ReservationService {
      * @param request
      * @return
      */
-    public String savePayment(SavePaymentRequest request) {
+    public ReservationDto savePayment(SavePaymentRequest request) throws IamportResponseException, IOException {
         try {
             Reservation reservation = reservationRepository.findByMerchantUid(request.getMerchantUid());
 
@@ -96,11 +93,11 @@ public class ReservationService {
 
             reservation.UpdatePaymentReservation(request);
             reservationRepository.save(reservation);
-            return "결제 정보가 성공적으로 저장되었습니다.";
+            return new ReservationDto().fromEntity(reservation);
         } catch (Exception e) {
             log.info(e.getMessage());
             cancelPayment(request.getImpUid());
-            return "결제 정보 저장에 실패했습니다.";
+            return null;
         }
     }
 
@@ -110,8 +107,7 @@ public class ReservationService {
      * @param merchant_uid
      * @return
      */
-    @Transactional
-    public String cancelReservation(String merchant_uid) {
+    public ReservationDto cancelReservation(String merchant_uid) {
         try {
             Reservation reservation = reservationRepository.findByMerchantUid(merchant_uid);
 
@@ -120,7 +116,7 @@ public class ReservationService {
             }
 
             if ((reservation.getReservatedAt().equals(ReservationStatus.CANCELLED)) && (reservation.getPaymentStatus().equals(PayStatus.REFUNDED))) {
-                return "이미 취소된 예약입니다.";
+                throw new DuplicateCancelReservationException(merchant_uid);
             }
 
             reservation.cancelReservation();
@@ -128,7 +124,7 @@ public class ReservationService {
             reservation.refundPayment(paymentIamportResponse.getResponse().getCancelledAt());
 
             reservationRepository.save(reservation);
-            return "취소 및 환불이 완료되었습니다.";
+            return new ReservationDto().fromEntity(reservation);
         } catch (Exception e) {
             log.info(e.getMessage());
             return null;
@@ -154,6 +150,16 @@ public class ReservationService {
         if (reservation == null) {
             throw new ReservationNotFoundException(merchant_uid);
         }
+        return new ReservationDto().fromEntity(reservation);
+    }
+
+    public ReservationDto confirmReservation(String merchantUid) {
+        Reservation reservation = reservationRepository.findByMerchantUid(merchantUid);
+        if (reservation == null) {
+            throw new ReservationNotFoundException(merchantUid);
+        }
+        reservation.confirmReservation();
+        reservationRepository.save(reservation);
         return new ReservationDto().fromEntity(reservation);
     }
 }
