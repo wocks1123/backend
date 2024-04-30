@@ -8,8 +8,9 @@ import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProductRepositor
 import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
 import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.exception.GuideProductNotFoundException;
-import com.swygbro.trip.backend.domain.guideProduct.fixture.CreateGuideProductRequestFixture;
+import com.swygbro.trip.backend.domain.guideProduct.exception.MismatchUserFromCreatorException;
 import com.swygbro.trip.backend.domain.guideProduct.fixture.GuideProductFixture;
+import com.swygbro.trip.backend.domain.guideProduct.fixture.GuideProductRequestFixture;
 import com.swygbro.trip.backend.domain.s3.application.S3Service;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import com.swygbro.trip.backend.domain.user.domain.UserRepository;
@@ -49,8 +50,9 @@ public class GuideProductServiceTest {
     @Test
     void createProduct() {
         // given
-        GuideProductRequest request = CreateGuideProductRequestFixture.getGuideProductRequest();
-        User user = new User(request.getAccount(), "email", "password");
+        GuideProductRequest request = GuideProductRequestFixture.getGuideProductRequest();
+        GuideProduct product = GuideProductFixture.getGuideProduct();
+        User user = product.getUser();
 
         List<MultipartFile> images = new ArrayList<>();
         MockMultipartFile mockMultipartFile1 = new MockMultipartFile("image1", "test1.jpg", "image/jpg", "test image1".getBytes());
@@ -59,9 +61,6 @@ public class GuideProductServiceTest {
         images.add(mockMultipartFile2);
 
         given(userRepository.findByAccount(any())).willReturn(Optional.of(user));
-
-        GuideProduct product = new GuideProduct(user, request.getTitle(), request.getDescription(), request.getPrice(),
-                request.getLongitude(), request.getLatitude(), request.getGuideStart(), request.getGuideEnd());
 
         images.forEach(image -> {
             given(s3Service.uploadImage(image)).willReturn("test utl");
@@ -131,5 +130,54 @@ public class GuideProductServiceTest {
         // then
         assertThat(throwable).isInstanceOf(GuideProductNotFoundException.class)
                 .hasMessage("해당 (%s) 가이드 상품을 찾을 수 없습니다.".formatted(productId));
+    }
+
+    @DisplayName("상품 내용 수정 성공")
+    @Test
+    void modifyProduct() {
+        // given
+        GuideProductRequest edit = GuideProductRequestFixture.getGuideProductRequest();
+        edit.setTitle("modify title");
+        edit.setDescription("modify description");
+        GuideProduct product = GuideProductFixture.getGuideProduct();
+        User user = product.getUser();
+
+        given(guideProductRepository.findById(any())).willReturn(Optional.of(product));
+        given(userRepository.findByAccount(any())).willReturn(Optional.of(user));
+
+        product.setGuideProduct(edit);
+        product.setGuideCategory(edit.getCategories());
+        given(guideProductRepository.saveAndFlush(any())).willReturn(product);
+
+        // when
+        GuideProductDto result = guideProductService.modifyGuideProduct(product.getId(), edit);
+
+        // then
+        assertThat(result.getTitle()).isEqualTo(product.getTitle());
+        assertThat(result.getDescription()).isEqualTo(product.getDescription());
+        assertThat(result.getCategories().get(0)).isEqualTo(product.getCategories().get(0).getCategoryCode());
+    }
+
+    @DisplayName("상품 내용 수정시 권한 없음")
+    @Test
+    void modifyProduct_unauthorized() {
+        // given
+        GuideProductRequest edit = GuideProductRequestFixture.getGuideProductRequest();
+        edit.setTitle("modify title");
+        edit.setDescription("modify description");
+        GuideProduct product = GuideProductFixture.getGuideProduct();
+        User user = new User("wrong_account", "testemail", "testpassword");
+
+        given(guideProductRepository.findById(any())).willReturn(Optional.of(product));
+        given(userRepository.findByAccount(any())).willReturn(Optional.of(user));
+
+        // when
+        Throwable throwable = catchThrowable(() -> {
+            guideProductService.modifyGuideProduct(product.getId(), edit);
+        });
+
+        // then
+        assertThat(throwable).isInstanceOf(MismatchUserFromCreatorException.class);
+        assertThat(throwable).hasMessage("가이드 상품을 수정할 권한이 없습니다.");
     }
 }

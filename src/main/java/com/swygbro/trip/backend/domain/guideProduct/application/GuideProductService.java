@@ -66,7 +66,7 @@ public class GuideProductService {
 
         if (product.getUser() != user) throw new MismatchUserFromCreatorException();
         product.setGuideProduct(edits);
-        product.setGuideImage(edits.getCategories());
+        product.setGuideCategory(edits.getCategories());
 
         GuideProduct resultProduct = guideProductRepository.saveAndFlush(product);
         return GuideProductDto.fromEntity(resultProduct);

@@ -3,10 +3,13 @@ package com.swygbro.trip.backend.domain.guideProduct.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.swygbro.trip.backend.domain.guideProduct.application.GuideProductService;
+import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProduct;
 import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
 import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.exception.GuideProductNotFoundException;
-import com.swygbro.trip.backend.domain.guideProduct.fixture.CreateGuideProductRequestFixture;
+import com.swygbro.trip.backend.domain.guideProduct.exception.MismatchUserFromCreatorException;
+import com.swygbro.trip.backend.domain.guideProduct.fixture.GuideProductFixture;
+import com.swygbro.trip.backend.domain.guideProduct.fixture.GuideProductRequestFixture;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +25,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.doThrow;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -41,12 +44,11 @@ public class GuideProductControllerTest {
     @DisplayName("이미지 등록 API")
     @Test
     void createProduct() throws Exception {
-        GuideProductRequest request = CreateGuideProductRequestFixture.getGuideProductRequest();
+        GuideProductRequest request = GuideProductRequestFixture.getGuideProductRequest();
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerModule(new JavaTimeModule());
         String jsonProduct = mapper.writeValueAsString(request);
-        System.out.println(jsonProduct);
         MockMultipartFile product = new MockMultipartFile("request", "product", "application/json", jsonProduct.getBytes());
 
         List<MultipartFile> images = new ArrayList<>();
@@ -94,5 +96,52 @@ public class GuideProductControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().is4xxClientError())
                 .andReturn();
+    }
+
+    @DisplayName("상품 수정 API")
+    @Test
+    void modifyProduct() throws Exception {
+        long productId = 1L;
+        GuideProductRequest edit = GuideProductRequestFixture.getGuideProductRequest();
+        edit.setTitle("modify title");
+        edit.setDescription("modify description");
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        String body = mapper.writeValueAsString(edit);
+        GuideProduct product = GuideProductFixture.getGuideProduct();
+
+        given(guideProductService.modifyGuideProduct(productId, edit)).willReturn(GuideProductDto.fromEntity(product));
+
+        mockMvc.perform(
+                        put("/api/v1/products/" + productId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andReturn();
+
+        verify(guideProductService, times(1)).modifyGuideProduct(productId, edit);
+        verifyNoMoreInteractions(guideProductService);
+    }
+
+    @DisplayName("상품 수정 시 권한이 없는 경우 수정 실패")
+    @Test
+    void modifyProduct_unauthorized() throws Exception {
+        long productId = 1L;
+        GuideProductRequest edit = GuideProductRequestFixture.getGuideProductRequest();
+        edit.setTitle("modify title");
+        edit.setDescription("modify description");
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        String body = mapper.writeValueAsString(edit);
+
+        doThrow(new MismatchUserFromCreatorException()).when(guideProductService).modifyGuideProduct(productId, edit);
+
+        mockMvc.perform(
+                        put("/api/v1/products/" + productId)
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body))
+                .andDo(print())
+                .andExpect(status().isUnauthorized());
     }
 }

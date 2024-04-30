@@ -8,7 +8,7 @@ import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CreateGuideProductRequestFixture {
+public class GuideProductRequestFixture {
 
     public static GuideProductRequest getGuideProductRequest() {
         List<GuideCategoryCode> categories = new ArrayList<>();
@@ -20,8 +20,8 @@ public class CreateGuideProductRequestFixture {
                 "test title",
                 "test description",
                 20000L,
-                100.1,
                 50.2,
+                100.1,
                 Year.of(2024).atMonth(4).atDay(28).atTime(23, 0).atZone(ZoneId.of("Asia/Seoul")),
                 Year.of(2024).atMonth(4).atDay(28).atTime(23, 0).atZone(ZoneId.of("Asia/Seoul")),
                 categories

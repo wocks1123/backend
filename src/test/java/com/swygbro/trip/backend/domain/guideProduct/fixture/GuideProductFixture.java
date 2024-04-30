@@ -22,12 +22,13 @@ public class GuideProductFixture {
         images.add(new GuideImage("test url1"));
         images.add(new GuideImage("test url2"));
 
-        GuideProduct product = new GuideProduct(new User("testaccount", "testemail", "testpassword"),
+        GuideProduct product = new GuideProduct(
+                new User("account1", "testemail", "testpassword"),
                 "test title",
                 "test description",
                 20000L,
-                100.1,
                 50.2,
+                100.1,
                 Year.of(2024).atMonth(4).atDay(28).atTime(20, 0, 0).atZone(ZoneId.of("Asia/Seoul")),
                 Year.of(2024).atMonth(4).atDay(28).atTime(23, 0, 0).atZone(ZoneId.of("Asia/Seoul")));
 

@@ -83,7 +83,7 @@ public class GuideProduct extends BaseEntity {
         category.setProduct(this);
     }
 
-    public void setGuideImage(List<GuideCategoryCode> categoryCodes) {
+    public void setGuideCategory(List<GuideCategoryCode> categoryCodes) {
         for (int i = 0; i < categoryCodes.size(); i++) {
             if (i >= this.categories.size()) {
                 GuideCategory category = new GuideCategory(categoryCodes.get(i));
