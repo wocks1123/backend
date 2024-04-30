@@ -1,11 +1,13 @@
 package com.swygbro.trip.backend.domain.reservation.aplication;
 
+import com.siot.IamportRestClient.exception.IamportResponseException;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProduct;
 import com.swygbro.trip.backend.domain.reservation.domain.Reservation;
 import com.swygbro.trip.backend.domain.reservation.domain.ReservationRepository;
 import com.swygbro.trip.backend.domain.reservation.dto.ReservationDto;
 import com.swygbro.trip.backend.domain.reservation.dto.SavePaymentRequest;
 import com.swygbro.trip.backend.domain.reservation.dto.SaveReservationRequest;
+import com.swygbro.trip.backend.domain.reservation.exception.ForeignKeyConstraintViolationException;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import com.swygbro.trip.backend.global.status.PayStatus;
 import com.swygbro.trip.backend.global.status.ReservationStatus;
@@ -17,10 +19,12 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Slf4j
 @SpringBootTest
@@ -36,8 +40,8 @@ class ReservationServiceTest {
 
 
     @Test
-    @DisplayName("예약 정보 저장")
-    void saveReservation() {
+    @DisplayName("예약 정보 저장 성공")
+    void saveReservationFail() {
         // given
         SaveReservationRequest saveReservationRequest = SaveReservationRequest.builder()
                 .guideId(1L)
@@ -63,12 +67,26 @@ class ReservationServiceTest {
 
     @Test
     @DisplayName("예약 정보 저장 실패")
-    void saveReservationFail() {
+    void saveReservation() {
+        // given
+        SaveReservationRequest request = SaveReservationRequest.builder()
+                .guideId(0L)
+                .productId(1)
+                .reservatedAt(Timestamp.valueOf("2024-04-29 12:30:45"))
+                .personnel(1)
+                .message("안녕하세요")
+                .price(10000)
+                .build();
+
+        // when
+
+        // then
+        assertThrows(ForeignKeyConstraintViolationException.class, () -> reservationService.saveReservation(request));
     }
 
     @Test
     @DisplayName("결제 정보 저장")
-    void savePayment() {
+    void savePayment() throws IamportResponseException, IOException {
         // given
         SaveReservationRequest saveReservationRequest = SaveReservationRequest.builder()
                 .guideId(1L)
@@ -85,12 +103,12 @@ class ReservationServiceTest {
                 .impUid("imp_1234567890")
                 .merchantUid(merchantUid)
                 .price(10000)
-                .quantity(1)
+                .personnel(1)
                 .paidAt(1648344363L)
                 .build();
 
         // when
-        String result = reservationService.savePayment(savePaymentRequest);
+        ReservationDto result = reservationService.savePayment(savePaymentRequest);
 
         // then
         Reservation reservation = reservationRepository.findByMerchantUid(merchantUid);
@@ -103,6 +121,30 @@ class ReservationServiceTest {
         assertThat(reservation.getPaymentStatus().toString()).isEqualTo("COMPLETE");
         assertThat(reservation.getPaidAt()).isInstanceOf(Timestamp.class);
     }
+
+    @Test
+    @DisplayName("결제 정보 조회 실패")
+    void validateIamportFail() throws IamportResponseException, IOException {
+        // given
+        String impUid = "imp_1234567890";
+
+        // then
+        IamportResponseException exception = assertThrows(IamportResponseException.class, () -> reservationService.validateIamport(impUid));
+
+        log.error("exception : {}", exception.getMessage());
+        log.error("exception.code : {}", exception.getHttpStatusCode());
+    }
+
+    @Test
+    @DisplayName("결제 정보 조회 실패")
+    void cancelIamportFail() throws IamportResponseException {
+        // given
+        String impUid = "imp_1234567890";
+
+        // then
+        assertThrows(IamportResponseException.class, () -> reservationService.cancelPayment(impUid));
+    }
+
 
     @Test
     @DisplayName("결제 후 예약 취소 (실제 uid 필요)")
@@ -128,13 +170,11 @@ class ReservationServiceTest {
                 .build());
 
         // when
-        String result = reservationService.cancelReservation(merchantUid);
-        Reservation reservation = reservationRepository.findByMerchantUid(merchantUid);
+        ReservationDto result = reservationService.cancelReservation(merchantUid);
 
         // then
-        assertThat(result).isEqualTo("취소 및 환불이 완료되었습니다.");
-        assertThat(reservation.getReservationStatus().toString()).isEqualTo("CANCELLED");
-        assertThat(reservation.getPaymentStatus().toString()).isEqualTo("REFUNDED");
+        assertThat(result.getReservationStatus()).isEqualTo("CANCELLED");
+        assertThat(result.getPaymentStatus()).isEqualTo("REFUNDED");
     }
 
     @Test

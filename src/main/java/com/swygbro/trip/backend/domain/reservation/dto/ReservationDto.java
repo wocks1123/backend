@@ -4,15 +4,8 @@ import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProduct;
 import com.swygbro.trip.backend.domain.reservation.domain.Reservation;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import com.swygbro.trip.backend.global.status.PayStatus;
-import com.swygbro.trip.backend.global.status.PayStatusConverter;
 import com.swygbro.trip.backend.global.status.ReservationStatus;
-import com.swygbro.trip.backend.global.status.ReservationStatusConverter;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.Column;
-import jakarta.persistence.Convert;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -52,7 +45,7 @@ public class ReservationDto {
     private String merchantUid;
 
 
-    public ReservationDto fromEntity(Reservation reservation){
+    public ReservationDto fromEntity(Reservation reservation) {
         return new ReservationDto(
                 reservation.getGuide(),
                 reservation.getProduct(),

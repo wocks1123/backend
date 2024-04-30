@@ -6,11 +6,10 @@ import com.swygbro.trip.backend.domain.user.domain.User;
 import com.swygbro.trip.backend.global.status.PayStatus;
 import com.swygbro.trip.backend.global.status.ReservationStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 import java.sql.Timestamp;
 
@@ -25,15 +24,19 @@ public class SaveReservationRequest {
     @Schema(description = "상품 ID", example = "1")
     int productId;
 
+    @NotNull
     @Schema(description = "예약 날짜", example = "2024-04-29T12:30:45Z")
     Timestamp reservatedAt;
 
+    @NotNull
+    @Min(value = 1, message = "인원은 1 이상이어야 합니다.")
     @Schema(description = "인원", example = "1")
     Integer personnel;
 
     @Schema(description = "메시지", example = "안녕하세요")
     String message;
 
+    @NotNull
     @Schema(description = "가격", example = "10000")
     Integer price;
 
