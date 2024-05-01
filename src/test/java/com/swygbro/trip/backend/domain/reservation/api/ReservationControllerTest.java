@@ -42,7 +42,7 @@ class ReservationControllerTest {
         // given
         SaveReservationRequest request = SaveReservationRequest.builder()
                 .guideId(1L)
-                .productId(1)
+                .productId(1L)
                 .reservatedAt(Timestamp.valueOf("2024-04-29 12:30:45"))
                 .personnel(1)
                 .message("안녕하세요")
@@ -67,7 +67,7 @@ class ReservationControllerTest {
             // [0] 인원 오류
             "1, 1, 2024-04-29 12:30:45, 0, 안녕하세요, 10000",
     })
-    public void saveReservationFailInvalidInput(Long guideId, Integer productId, Timestamp reservatedAt, Integer personnel, String message, Integer price) throws Exception {
+    public void saveReservationFailInvalidInput(Long guideId, Long productId, Timestamp reservatedAt, Integer personnel, String message, Integer price) throws Exception {
         // given
         SaveReservationRequest request = SaveReservationRequest.builder()
                 .guideId(guideId)
