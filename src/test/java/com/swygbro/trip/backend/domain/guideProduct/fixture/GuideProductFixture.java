@@ -23,7 +23,7 @@ public class GuideProductFixture {
         images.add(new GuideImage("test url2"));
 
         GuideProduct product = new GuideProduct(
-                new User("account1", "testemail", "testpassword"),
+                User.builder().email("wrong_account").build(),
                 "test title",
                 "test description",
                 20000L,
