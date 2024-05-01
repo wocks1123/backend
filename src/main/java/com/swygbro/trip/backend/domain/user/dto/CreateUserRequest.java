@@ -1,5 +1,6 @@
 package com.swygbro.trip.backend.domain.user.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.swygbro.trip.backend.domain.user.domain.Gender;
 import com.swygbro.trip.backend.domain.user.domain.Nationality;
 import com.swygbro.trip.backend.global.dto.RequestDto;
@@ -11,14 +12,16 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 
 @AllArgsConstructor
+@NoArgsConstructor
 @Getter
 public class CreateUserRequest extends RequestDto {
 
     @NotBlank
     @Email
-    @Schema(description = "사용자 이메일", example = "email01@email.com")
+    @Schema(description = "사용자 이메일", example = "user01@email.com")
     private String email;
 
     @NotBlank
@@ -37,8 +40,13 @@ public class CreateUserRequest extends RequestDto {
     @Schema(description = "사용자 전화번호", example = "01012345678")
     private String phone;
 
-    @Schema(description = "사용자 국적", example = "KR")
+    @Schema(description = "사용자 국적", example = "KOR")
     private Nationality nationality;
+
+    @NotBlank
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @Schema(description = "사용자 생년월일", example = "1990-01-01")
+    private String birthdate;
 
     @Schema(description = "사용자 성별", example = "Male")
     private Gender gender;
@@ -53,4 +61,5 @@ public class CreateUserRequest extends RequestDto {
     @Schema(description = "비밀번호 확인", example = "password123!")
     private String passwordCheck;
 }
+
 

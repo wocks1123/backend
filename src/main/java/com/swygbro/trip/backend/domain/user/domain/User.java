@@ -1,9 +1,12 @@
 package com.swygbro.trip.backend.domain.user.domain;
 
 import com.swygbro.trip.backend.domain.user.dto.CreateUserRequest;
+import com.swygbro.trip.backend.domain.user.dto.UpdateUserRequest;
 import com.swygbro.trip.backend.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.time.LocalDate;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -24,11 +27,21 @@ public class User extends BaseEntity {
     @Column(length = 20, nullable = false)
     private String name;
 
+    @Column(length = 100, nullable = false)
+    private String profile = "";
+
+    @Setter
+    @Column(length = 100, nullable = false)
+    private String profileImageUrl = "";
+
     @Column(unique = true, length = 20, nullable = false)
     private String phone;
 
     @Enumerated(EnumType.STRING)
     private Nationality nationality;
+
+    @Temporal(TemporalType.DATE)
+    private LocalDate birthdate;
 
     @Enumerated(EnumType.STRING)
     private Gender gender;
@@ -52,6 +65,10 @@ public class User extends BaseEntity {
         this.password = encodedPassword;
         this.signUpType = signUpType;
         this.userRole = UserRole.USER;
+    }
+
+    public void update(UpdateUserRequest dto) {
+        this.profile = dto.getProfile();
     }
 
 }
