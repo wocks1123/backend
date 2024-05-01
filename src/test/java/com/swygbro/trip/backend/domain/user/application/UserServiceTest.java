@@ -38,16 +38,17 @@ class UserServiceTest {
                 "testname0001",
                 "00000000000",
                 Nationality.KOR,
+                "1990-01-01",
                 Gender.Male,
                 "password01!",
                 "password01!"
         );
 
         // when
-        String email = userService.createUser(createUserRequest);
+        Long id = userService.createUser(createUserRequest);
 
         // then
-        User user = userRepository.findByEmail(email).orElse(null);
+        User user = userRepository.findById(id).orElse(null);
 
         assertThat(user).isNotNull();
         assertThat(user.getNickname()).isEqualTo(createUserRequest.getNickname());
@@ -69,6 +70,7 @@ class UserServiceTest {
                 "testname0001",
                 "00000000000",
                 Nationality.KOR,
+                "1990-01-01",
                 Gender.Male,
                 "password01!",
                 "password01@"
@@ -88,6 +90,7 @@ class UserServiceTest {
                 "testname0001",
                 "00000000000",
                 Nationality.KOR,
+                "1990-01-01",
                 Gender.Male,
                 "password01!",
                 "password01!"
@@ -99,6 +102,7 @@ class UserServiceTest {
                 "testname0001",
                 "00000000000",
                 Nationality.KOR,
+                "1990-01-01",
                 Gender.Male,
                 "password01!",
                 "password01!"

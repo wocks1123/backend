@@ -44,11 +44,12 @@ class UserControllerTest {
                 "testname0001",
                 "00000000000",
                 Nationality.KOR,
+                "1990-01-01",
                 Gender.Male,
                 "password01!",
                 "password01!"
         );
-        given(userService.createUser(any())).willReturn(request.getEmail());
+        given(userService.createUser(any())).willReturn(1L);
 
         // when
         ResultActions result = mockMvc.perform(post("/api/v1/users")
@@ -57,26 +58,26 @@ class UserControllerTest {
 
         // then
         result.andExpect(status().isOk())
-                .andExpect(content().string(request.getEmail()));
+                .andExpect(content().string("1"));
     }
 
     @ParameterizedTest
     @DisplayName("[POST] /api/v1/users 회원가입 실패(400) - 입력양식 오류")
     @CsvSource({
             // 정상
-            //"user01@email.com, nickname0001, name0001, 00000000000, KOR, Male, password01!, password01!",
+            //"user01@email.com, nickname0001, name0001, 00000000000, KOR, 1990-01-01, Male, password01!, password01!",
             //  이메일 양식 오류
-            "user0email.com, nickname0001, name0001, 00000000000, KOR, Male, password01!, password01!",
+            "user0email.com, nickname0001, name0001, 00000000000, KOR, 1990-01-01, Male, password01!, password01!",
             //  닉네임 양식 오류
-            "user01@email.com, nickname_length_over1341351454145145, name0001, 00000000000, KOR, Male, password01!, password01!",
+            "user01@email.com, nickname_length_over1341351454145145, name0001, 00000000000, KOR, 1990-01-01, Male, password01!, password01!",
             //  이름 양식 오류
-            "user01@email.com, nickname0001, name_length_over1341351454145145, 00000000000, KOR, Male, password01!, password01!",
+            "user01@email.com, nickname0001, name_length_over1341351454145145, 00000000000, KOR, 1990-01-01, Male, password01!, password01!",
             //  전화번호 양식 오류
-            "user01@email.com, nickname0001, name0001, 000-0000-0000, KOR, Male, password01!, password01!",
+            "user01@email.com, nickname0001, name0001, 000-0000-0000, KOR, 1990-01-01, Male, password01!, password01!",
             // 비밀번호 양식 오류
-            "user01@email.com, nickname0001, name0001, 00000000000, KOR, Male, password, password01!",
+            "user01@email.com, nickname0001, name0001, 00000000000, KOR, 1990-01-01, Male, password, password01!",
     })
-    public void createUserFailInvalidInput(String email, String nickname, String name, String phone, Nationality nationality, Gender gender, String password, String passwordCheck) throws Exception {
+    public void createUserFailInvalidInput(String email, String nickname, String name, String phone, Nationality nationality, String birthdate, Gender gender, String password, String passwordCheck) throws Exception {
         // given
         CreateUserRequest request = new CreateUserRequest(
                 email,
@@ -84,11 +85,12 @@ class UserControllerTest {
                 name,
                 phone,
                 nationality,
+                birthdate,
                 gender,
                 password,
                 passwordCheck
         );
-        given(userService.createUser(any())).willReturn(request.getEmail());
+        given(userService.createUser(any())).willReturn(1L);
 
         // when
         ResultActions result = mockMvc.perform(post("/api/v1/users")

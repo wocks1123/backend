@@ -15,7 +15,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class GuideProductRequest {
-    private String account;
+    private String email;
     @NotBlank
     @Schema(description = "상품 제목", example = "신나는 서울 투어")
     private String title;

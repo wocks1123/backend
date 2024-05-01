@@ -18,7 +18,7 @@ import java.util.List;
 public class GuideProductDto {
     @Schema(description = "상품 ID", example = "1")
     private Long id;
-    private String account;
+    private String email;
     @Schema(description = "상품 제목", example = "신나는 서울 투어")
     private String title;
     @Schema(description = "상품 설명", example = "서울 *** 여행 가이드 합니다.")
@@ -46,7 +46,7 @@ public class GuideProductDto {
 
         return new GuideProductDto(
                 product.getId(),
-                product.getUser().getAccount(),
+                product.getUser().getEmail(),
                 product.getTitle(),
                 product.getDescription(),
                 product.getPrice(),
