@@ -54,8 +54,8 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
-            docker stop $(docker ps -a -q)
-            docker rm $(docker ps -a -q)
-            docker run -d --log-driver=syslog -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
+            docker stop $(docker ps -q --filter "publish=80")
+            docker rm $(docker ps -q --filter "publish=80")
+            docker run -d --log-driver=syslog -p 80:8080 --name matthew ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
             docker rm $(docker ps --filter 'status=exited' -a -q)
             docker image prune -a -f
