@@ -21,6 +21,8 @@ import java.util.List;
           update시 delete???? or delete 사용?
  */
 @Entity
+@Builder
+@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Table(name = "guide_product")

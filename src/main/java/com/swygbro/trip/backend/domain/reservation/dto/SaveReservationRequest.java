@@ -22,7 +22,7 @@ public class SaveReservationRequest {
 
     @NotNull
     @Schema(description = "상품 ID", example = "1")
-    int productId;
+    Long productId;
 
     @NotNull
     @Schema(description = "예약 날짜", example = "2024-04-29T12:30:45Z")
