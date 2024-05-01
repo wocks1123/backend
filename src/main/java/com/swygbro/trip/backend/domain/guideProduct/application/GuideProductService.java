@@ -31,7 +31,7 @@ public class GuideProductService {
     // 가이드 상품 생성
     @Transactional
     public GuideProductDto createGuideProduct(GuideProductRequest request, List<MultipartFile> images) {
-        User user = getUser(request.getAccount());
+        User user = getUser(request.getEmail());
 
         isValidLocation(request.getLongitude(), request.getLatitude());
         GuideProduct product = new GuideProduct(user, request.getTitle(), request.getDescription(),
@@ -62,7 +62,7 @@ public class GuideProductService {
     @Transactional
     public GuideProductDto modifyGuideProduct(Long productId, GuideProductRequest edits) {
         GuideProduct product = guideProductRepository.findById(productId).orElseThrow(() -> new GuideProductNotFoundException(productId));
-        User user = getUser(edits.getAccount());
+        User user = getUser(edits.getEmail());
 
         if (product.getUser() != user) throw new MismatchUserFromCreatorException();
         product.setGuideProduct(edits);
@@ -79,8 +79,8 @@ public class GuideProductService {
     }
 
     // 가이드 상품 생성 시 필요한 호스트 정보 불러오가
-    private User getUser(String account) {
-        return userRepository.findByAccount(account).orElseThrow(() -> new UserNotFoundException(account));
+    private User getUser(String email) {
+        return userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
     }
 
     // 가이드 위치 유효한지 검사

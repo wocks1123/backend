@@ -30,15 +30,9 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 @Slf4j
 public class GlobalExceptionAdvice {
 
-    @ExceptionHandler(NullPointerException.class)
-    public String handleNullPointerException(NullPointerException ex) {
-        log.warn("handleNullPointerException", ex);
-        return "NullPointerException";
-    }
-
     @ExceptionHandler(BaseException.class)
-    public ResponseEntity<ApiErrorResponse> handleBaseException(BaseException ex) {
-        log.warn("handleBaseException", ex);
+    public ResponseEntity<?> handleBaseException(BaseException ex) {
+        log.warn("handleBaseException: {}", ex.getMessage());
         return ApiErrorResponse.toResponseEntity(ex);
     }
 
@@ -64,14 +58,14 @@ public class GlobalExceptionAdvice {
             MethodValidationException.class,
             BindException.class
     })
-    public ResponseEntity<ApiErrorResponse> handleSpringMvcException(Exception ex) {
-        log.warn("handleSpringMvcException", ex);
+    public ResponseEntity<?> handleSpringMvcException(Exception ex) {
+        log.warn("handleSpringMvcException: {}", ex.getMessage());
         return SpringMvcExceptionResponse.of(ex);
     }
 
     @ExceptionHandler(Exception.class)
-    private ResponseEntity<ApiErrorResponse> handleException(Exception ex) {
-        log.warn("handleException", ex);
+    private ResponseEntity<?> handleException(Exception ex) {
+        log.warn("handleException: {}", ex.getMessage());
         return ApiErrorResponse.toResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
     }
 

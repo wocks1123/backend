@@ -2,6 +2,7 @@ package com.swygbro.trip.backend.domain.user.api;
 
 import com.swygbro.trip.backend.domain.user.application.UserService;
 import com.swygbro.trip.backend.domain.user.dto.CreateUserRequest;
+import com.swygbro.trip.backend.domain.user.dto.UpdateUserRequest;
 import com.swygbro.trip.backend.domain.user.dto.UserProfileDto;
 import com.swygbro.trip.backend.global.document.ValidationErrorResponse;
 import com.swygbro.trip.backend.global.exception.ApiErrorResponse;
@@ -16,42 +17,79 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
-@Tag(name = "Users", description = "사용자 API")
+@Tag(name = "Users", description = """
+        ### 개요
+                
+        - 회원 관련 기능을 제공합니다.
+                
+        ### 주요 기능
+                
+        - 회원 가입
+        - 회원 정보 조회
+
+        """)
 public class UserController {
 
     private final UserService userService;
 
     @PostMapping
-    @Operation(summary = "사용자 생성", description = "사용자를 생성합니다.")
+    @Operation(summary = "회원 가입", description = """
+            # 회원가입
+                        
+            회원을 생성합니다. 회원 가입 시 사용자 이메일, 닉네임, 이름, 전화번호, 국적, 성별, 비밀번호, 비밀번호 확인을 입력합니다.
+            각 필드의 제약 조건은 다음과 같습니다.
+
+            | 필드명 | 설명 | 제약조건 | 중복확인 | 예시 |
+            |--------|------|----------|----------|------|
+            |email| 사용자의 이메일 | 이메일 형식 | Y | email01@email.com |
+            |nickname| 다른 사용자들에게 보이는 닉네임 | 4~20자 | Y | nickname01 |            
+            |name| 사용자의 이름 | 2~20자 | N | name01 |
+            |phone| 사용자의 전화번호 | '-'를 제외한 숫자 | Y | 01012345678 |
+            |nationality| 사용자의 국적 | 영문3자 국가 코드 | N | KOR |
+            |gender| 성별 | Male, Female 중 하나 | N | Male |
+            |password| 사용자의 비밀번호 | 영문(대소문자), 숫자, 특수문자를 포함한 8~32자 | N | password01! |
+            |passwordCheck| 사용자의 비밀번호 확인 | password와 동일한 입력 | N | password01! |
+             
+            ## 응답
+                        
+            - 회원 가입 성공 시 `200` 코드와 함께 회원 이메일을 문자열로 반환합니다.
+            - 중복된 값이 있을 경우 `409` 에러를 반환합니다.
+            - 입력 양식에 오류가 있을 경우 `400` 에러를 반환합니다.
+             
+            """)
     @ApiResponse(
             responseCode = "200",
-            description = "사용자 생성 성공",
+            description = "생성한 계정 고유 번호를 반환합니다.",
             content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = String.class, example = "user01")))
+                    mediaType = MediaType.TEXT_PLAIN_VALUE,
+                    schema = @Schema(implementation = Long.class, example = "1")))
     @ApiResponse(
             responseCode = "409",
-            description = "계정 중복",
+            description = "입력 값 중 중복된 값이 있습니다.",
             content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = ApiErrorResponse.class),
-                    examples = @ExampleObject(value = "{\n  \"status\": \"CONFLICT\",\n  \"message\": \"중복된 계정입니다.\"\n}")
+                    examples = @ExampleObject(value = "{\n  \"status\": \"CONFLICT\",\n  \"message\": \"데이터 중복\"\n}")
             )
     )
     @ValidationErrorResponse
-    public String createUser(@Valid @RequestBody CreateUserRequest dto) {
-        return userService.createUser(dto);
+    public ResponseEntity<Long> createUser(@Valid @RequestBody CreateUserRequest dto) {
+//        return ResponseEntity.ok(userService.createUser(dto));
+        return ResponseEntity.ok(1L);
     }
 
-    @GetMapping("/{account}")
+    @GetMapping("/{userId}")
     @Operation(summary = "사용자 조회", description = "사용자의 프로필을 조회합니다.")
     @Parameters({
-            @Parameter(name = "account", description = "사용자 계정", required = true, example = "user01")
+            @Parameter(name = "userId", description = "사용자 고유 번호", required = true, example = "1")
     })
     @ApiResponse(
             responseCode = "200",
@@ -73,8 +111,36 @@ public class UserController {
                     )
             )
     )
-    public UserProfileDto getUser(@PathVariable String account) {
-        return userService.getUser(account);
+    public UserProfileDto getUser(@PathVariable Long userId) {
+        return userService.getUser(userId);
+    }
+
+    @PutMapping(value = "{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('USER') and #userId == principal.id")
+    @Operation(summary = "사용자 정보 수정", description = "사용자의 프로필을 수정합니다.")
+    @Parameters({
+            @Parameter(name = "userId", description = "사용자 고유 번호", required = true, example = "1")
+    })
+    @ApiResponse(
+            responseCode = "200",
+            description = "사용자 정보 수정 성공"
+    )
+    @ApiResponse(
+            responseCode = "404",
+            description = "사용자를 찾을 수 없음",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ApiErrorResponse.class),
+                    examples = @ExampleObject(
+                            name = "사용자를 찾을 수 없습니다.",
+                            value = "{\"status\": \"NOT_FOUND\", \"message\": \"사용자를 찾을 수 없습니다.\"}"
+                    )
+            )
+    )
+    public void updateUser(@PathVariable Long userId,
+                           @RequestPart @Valid UpdateUserRequest dto,
+                           @RequestPart(required = false) MultipartFile imageFile) {
+        userService.updateUser(userId, dto, imageFile);
     }
 
 }

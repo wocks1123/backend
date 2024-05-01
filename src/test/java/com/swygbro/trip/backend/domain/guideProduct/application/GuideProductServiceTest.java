@@ -60,7 +60,7 @@ public class GuideProductServiceTest {
         images.add(mockMultipartFile1);
         images.add(mockMultipartFile2);
 
-        given(userRepository.findByAccount(any())).willReturn(Optional.of(user));
+        given(userRepository.findByEmail(any())).willReturn(Optional.of(user));
 
         images.forEach(image -> {
             given(s3Service.uploadImage(image)).willReturn("test utl");
@@ -77,7 +77,7 @@ public class GuideProductServiceTest {
         GuideProductDto result = guideProductService.createGuideProduct(request, images);
 
         // then
-        assertThat(result.getAccount()).isEqualTo(product.getUser().getAccount());
+        assertThat(result.getEmail()).isEqualTo(product.getUser().getEmail());
         assertThat(result.getTitle()).isEqualTo(product.getTitle());
         assertThat(result.getDescription()).isEqualTo(product.getDescription());
         assertThat(result.getPrice()).isEqualTo(product.getPrice());
@@ -102,7 +102,7 @@ public class GuideProductServiceTest {
         GuideProductDto result = guideProductService.getProduct(productId);
 
         // then
-        assertThat(result.getAccount()).isEqualTo(product.getUser().getAccount());
+        assertThat(result.getEmail()).isEqualTo(product.getUser().getEmail());
         assertThat(result.getTitle()).isEqualTo(product.getTitle());
         assertThat(result.getDescription()).isEqualTo(product.getDescription());
         assertThat(result.getPrice()).isEqualTo(product.getPrice());
@@ -143,7 +143,7 @@ public class GuideProductServiceTest {
         User user = product.getUser();
 
         given(guideProductRepository.findById(any())).willReturn(Optional.of(product));
-        given(userRepository.findByAccount(any())).willReturn(Optional.of(user));
+        given(userRepository.findByEmail(any())).willReturn(Optional.of(user));
 
         product.setGuideProduct(edit);
         product.setGuideCategory(edit.getCategories());
@@ -166,10 +166,11 @@ public class GuideProductServiceTest {
         edit.setTitle("modify title");
         edit.setDescription("modify description");
         GuideProduct product = GuideProductFixture.getGuideProduct();
-        User user = new User("wrong_account", "testemail", "testpassword");
-
+        User user = User.builder()
+                .email("wrong_account")
+                .build();
         given(guideProductRepository.findById(any())).willReturn(Optional.of(product));
-        given(userRepository.findByAccount(any())).willReturn(Optional.of(user));
+        given(userRepository.findByEmail(any())).willReturn(Optional.of(user));
 
         // when
         Throwable throwable = catchThrowable(() -> {
