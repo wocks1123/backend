@@ -7,11 +7,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor
 @Getter
 @Setter(AccessLevel.PACKAGE)
-@Table(name = "guide_image")
-public class GuideImage {
+@Table(name = "guide_category")
+public class GuideCategory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -21,11 +21,12 @@ public class GuideImage {
     @JoinColumn(name = "product_id")
     private GuideProduct product;
 
-    @Column(name = "image_url", length = 250)
-    private String url;
+    @Column(name = "category_code")
+    @Enumerated(EnumType.STRING)
+    private GuideCategoryCode categoryCode;
 
-    public GuideImage(String url) {
-        this.url = url;
+    public GuideCategory(GuideCategoryCode code) {
+        this.categoryCode = code;
     }
 
 }

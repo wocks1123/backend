@@ -1,9 +1,8 @@
 package com.swygbro.trip.backend.domain.guideProduct.api;
 
 import com.swygbro.trip.backend.domain.guideProduct.application.GuideProductService;
-import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
-import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductResponse;
+import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductRequest;
 import com.swygbro.trip.backend.global.exception.ApiErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -34,25 +33,47 @@ public class GuideProductController {
             description = "가이드 상품 등록 성공",
             content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = GuideProductResponse.class)
+                    schema = @Schema(implementation = GuideProductDto.class)
+            )
+    )
+    @ApiResponse(
+            responseCode = "400",
+            description = "가이드 위치가 유효하지 않아서 등록 실패",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ApiErrorResponse.class),
+                    examples = @ExampleObject(
+                            name = "가이드 위치가 유효하지 않음",
+                            value = "{ \"status\" : \"BAD_REQUEST\", \"message\" : \"잘못된 위치입니다. 올바르게 입력해 주세요.\"}"
+                    )
+            )
+    )
+    @ApiResponse(
+            responseCode = "404",
+            description = "유저 정보가 존재하지 않아서 등록 실패",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ApiErrorResponse.class),
+                    examples = @ExampleObject(
+                            name = "유저 조회 실패",
+                            value = "{ \"status\" : \"NOT_FOUND\", \"message\" : \"사용자를 찾을 수 없습니다. : {account}.\"}"
+                    )
             )
     )
     @ApiResponse(
             responseCode = "500",
-            description = "S3 에러로 인한 이미지 업로드 실패",
+            description = "S3 에러로 인한 이미지 업로드 실패, 상품 등록 실패",
             content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = ApiErrorResponse.class),
                     examples = @ExampleObject(
                             name = "이미지 업로드 실패",
-                            value = "{ \"status\" : \"INTERNAL_SERVER_ERROR\", \"message\" : \"이미지 업로드에 실패했습니다. 다시 시도해주세요.}"
+                            value = "{ \"status\" : \"INTERNAL_SERVER_ERROR\", \"message\" : \"이미지 업로드에 실패했습니다.\"}"
                     )
             )
     )
-    public GuideProductResponse createGuideProduct(@Valid @RequestPart CreateGuideProductRequest request, @RequestPart(value = "file") List<MultipartFile> images) {
-        GuideProductDto product = guideProductService.createGuideProduct(request, images);
-
-        return GuideProductResponse.fromDto(product);
+    public GuideProductDto createGuideProduct(@Valid @RequestPart GuideProductRequest request, @RequestPart(value = "file") List<MultipartFile> images) {
+        return guideProductService.createGuideProduct(request, images);
     }
 
     @GetMapping("/{productId}")
@@ -62,22 +83,74 @@ public class GuideProductController {
             description = "가이드 상품 조회 성공",
             content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = GuideProductResponse.class)
+                    schema = @Schema(implementation = GuideProductDto.class)
             )
     )
     @ApiResponse(
             responseCode = "404",
-            description = "가이드 상품 조회 실패",
+            description = "가이드 상품 정보가 존재하지 않아서 조회 실패",
             content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = ApiErrorResponse.class),
                     examples = @ExampleObject(
                             name = "가이드 상품 조회 실패",
-                            value = "{ \"status\" : \"NOT_FOUND\", \"message\" : \"가이드 상품 조회에 실패했습니다. 다시 시도해주세요.}"
+                            value = "{ \"status\" : \"NOT_FOUND\", \"message\" : \"해당 {productId} 가이드 상품을 찾을 수 없습니다.\"}"
                     )
             )
     )
-    public GuideProductResponse getGuideProduct(@PathVariable int productId) {
-        return GuideProductResponse.fromDto(guideProductService.getProduct(productId));
+    public GuideProductDto getGuideProduct(@PathVariable Long productId) {
+        return guideProductService.getProduct(productId);
+    }
+
+    @PutMapping("/{productId}")
+    @Operation(summary = "가이드 상품 정보 수정", description = "이미지와 유저 정보를 제외한 모든 정보를 수정할 수 있다. ")
+    @ApiResponse(
+            responseCode = "200",
+            description = "가이드 상품 정보 수정 성공",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = GuideProductDto.class)
+            )
+    )
+    @ApiResponse(
+            responseCode = "401",
+            description = "가이드 상품을 수정할 권한이 없어서 수정 실패",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ApiErrorResponse.class),
+                    examples = @ExampleObject(
+                            name = "수정 권한 없음",
+                            value = "{ \"status\" : \"UNAUTHORIZED\", \"message\" : \"가이드 상품을 수정할 권한이 없습니다.\"}"
+                    )
+            )
+    )
+    @ApiResponse(
+            responseCode = "404",
+            description = "상품 정보 및 유저 정보가 존재하지 않아서 수정 실패",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ApiErrorResponse.class),
+                    examples = {
+                            @ExampleObject(
+                                    name = "가이드 상품 조회 실패",
+                                    value = "{ \"status\" : \"NOT_FOUND\", \"message\" : \"해당 {productId} 가이드 상품을 찾을 수 없습니다.\"}"
+                            ),
+                            @ExampleObject(
+                                    name = "유저 조회 실패",
+                                    value = "{ \"status\" : \"NOT_FOUND\", \"message\" : \"사용자를 찾을 수 없습니다. : {account}.\"}"
+                            )
+                    }
+
+            )
+    )
+    public GuideProductDto modifyGuideProduct(@PathVariable Long productId, @Valid @RequestBody GuideProductRequest edit) {
+        return guideProductService.modifyGuideProduct(productId, edit);
+    }
+
+    @DeleteMapping("/{productId}")
+    public String deleteGuideProduct(@PathVariable Long productId) {
+        guideProductService.deleteGuideProduct(productId);
+
+        return "삭제에 성공했습니다.";
     }
 }
