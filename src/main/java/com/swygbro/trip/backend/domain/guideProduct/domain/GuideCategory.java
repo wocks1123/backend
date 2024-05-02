@@ -21,7 +21,7 @@ public class GuideCategory {
     @JoinColumn(name = "product_id")
     private GuideProduct product;
 
-    @Column(name = "category_code")
+    @Column(name = "category_code", nullable = false)
     @Enumerated(EnumType.STRING)
     private GuideCategoryCode categoryCode;
 

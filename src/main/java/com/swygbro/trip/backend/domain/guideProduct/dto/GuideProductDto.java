@@ -40,6 +40,8 @@ public class GuideProductDto {
     private ZonedDateTime guideEnd;
     @Schema(description = "상품 카테고리", example = "[\"C1\", \"C2\"]")
     private List<GuideCategoryCode> categories;
+    @Schema(description = "대표 이미지 url", example = "https://S3저장소URL/저장위치/난수화된 이미지이름.이미지 타입")
+    private String thumb;
     @Schema(description = "상품 이미지 url", example = "[\"https://S3저장소URL/저장위치/난수화된 이미지이름.이미지 타입\", \"...\"]")
     private List<String> images;
 
@@ -51,7 +53,7 @@ public class GuideProductDto {
                 .description(product.getDescription()).price(product.getPrice())
                 .longitude(product.getLocation().getY()).latitude(product.getLocation().getX())
                 .guideStart(product.getGuideStart()).guideEnd(product.getGuideEnd())
-                .categories(categories).images(product.getImages())
+                .categories(categories).thumb(product.getThumb()).images(product.getImages())
                 .build();
     }
 }

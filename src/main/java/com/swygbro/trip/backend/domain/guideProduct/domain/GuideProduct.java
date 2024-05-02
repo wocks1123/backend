@@ -57,6 +57,9 @@ public class GuideProduct extends BaseEntity {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<GuideCategory> categories;
 
+    @Column(name = "guide_thumbnail", nullable = false)
+    private String thumb;
+
     @Type(JsonType.class)
     @Column(name = "guide_images", columnDefinition = "longtext")
     private List<String> images;
@@ -70,7 +73,8 @@ public class GuideProduct extends BaseEntity {
                 .title(request.getTitle()).description(request.getDescription())
                 .price(request.getPrice()).location(point)
                 .guideStart(request.getGuideStart()).guideEnd(request.getGuideEnd())
-                .images(images).categories(new ArrayList<>()).build();
+                .thumb(images.get(0)).images(images.subList(1, images.size()).stream().toList())
+                .categories(new ArrayList<>()).build();
     }
 
     public void addGuideCategory(GuideCategory category) {
@@ -99,6 +103,7 @@ public class GuideProduct extends BaseEntity {
         this.location = point;
         this.guideStart = request.getGuideStart();
         this.guideEnd = request.getGuideEnd();
+        this.thumb = request.getThumb();
         this.images = request.getImages();
     }
 }

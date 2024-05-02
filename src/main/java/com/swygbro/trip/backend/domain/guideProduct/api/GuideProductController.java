@@ -74,8 +74,10 @@ public class GuideProductController {
                     )
             )
     )
-    public GuideProductDto createGuideProduct(@Valid @RequestPart CreateGuideProductRequest request, @RequestPart(value = "file") List<MultipartFile> images) {
-        return guideProductService.createGuideProduct(request, images);
+    public GuideProductDto createGuideProduct(@Valid @RequestPart CreateGuideProductRequest request,
+                                              @RequestPart(value = "thumb") MultipartFile thumbImage,
+                                              @RequestPart(value = "file") List<MultipartFile> images) {
+        return guideProductService.createGuideProduct(request, thumbImage, images);
     }
 
     @GetMapping("/{productId}")
@@ -145,8 +147,11 @@ public class GuideProductController {
 
             )
     )
-    public GuideProductDto modifyGuideProduct(@PathVariable Long productId, @Valid @RequestPart ModifyGuideProductRequest request, @RequestPart(value = "file", required = false) Optional<List<MultipartFile>> modifyImages) {
-        return guideProductService.modifyGuideProduct(productId, request, modifyImages);
+    public GuideProductDto modifyGuideProduct(@PathVariable Long productId,
+                                              @Valid @RequestPart ModifyGuideProductRequest request,
+                                              @RequestPart(value = "thumb", required = false) Optional<MultipartFile> modifyThumbImage,
+                                              @RequestPart(value = "file", required = false) Optional<List<MultipartFile>> modifyImages) {
+        return guideProductService.modifyGuideProduct(productId, request, modifyThumbImage, modifyImages);
     }
 
     @DeleteMapping("/{productId}")

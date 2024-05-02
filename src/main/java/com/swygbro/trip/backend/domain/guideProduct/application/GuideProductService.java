@@ -20,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -31,12 +32,13 @@ public class GuideProductService {
 
     // 가이드 상품 생성
     @Transactional
-    public GuideProductDto createGuideProduct(CreateGuideProductRequest request, List<MultipartFile> images) {
+    public GuideProductDto createGuideProduct(CreateGuideProductRequest request, MultipartFile thumb, List<MultipartFile> images) {
         User user = getUser(request.getEmail());
 
         isValidLocation(request.getLongitude(), request.getLatitude());
 
-        List<String> imageUrls = images.stream().map(s3Service::uploadImage).toList();
+        List<String> imageUrls = images.stream().map(s3Service::uploadImage).collect(Collectors.toList());
+        imageUrls.add(0, s3Service.uploadImage(thumb));
         GuideProduct product = GuideProduct.setGuideProduct(user, request, imageUrls);
 
         request.getCategories().forEach(category -> {
@@ -58,9 +60,14 @@ public class GuideProductService {
 
     // 가이드 상품 수정
     @Transactional
-    public GuideProductDto modifyGuideProduct(Long productId, ModifyGuideProductRequest edits, Optional<List<MultipartFile>> modifyImages) {
+    public GuideProductDto modifyGuideProduct(Long productId, ModifyGuideProductRequest edits, Optional<MultipartFile> modifyThumb, Optional<List<MultipartFile>> modifyImages) {
         GuideProduct product = guideProductRepository.findById(productId).orElseThrow(() -> new GuideProductNotFoundException(productId));
         User user = getUser(edits.getEmail());
+
+        modifyThumb.ifPresent(image -> {
+            s3Service.deleteImage(product.getThumb());
+            edits.setThumb(s3Service.uploadImage(image));
+        });
 
         modifyImages.ifPresent(list -> {
             product.getImages().forEach(image -> {
@@ -85,6 +92,7 @@ public class GuideProductService {
     public void deleteGuideProduct(Long productId) {
         GuideProduct product = guideProductRepository.findById(productId).orElseThrow(() -> new GuideProductNotFoundException(productId));
 
+        s3Service.deleteImage(product.getThumb());
         product.getImages().forEach(s3Service::deleteImage);
 
         guideProductRepository.deleteById(productId);
