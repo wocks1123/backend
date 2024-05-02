@@ -54,8 +54,8 @@ jobs:
           key: ${{ secrets.SSH_KEY }}
           script: |
             docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
-            docker stop $(docker ps -q --filter "publish=80")
-            docker rm $(docker ps -q --filter "publish=80")
+            docker stop matthew
+            docker rm matthew
             docker run -d --log-driver=syslog -p 80:8080 --name matthew \
                     -e DATASOURCE_URL=${{ secrets.DATASOURCE_URL }} \
                     -e DATASOURCE_USERNAME=${{ secrets.DATASOURCE_USERNAME }} \
