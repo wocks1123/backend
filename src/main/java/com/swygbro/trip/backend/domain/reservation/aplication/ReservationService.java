@@ -132,7 +132,7 @@ public class ReservationService {
     }
 
     //TODO: LOGIN USER ID 로 교체
-    public List<ReservationDto> getReservationList() {
+    public List<ReservationDto> getReservationListByClient() {
         List<Reservation> reservations = reservationRepository.findByClientId(1L);
         List<ReservationDto> reservationDtos = new ArrayList<>();
 
@@ -151,6 +151,19 @@ public class ReservationService {
             throw new ReservationNotFoundException(merchant_uid);
         }
         return new ReservationDto().fromEntity(reservation);
+    }
+
+    //TODO: LOGIN USER ID 로 교체
+    public List<ReservationDto> getReservationListByGuide() {
+        List<Reservation> reservations = reservationRepository.findByGuideId(1L);
+        List<ReservationDto> reservationDtos = new ArrayList<>();
+
+        reservations.forEach(reservation -> {
+            ReservationDto reservationDto = new ReservationDto().fromEntity(reservation);
+            reservationDtos.add(reservationDto);
+        });
+
+        return reservationDtos;
     }
 
     public ReservationDto confirmReservation(String merchantUid) {
