@@ -50,6 +50,11 @@ public class UserService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
     @Transactional
     public void updateUser(Long id, UpdateUserRequest dto, MultipartFile imageFile) {
         User user = userRepository.findById(id)

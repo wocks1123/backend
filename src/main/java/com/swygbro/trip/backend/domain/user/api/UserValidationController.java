@@ -32,7 +32,6 @@ import org.springframework.web.bind.annotation.RestController;
                 
         ### 주요기능
                 
-        - 계정 중복 확인
         - 닉네임 중복 확인
         - 전화번호 중복 확인
         - 이메일 중복 확인

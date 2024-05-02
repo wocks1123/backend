@@ -1,4 +1,4 @@
-package com.swygbro.trip.backend.domain.auth.dto;
+package com.swygbro.trip.backend.domain.user.dto;
 
 import com.swygbro.trip.backend.global.dto.RequestDto;
 import io.swagger.v3.oas.annotations.media.Schema;
