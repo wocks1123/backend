@@ -49,6 +49,10 @@ dependencies {
     // 공간데이터
     implementation 'org.hibernate.orm:hibernate-spatial'
 
+    // image jason 저장
+    implementation 'io.hypersistence:hypersistence-utils-hibernate-60:3.3.1'
+    implementation 'com.fasterxml.jackson.module:jackson-module-jakarta-xmlbind-annotations'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 

@@ -1,8 +1,9 @@
 package com.swygbro.trip.backend.domain.guideProduct.api;
 
 import com.swygbro.trip.backend.domain.guideProduct.application.GuideProductService;
+import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
-import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductRequest;
+import com.swygbro.trip.backend.domain.guideProduct.dto.ModifyGuideProductRequest;
 import com.swygbro.trip.backend.global.exception.ApiErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/products")
@@ -72,7 +74,7 @@ public class GuideProductController {
                     )
             )
     )
-    public GuideProductDto createGuideProduct(@Valid @RequestPart GuideProductRequest request, @RequestPart(value = "file") List<MultipartFile> images) {
+    public GuideProductDto createGuideProduct(@Valid @RequestPart CreateGuideProductRequest request, @RequestPart(value = "file") List<MultipartFile> images) {
         return guideProductService.createGuideProduct(request, images);
     }
 
@@ -143,8 +145,8 @@ public class GuideProductController {
 
             )
     )
-    public GuideProductDto modifyGuideProduct(@PathVariable Long productId, @Valid @RequestBody GuideProductRequest edit) {
-        return guideProductService.modifyGuideProduct(productId, edit);
+    public GuideProductDto modifyGuideProduct(@PathVariable Long productId, @Valid @RequestPart ModifyGuideProductRequest request, @RequestPart(value = "file", required = false) Optional<List<MultipartFile>> modifyImages) {
+        return guideProductService.modifyGuideProduct(productId, request, modifyImages);
     }
 
     @DeleteMapping("/{productId}")

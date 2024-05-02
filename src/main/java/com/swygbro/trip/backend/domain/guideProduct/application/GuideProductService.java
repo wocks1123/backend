@@ -1,11 +1,11 @@
 package com.swygbro.trip.backend.domain.guideProduct.application;
 
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideCategory;
-import com.swygbro.trip.backend.domain.guideProduct.domain.GuideImage;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProduct;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProductRepository;
+import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
-import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductRequest;
+import com.swygbro.trip.backend.domain.guideProduct.dto.ModifyGuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.exception.GuideProductNotFoundException;
 import com.swygbro.trip.backend.domain.guideProduct.exception.MismatchUserFromCreatorException;
 import com.swygbro.trip.backend.domain.guideProduct.exception.NotValidLocationException;
@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,16 +31,13 @@ public class GuideProductService {
 
     // 가이드 상품 생성
     @Transactional
-    public GuideProductDto createGuideProduct(GuideProductRequest request, List<MultipartFile> images) {
+    public GuideProductDto createGuideProduct(CreateGuideProductRequest request, List<MultipartFile> images) {
         User user = getUser(request.getEmail());
 
         isValidLocation(request.getLongitude(), request.getLatitude());
-        GuideProduct product = new GuideProduct(user, request.getTitle(), request.getDescription(),
-                request.getPrice(), request.getLongitude(), request.getLatitude(), request.getGuideStart(), request.getGuideEnd());
 
-        images.forEach(image -> {
-            product.addGuideImage(new GuideImage(s3Service.uploadImage(image)));
-        });
+        List<String> imageUrls = images.stream().map(s3Service::uploadImage).toList();
+        GuideProduct product = GuideProduct.setGuideProduct(user, request, imageUrls);
 
         request.getCategories().forEach(category -> {
             product.addGuideCategory(new GuideCategory(category));
@@ -60,9 +58,19 @@ public class GuideProductService {
 
     // 가이드 상품 수정
     @Transactional
-    public GuideProductDto modifyGuideProduct(Long productId, GuideProductRequest edits) {
+    public GuideProductDto modifyGuideProduct(Long productId, ModifyGuideProductRequest edits, Optional<List<MultipartFile>> modifyImages) {
         GuideProduct product = guideProductRepository.findById(productId).orElseThrow(() -> new GuideProductNotFoundException(productId));
         User user = getUser(edits.getEmail());
+
+        modifyImages.ifPresent(list -> {
+            product.getImages().forEach(image -> {
+                if (!edits.getImages().contains(image)) s3Service.deleteImage(image);
+            });
+
+            list.forEach(newImage -> {
+                edits.getImages().add(s3Service.uploadImage(newImage));
+            });
+        });
 
         if (product.getUser() != user) throw new MismatchUserFromCreatorException();
         product.setGuideProduct(edits);
@@ -75,6 +83,10 @@ public class GuideProductService {
     // 가이드 상품 삭제
     @Transactional
     public void deleteGuideProduct(Long productId) {
+        GuideProduct product = guideProductRepository.findById(productId).orElseThrow(() -> new GuideProductNotFoundException(productId));
+
+        product.getImages().forEach(s3Service::deleteImage);
+
         guideProductRepository.deleteById(productId);
     }
 
