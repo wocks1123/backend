@@ -11,8 +11,8 @@ import com.swygbro.trip.backend.global.status.ReservationStatusConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.UUID;
 
@@ -40,7 +40,7 @@ public class Reservation extends BaseEntity {
     private GuideProduct product;
 
     @Column(nullable = false)
-    private Timestamp reservatedAt;
+    private ZonedDateTime reservatedAt;
 
     @Column(nullable = false)
     private Integer personnel;
@@ -58,17 +58,19 @@ public class Reservation extends BaseEntity {
     @Convert(converter = ReservationStatusConverter.class)
     private ReservationStatus reservationStatus;
 
+    @Column(unique = true)
     private String merchantUid;
 
+    @Column(unique = true)
     private String impUid;
 
-    private Timestamp paidAt;
+    private Long paidAt;
 
-    private Timestamp cancelledAt;
+    private Long cancelledAt;
 
     public void UpdatePaymentReservation(SavePaymentRequest savePaymentRequest) {
         this.impUid = savePaymentRequest.getImpUid();
-        this.paidAt = new Timestamp(savePaymentRequest.getPaidAt() * 1000);
+        this.paidAt = savePaymentRequest.getPaidAt();
         this.paymentStatus = PayStatus.COMPLETE;
     }
 
@@ -86,7 +88,7 @@ public class Reservation extends BaseEntity {
 
     public void refundPayment(Date cancelledAt) {
         this.paymentStatus = PayStatus.REFUNDED;
-        this.cancelledAt = new Timestamp(cancelledAt.getTime());
+        this.cancelledAt = cancelledAt.getTime();
     }
 
     public void generateMerchantUid() {

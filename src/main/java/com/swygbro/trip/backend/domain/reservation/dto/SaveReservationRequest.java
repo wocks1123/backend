@@ -1,5 +1,6 @@
 package com.swygbro.trip.backend.domain.reservation.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProduct;
 import com.swygbro.trip.backend.domain.reservation.domain.Reservation;
 import com.swygbro.trip.backend.domain.user.domain.User;
@@ -8,13 +9,17 @@ import com.swygbro.trip.backend.global.status.ReservationStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.sql.Timestamp;
+import java.time.ZonedDateTime;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class SaveReservationRequest {
     @NotNull
     @Schema(description = "가이드 ID", example = "1")
@@ -25,8 +30,9 @@ public class SaveReservationRequest {
     Long productId;
 
     @NotNull
-    @Schema(description = "예약 날짜", example = "2024-04-29T12:30:45Z")
-    Timestamp reservatedAt;
+    @Schema(description = "예약 날짜", example = "2024-05-01 12:00:00")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
+    ZonedDateTime reservatedAt;
 
     @NotNull
     @Min(value = 1, message = "인원은 1 이상이어야 합니다.")
@@ -38,6 +44,7 @@ public class SaveReservationRequest {
 
     @NotNull
     @Schema(description = "가격", example = "10000")
+    @Min(value = 0, message = "가격은 0 이상이어야 합니다.")
     Integer price;
 
 

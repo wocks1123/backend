@@ -10,7 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.sql.Timestamp;
+import java.time.ZonedDateTime;
 
 //TODO: User, GuideProduct to DTO
 @Data
@@ -24,7 +24,7 @@ public class ReservationDto {
     private GuideProduct product;
 
     @Schema(description = "예약 날짜", example = "2024-04-29T12:30:45Z")
-    private Timestamp reservatedAt;
+    private ZonedDateTime reservatedAt;
 
     @Schema(description = "인원", example = "1")
     private Integer personnel;
