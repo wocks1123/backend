@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindException;
 import org.springframework.validation.method.MethodValidationException;
 import org.springframework.web.ErrorResponseException;
@@ -63,9 +64,15 @@ public class GlobalExceptionAdvice {
         return SpringMvcExceptionResponse.of(ex);
     }
 
+    @ExceptionHandler({AccessDeniedException.class})
+    public ResponseEntity<?> handleAccessDeniedException(AccessDeniedException ex) {
+        log.warn("handleAccessDeniedException: {}", ex.getMessage());
+        return ApiErrorResponse.toResponseEntity(HttpStatus.FORBIDDEN, "접근 권한이 없습니다.");
+    }
+
     @ExceptionHandler(Exception.class)
-    private ResponseEntity<?> handleException(Exception ex) {
-        log.warn("handleException: {}", ex.getMessage());
+    public ResponseEntity<?> handleException(Exception ex) {
+        log.warn("handleException: " + ex);
         return ApiErrorResponse.toResponseEntity(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
     }
 

@@ -52,7 +52,7 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private SignUpType signUpType;
 
-    @Enumerated
+    @Enumerated(EnumType.STRING)
     private UserRole userRole;
 
     public User(CreateUserRequest dto, SignUpType signUpType, String encodedPassword) {
