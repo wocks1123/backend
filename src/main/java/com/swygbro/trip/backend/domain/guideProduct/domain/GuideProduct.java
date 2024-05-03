@@ -39,7 +39,7 @@ public class GuideProduct extends BaseEntity {
     @Column(length = 100, nullable = false)
     private String title;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "text")
     private String description;
 
     @Column(nullable = false)
