@@ -18,9 +18,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -32,13 +32,23 @@ public class GuideProductService {
 
     // 가이드 상품 생성
     @Transactional
-    public GuideProductDto createGuideProduct(CreateGuideProductRequest request, MultipartFile thumb, List<MultipartFile> images) {
+    public GuideProductDto createGuideProduct(CreateGuideProductRequest request, MultipartFile thumb, Optional<List<MultipartFile>> images) {
         User user = getUser(request.getEmail());
 
         isValidLocation(request.getLongitude(), request.getLatitude());
 
-        List<String> imageUrls = images.stream().map(s3Service::uploadImage).collect(Collectors.toList());
-        imageUrls.add(0, s3Service.uploadImage(thumb));
+        List<String> imageUrls = new ArrayList<>();
+        images.ifPresentOrElse(list -> {
+                    list.forEach(image -> {
+                        imageUrls.add(s3Service.uploadImage(image));
+                    });
+                    imageUrls.add(0, s3Service.uploadImage(thumb));
+                },
+                () -> {
+                    imageUrls.add(s3Service.uploadImage(thumb));
+                }
+        );
+
         GuideProduct product = GuideProduct.setGuideProduct(user, request, imageUrls);
 
         request.getCategories().forEach(category -> {
@@ -64,6 +74,8 @@ public class GuideProductService {
         GuideProduct product = guideProductRepository.findById(productId).orElseThrow(() -> new GuideProductNotFoundException(productId));
         User user = getUser(edits.getEmail());
 
+        if (product.getUser() != user) throw new MismatchUserFromCreatorException("가이드 상품을 수정할 권한이 없습니다.");
+
         modifyThumb.ifPresent(image -> {
             s3Service.deleteImage(product.getThumb());
             edits.setThumb(s3Service.uploadImage(image));
@@ -79,7 +91,6 @@ public class GuideProductService {
             });
         });
 
-        if (product.getUser() != user) throw new MismatchUserFromCreatorException();
         product.setGuideProduct(edits);
         product.setGuideCategory(edits.getCategories());
 
@@ -89,8 +100,11 @@ public class GuideProductService {
 
     // 가이드 상품 삭제
     @Transactional
-    public void deleteGuideProduct(Long productId) {
+    public void deleteGuideProduct(Long productId, String email) {
         GuideProduct product = guideProductRepository.findById(productId).orElseThrow(() -> new GuideProductNotFoundException(productId));
+        User user = getUser(email);
+
+        if (product.getUser() != user) throw new MismatchUserFromCreatorException("가이드 상품을 삭제할 권한이 없습니다.");
 
         s3Service.deleteImage(product.getThumb());
         product.getImages().forEach(s3Service::deleteImage);

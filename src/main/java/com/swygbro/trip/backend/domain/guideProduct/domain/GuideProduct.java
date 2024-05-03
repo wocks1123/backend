@@ -69,12 +69,20 @@ public class GuideProduct extends BaseEntity {
         Point point = geometryFactory.createPoint(new Coordinate(request.getLatitude(), request.getLongitude()));
         point.setSRID(4326);
 
-        return GuideProduct.builder().user(user)
+        if (images.size() == 1)
+            return GuideProduct.builder().user(user)
+                    .title(request.getTitle()).description(request.getDescription())
+                    .price(request.getPrice()).location(point)
+                    .guideStart(request.getGuideStart()).guideEnd(request.getGuideEnd())
+                    .thumb(images.get(0)).categories(new ArrayList<>())
+                    .build();
+        else return GuideProduct.builder().user(user)
                 .title(request.getTitle()).description(request.getDescription())
                 .price(request.getPrice()).location(point)
                 .guideStart(request.getGuideStart()).guideEnd(request.getGuideEnd())
                 .thumb(images.get(0)).images(images.subList(1, images.size()).stream().toList())
-                .categories(new ArrayList<>()).build();
+                .categories(new ArrayList<>())
+                .build();
     }
 
     public void addGuideCategory(GuideCategory category) {

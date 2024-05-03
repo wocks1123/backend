@@ -155,8 +155,9 @@ public class GuideProductController {
     }
 
     @DeleteMapping("/{productId}")
-    public String deleteGuideProduct(@PathVariable Long productId) {
-        guideProductService.deleteGuideProduct(productId);
+    public String deleteGuideProduct(@PathVariable Long productId,
+                                     @RequestParam String email) {
+        guideProductService.deleteGuideProduct(productId, email);
 
         return "삭제에 성공했습니다.";
     }
