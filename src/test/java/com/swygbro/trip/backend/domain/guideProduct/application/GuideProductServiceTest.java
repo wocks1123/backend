@@ -1,12 +1,11 @@
 package com.swygbro.trip.backend.domain.guideProduct.application;
 
 
-import com.swygbro.trip.backend.domain.guideProduct.domain.GuideCategory;
-import com.swygbro.trip.backend.domain.guideProduct.domain.GuideImage;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProduct;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProductRepository;
+import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
-import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductRequest;
+import com.swygbro.trip.backend.domain.guideProduct.dto.ModifyGuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.exception.GuideProductNotFoundException;
 import com.swygbro.trip.backend.domain.guideProduct.exception.MismatchUserFromCreatorException;
 import com.swygbro.trip.backend.domain.guideProduct.fixture.GuideProductFixture;
@@ -14,6 +13,7 @@ import com.swygbro.trip.backend.domain.guideProduct.fixture.GuideProductRequestF
 import com.swygbro.trip.backend.domain.s3.application.S3Service;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import com.swygbro.trip.backend.domain.user.domain.UserRepository;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.catchThrowable;
+import static org.assertj.core.api.AssertionsForClassTypes.catchThrowable;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 
@@ -50,31 +50,23 @@ public class GuideProductServiceTest {
     @Test
     void createProduct() {
         // given
-        GuideProductRequest request = GuideProductRequestFixture.getGuideProductRequest();
-        GuideProduct product = GuideProductFixture.getGuideProduct();
+        CreateGuideProductRequest request = GuideProductRequestFixture.getCreateGuideProductRequest();
+        GuideProduct product = GuideProductFixture.getGuideProduct(request);
         User user = product.getUser();
 
         List<MultipartFile> images = new ArrayList<>();
+        MockMultipartFile mockMultipartFileThumb = new MockMultipartFile("thumb", "thumb.jpg", "image/jpg", "test thumb image".getBytes());
         MockMultipartFile mockMultipartFile1 = new MockMultipartFile("image1", "test1.jpg", "image/jpg", "test image1".getBytes());
         MockMultipartFile mockMultipartFile2 = new MockMultipartFile("image2", "test2.jpg", "image/jpg", "test image2".getBytes());
         images.add(mockMultipartFile1);
         images.add(mockMultipartFile2);
 
         given(userRepository.findByEmail(any())).willReturn(Optional.of(user));
-
-        images.forEach(image -> {
-            given(s3Service.uploadImage(image)).willReturn("test utl");
-            product.addGuideImage(new GuideImage("test url"));
-        });
-
-        request.getCategories().forEach(category -> {
-            product.addGuideCategory(new GuideCategory(category));
-        });
-
+        given(s3Service.uploadImage(any())).willReturn("test url");
         given(guideProductRepository.saveAndFlush(any())).willReturn(product);
 
         // when
-        GuideProductDto result = guideProductService.createGuideProduct(request, images);
+        GuideProductDto result = guideProductService.createGuideProduct(request, mockMultipartFileThumb, Optional.of(images));
 
         // then
         assertThat(result.getEmail()).isEqualTo(product.getUser().getEmail());
@@ -86,7 +78,8 @@ public class GuideProductServiceTest {
         assertThat(result.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))).isEqualTo(product.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
         assertThat(result.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))).isEqualTo(product.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
         assertThat(result.getCategories().get(0).name()).isEqualTo(product.getCategories().get(0).getCategoryCode().name());
-        assertThat(result.getImages().get(0).getUrl()).isEqualTo(product.getImages().get(0).getUrl());
+        assertThat(result.getThumb()).isEqualTo(product.getThumb());
+        assertThat(result.getImages().get(0)).isEqualTo(product.getImages().get(0));
     }
 
     @DisplayName("상품 불러오기 성공")
@@ -94,8 +87,9 @@ public class GuideProductServiceTest {
     void getProduct() {
         // given
         Long productId = 1L;
+        CreateGuideProductRequest request = GuideProductRequestFixture.getCreateGuideProductRequest();
+        GuideProduct product = GuideProductFixture.getGuideProduct(request);
 
-        GuideProduct product = GuideProductFixture.getGuideProduct();
         given(guideProductRepository.findById(productId)).willReturn(Optional.of(product));
 
         // when
@@ -111,7 +105,8 @@ public class GuideProductServiceTest {
         assertThat(result.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))).isEqualTo(product.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
         assertThat(result.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))).isEqualTo(product.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
         assertThat(result.getCategories().get(0).name()).isEqualTo(product.getCategories().get(0).getCategoryCode().name());
-        assertThat(result.getImages().get(0).getUrl()).isEqualTo(product.getImages().get(0).getUrl());
+        assertThat(result.getThumb()).isEqualTo(product.getThumb());
+        assertThat(result.getImages().get(0)).isEqualTo(product.getImages().get(0));
     }
 
     @DisplayName("상품 불러오기 실패")
@@ -136,45 +131,97 @@ public class GuideProductServiceTest {
     @Test
     void modifyProduct() {
         // given
-        GuideProductRequest edit = GuideProductRequestFixture.getGuideProductRequest();
-        edit.setTitle("modify title");
-        edit.setDescription("modify description");
-        GuideProduct product = GuideProductFixture.getGuideProduct();
+        Long productId = 1L;
+        CreateGuideProductRequest request = GuideProductRequestFixture.getCreateGuideProductRequest();
+        GuideProduct product = GuideProductFixture.getGuideProduct(request);
         User user = product.getUser();
+        ModifyGuideProductRequest edit = GuideProductRequestFixture.getModifyProductRequest();
 
-        given(guideProductRepository.findById(any())).willReturn(Optional.of(product));
+        List<MultipartFile> images = new ArrayList<>();
+        MockMultipartFile mockMultipartFileThumb = new MockMultipartFile("thumb", "modify_test.jpg", "image/jpg", "test thumb image".getBytes());
+        MockMultipartFile mockMultipartFile1 = new MockMultipartFile("image1", "modify_test.jpg", "image/jpg", "test image1".getBytes());
+        MockMultipartFile mockMultipartFile2 = new MockMultipartFile("image2", "modify_test.jpg", "image/jpg", "test image2".getBytes());
+        images.add(mockMultipartFile1);
+        images.add(mockMultipartFile2);
+
+        given(guideProductRepository.findById(productId)).willReturn(Optional.of(product));
         given(userRepository.findByEmail(any())).willReturn(Optional.of(user));
-
-        product.setGuideProduct(edit);
-        product.setGuideCategory(edit.getCategories());
+        given(s3Service.uploadImage(any())).willReturn("modify url");
         given(guideProductRepository.saveAndFlush(any())).willReturn(product);
 
         // when
-        GuideProductDto result = guideProductService.modifyGuideProduct(product.getId(), edit);
+        GuideProductDto result = guideProductService.modifyGuideProduct(productId, edit, Optional.of(mockMultipartFileThumb), Optional.of(images));
 
         // then
-        assertThat(result.getTitle()).isEqualTo(product.getTitle());
-        assertThat(result.getDescription()).isEqualTo(product.getDescription());
-        assertThat(result.getCategories().get(0)).isEqualTo(product.getCategories().get(0).getCategoryCode());
+        assertThat(result.getTitle()).isEqualTo(edit.getTitle());
+        assertThat(result.getDescription()).isEqualTo(edit.getDescription());
+        assertThat(result.getThumb()).isEqualTo("modify url");
+        assertThat(result.getImages().get(0)).isEqualTo("modify url");
     }
 
     @DisplayName("상품 내용 수정시 권한 없음")
     @Test
     void modifyProduct_unauthorized() {
         // given
-        GuideProductRequest edit = GuideProductRequestFixture.getGuideProductRequest();
-        edit.setTitle("modify title");
-        edit.setDescription("modify description");
-        GuideProduct product = GuideProductFixture.getGuideProduct();
-        User user = User.builder()
-                .email("wrong_account")
-                .build();
+        Long productId = 1L;
+        CreateGuideProductRequest request = GuideProductRequestFixture.getCreateGuideProductRequest();
+        GuideProduct product = GuideProductFixture.getGuideProduct(request);
+        ModifyGuideProductRequest edit = GuideProductRequestFixture.getModifyProductRequest();
+        User user = User.builder().email("wrong@email.com").build();
+
+        List<MultipartFile> images = new ArrayList<>();
+        MockMultipartFile mockMultipartFileThumb = new MockMultipartFile("thumb", "modify_test.jpg", "image/jpg", "test thumb image".getBytes());
+        MockMultipartFile mockMultipartFile1 = new MockMultipartFile("image1", "modify_test.jpg", "image/jpg", "test image1".getBytes());
+        MockMultipartFile mockMultipartFile2 = new MockMultipartFile("image2", "modify_test.jpg", "image/jpg", "test image2".getBytes());
+        images.add(mockMultipartFile1);
+        images.add(mockMultipartFile2);
+
         given(guideProductRepository.findById(any())).willReturn(Optional.of(product));
         given(userRepository.findByEmail(any())).willReturn(Optional.of(user));
 
         // when
         Throwable throwable = catchThrowable(() -> {
-            guideProductService.modifyGuideProduct(product.getId(), edit);
+            guideProductService.modifyGuideProduct(productId, edit, Optional.of(mockMultipartFileThumb), Optional.of(images));
+        });
+
+        // then
+        assertThat(throwable).isInstanceOf(MismatchUserFromCreatorException.class);
+        assertThat(throwable).hasMessage("가이드 상품을 수정할 권한이 없습니다.");
+    }
+
+    @DisplayName("상품 삭제 성공")
+    @Test
+    void deleteProduct() {
+        // given
+        Long productId = 1L;
+        String email = "test@gmail.com";
+        CreateGuideProductRequest request = GuideProductRequestFixture.getCreateGuideProductRequest();
+        GuideProduct product = GuideProductFixture.getGuideProduct(request);
+        User user = product.getUser();
+
+        given(guideProductRepository.findById(productId)).willReturn(Optional.of(product));
+        given(userRepository.findByEmail(email)).willReturn(Optional.of(user));
+
+        // when && then
+        Assertions.assertDoesNotThrow(() -> guideProductService.deleteGuideProduct(productId, email));
+    }
+
+    @DisplayName("상품 삭제 권한이 없을 경우")
+    @Test
+    void deleteProduct_unauthorized() {
+        // given
+        Long productId = 1L;
+        String email = "test@gmail.com";
+        CreateGuideProductRequest request = GuideProductRequestFixture.getCreateGuideProductRequest();
+        GuideProduct product = GuideProductFixture.getGuideProduct(request);
+        User user = User.builder().email("wrong@email.com").build();
+
+        given(guideProductRepository.findById(productId)).willReturn(Optional.of(product));
+        given(userRepository.findByEmail(email)).willReturn(Optional.of(user));
+
+        // when
+        Throwable throwable = catchThrowable(() -> {
+            guideProductService.deleteGuideProduct(productId, email);
         });
 
         // then
