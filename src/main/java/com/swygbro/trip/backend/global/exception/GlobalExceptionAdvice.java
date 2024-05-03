@@ -5,7 +5,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.ConversionNotSupportedException;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.http.converter.HttpMessageNotWritableException;
@@ -72,9 +71,9 @@ public class GlobalExceptionAdvice {
         return ApiErrorResponse.toResponseEntity(HttpStatus.FORBIDDEN, "접근 권한이 없습니다.");
         
     @ExceptionHandler(IamportResponseException.class)
-    public ResponseEntity<?> handleIamportResponseException(IamportResponseException ex) {
+    public ResponseEntity<?> handleExternalApiException(Exception ex) {
         log.warn("handleIamportResponseException: {}", ex.getMessage());
-        return ApiErrorResponse.toResponseEntity(HttpStatusCode.valueOf(ex.getHttpStatusCode()), ex.getMessage());
+        return ExternalApiException.of(ex);
     }
 
     @ExceptionHandler(Exception.class)
