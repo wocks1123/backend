@@ -7,6 +7,7 @@ import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductReques
 import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
 import com.swygbro.trip.backend.domain.guideProduct.dto.ModifyGuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.exception.GuideProductNotFoundException;
+import com.swygbro.trip.backend.domain.guideProduct.exception.GuideProductNotInRangeException;
 import com.swygbro.trip.backend.domain.guideProduct.exception.MismatchUserFromCreatorException;
 import com.swygbro.trip.backend.domain.guideProduct.exception.NotValidLocationException;
 import com.swygbro.trip.backend.domain.s3.application.S3Service;
@@ -14,6 +15,9 @@ import com.swygbro.trip.backend.domain.user.domain.User;
 import com.swygbro.trip.backend.domain.user.domain.UserRepository;
 import com.swygbro.trip.backend.domain.user.excepiton.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.Point;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -112,12 +117,25 @@ public class GuideProductService {
         guideProductRepository.deleteById(productId);
     }
 
+    // 30km 범위내 가이드 상품 불러오기
+    public List<GuideProductDto> getGuideListIn(double longitude, double latitude) {
+        GeometryFactory geometryFactory = new GeometryFactory();
+        Point point = geometryFactory.createPoint(new Coordinate(latitude, longitude));
+        point.setSRID(4326);
+
+        List<GuideProduct> guideProducts = guideProductRepository.findAllByLocation(point, 30000);
+
+        if (guideProducts.isEmpty()) throw new GuideProductNotInRangeException();
+
+        return guideProducts.stream().map(GuideProductDto::fromEntity).collect(Collectors.toList());
+    }
+
     // 가이드 상품 생성 시 필요한 호스트 정보 불러오가
     private User getUser(String email) {
         return userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
     }
-
     // 가이드 위치 유효한지 검사
+
     private void isValidLocation(double longitude, double latitude) throws NotValidLocationException {
         if (longitude < -90 || longitude > 90 || latitude < -180 || latitude > 180)
             throw new NotValidLocationException();
