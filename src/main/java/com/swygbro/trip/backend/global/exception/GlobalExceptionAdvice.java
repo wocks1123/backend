@@ -72,7 +72,7 @@ public class GlobalExceptionAdvice {
         
     @ExceptionHandler(IamportResponseException.class)
     public ResponseEntity<?> handleExternalApiException(Exception ex) {
-        log.warn("handleIamportResponseException: {}", ex.getMessage());
+        log.warn("handleExternalApiException: {}", ex.getMessage());
         return ExternalApiException.of(ex);
     }
 
