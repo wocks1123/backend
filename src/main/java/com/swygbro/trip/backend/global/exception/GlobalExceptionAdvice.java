@@ -69,7 +69,8 @@ public class GlobalExceptionAdvice {
     public ResponseEntity<?> handleAccessDeniedException(AccessDeniedException ex) {
         log.warn("handleAccessDeniedException: {}", ex.getMessage());
         return ApiErrorResponse.toResponseEntity(HttpStatus.FORBIDDEN, "접근 권한이 없습니다.");
-        
+    }
+    
     @ExceptionHandler(IamportResponseException.class)
     public ResponseEntity<?> handleExternalApiException(Exception ex) {
         log.warn("handleExternalApiException: {}", ex.getMessage());
