@@ -1,4 +1,4 @@
-package com.swygbro.trip.backend.domain.auth.exception;
+package com.swygbro.trip.backend.domain.user.excepiton;
 
 import com.swygbro.trip.backend.global.exception.BaseException;
 import org.springframework.http.HttpStatus;

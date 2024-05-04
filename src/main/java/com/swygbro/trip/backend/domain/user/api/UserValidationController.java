@@ -32,7 +32,6 @@ import org.springframework.web.bind.annotation.RestController;
                 
         ### 주요기능
                 
-        - 계정 중복 확인
         - 닉네임 중복 확인
         - 전화번호 중복 확인
         - 이메일 중복 확인
@@ -66,8 +65,8 @@ public class UserValidationController {
     }
 
     @GetMapping("/phone")
-    @Operation(summary = "전화번호 중복 확인", description = "전화번호 중복을 확인합니다.")
-    @Parameter(name = "phone", description = "사용자 전화번호", required = true, example = "010-1234-5678")
+    @Operation(summary = "전화번호 중복 확인", description = "전화번호 중복을 확인합니다. 전화번호 양식은 '-'를 제외한 숫자입니다.")
+    @Parameter(name = "phone", description = "사용자 전화번호", required = true, example = "01012345678")
     @ApiResponse(responseCode = "200", description = "중복된 전화번호가 없습니다.")
     @ValidationErrorResponse
     @ApiResponse(responseCode = "409", description = "전화번호 중복")

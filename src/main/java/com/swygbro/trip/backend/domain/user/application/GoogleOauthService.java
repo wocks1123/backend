@@ -1,13 +1,9 @@
-package com.swygbro.trip.backend.domain.auth.application;
+package com.swygbro.trip.backend.domain.user.application;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.swygbro.trip.backend.domain.auth.dto.GoogleUserInfo;
-import com.swygbro.trip.backend.domain.auth.dto.LoginRequest;
-import com.swygbro.trip.backend.domain.auth.exception.LoginFailException;
-import com.swygbro.trip.backend.domain.user.domain.User;
-import com.swygbro.trip.backend.domain.user.domain.UserRepository;
+import com.swygbro.trip.backend.domain.user.dto.GoogleUserInfo;
 import com.swygbro.trip.backend.global.jwt.TokenService;
 import com.swygbro.trip.backend.global.jwt.dto.TokenDto;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +11,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -26,13 +21,7 @@ import java.net.URI;
 
 @Service
 @RequiredArgsConstructor
-public class LoginService {
-
-    private final UserRepository userRepository;
-    private final TokenService tokenService;
-    private final PasswordEncoder passwordEncoder;
-    private final RestTemplate restTemplate;
-
+public class GoogleOauthService {
 
     @Value("${google.client.id}")
     private String clientId;
@@ -40,24 +29,43 @@ public class LoginService {
     private String secretPassword;
     @Value("${google.client.redirect}")
     private String redirectUri;
+    @Value("${google.client.authorization_uri}")
+    private String authorizationUri;
+    @Value("${google.client.scope}")
+    private String scope;
 
-    public TokenDto login(LoginRequest dto) {
-        User user = userRepository.findByEmail(dto.getEmail())
-                .orElseThrow(LoginFailException::new);
+    private final UserService userService;
+    private final TokenService tokenService;
 
-        if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-            throw new LoginFailException();
+    private final RestTemplate restTemplate;
+
+
+    public String getGoogleLoginUrl() {
+        return UriComponentsBuilder.fromUriString(authorizationUri)
+                .queryParam("client_id", clientId)
+                .queryParam("redirect_uri", redirectUri)
+                .queryParam("response_type", "code")
+                .queryParam("scope", scope)
+                .build().toUriString();
+    }
+
+    public TokenDto callback(String code) throws JsonProcessingException {
+        String googleAccessToken = getGoogleAccessToken(code);
+        GoogleUserInfo userInfo = getGoogleUserInfo(googleAccessToken);
+
+        // TODO 회원가입 / 로그인 로직 상세화
+        // 등록된 회원인지 확인
+        boolean exists = userService.existsByEmail(userInfo.getEmail());
+
+        // 등록된 회원이라면 로그인처리
+        if (exists) {
+            return tokenService.generateToken(userInfo.getEmail());
         }
 
-        return tokenService.generateToken(user.getEmail());
-    }
-
-    public TokenDto loginGoogle(String code) throws JsonProcessingException {
-        String accessToken = getGoogleAccessToken(code);
-        GoogleUserInfo userInfo = getGoogleUserInfo(accessToken);
-        // TODO 회원등록 추가
+        // 등록되지 않은 회원이면 회원가입 진행
         return tokenService.generateToken(userInfo.getEmail());
     }
+
 
     public String getGoogleAccessToken(String code) throws JsonProcessingException {
         URI uri = UriComponentsBuilder
@@ -95,5 +103,6 @@ public class LoginService {
         ResponseEntity<String> responseEntity = restTemplate.getForEntity(uri, String.class);
         return new ObjectMapper().readValue(responseEntity.getBody(), GoogleUserInfo.class);
     }
+
 
 }
