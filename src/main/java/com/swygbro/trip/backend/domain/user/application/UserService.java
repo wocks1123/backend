@@ -1,5 +1,6 @@
 package com.swygbro.trip.backend.domain.user.application;
 
+import com.swygbro.trip.backend.domain.s3.application.S3Service;
 import com.swygbro.trip.backend.domain.user.domain.SignUpType;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import com.swygbro.trip.backend.domain.user.domain.UserRepository;
@@ -21,6 +22,7 @@ public class UserService {
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final UserValidationService userValidationService;
+    private final S3Service s3Service;
 
     @Transactional
     public Long createUser(CreateUserRequest dto) {
@@ -61,9 +63,7 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException(id));
 
         if (imageFile != null) {
-            // TODO
-            // 이미지 파일 업로드 처리
-            // user.setProfileImageUrl("이미지 URL");
+            user.setProfileImageUrl(s3Service.uploadImage(imageFile));
         }
 
         user.update(dto);
