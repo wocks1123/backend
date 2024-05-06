@@ -3,6 +3,7 @@ package com.swygbro.trip.backend.domain.guideProduct.application;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideCategory;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProduct;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProductRepository;
+import com.swygbro.trip.backend.domain.guideProduct.domain.RegionRepository;
 import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
 import com.swygbro.trip.backend.domain.guideProduct.dto.ModifyGuideProductRequest;
@@ -17,11 +18,16 @@ import com.swygbro.trip.backend.domain.user.excepiton.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
+import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Point;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -34,6 +40,7 @@ public class GuideProductService {
     private final S3Service s3Service;
     private final GuideProductRepository guideProductRepository;
     private final UserRepository userRepository;
+    private final RegionRepository regionRepository;
 
     // 가이드 상품 생성
     @Transactional
@@ -125,7 +132,20 @@ public class GuideProductService {
 
         List<GuideProduct> guideProducts = guideProductRepository.findAllByLocation(point, 30000);
 
-        if (guideProducts.isEmpty()) throw new GuideProductNotInRangeException();
+        if (guideProducts.isEmpty()) throw new GuideProductNotInRangeException("주변에 가이드 상품이 존재하지 않습니다.");
+
+        return guideProducts.stream().map(GuideProductDto::fromEntity).collect(Collectors.toList());
+    }
+
+    // 지역, 날짜로 검색
+    public List<GuideProductDto> getSearchedGuideList(String region, LocalDate start, LocalDate end) {
+        ZonedDateTime zonedDateStart = ZonedDateTime.of(start.atStartOfDay(), ZoneId.of("Asia/Seoul"));
+        ZonedDateTime zonedDateEnd = ZonedDateTime.of(end.atTime(LocalTime.MAX), ZoneId.of("Asia/Seoul"));
+        MultiPolygon polygon = regionRepository.findByName(region).getPolygon();
+
+        List<GuideProduct> guideProducts = guideProductRepository.findAllByRegionAndDate(polygon, zonedDateStart, zonedDateEnd);
+
+        if (guideProducts.isEmpty()) throw new GuideProductNotInRangeException("해당 조건에 부합하는 가이드 상품이 존재하지 않습니다.");
 
         return guideProducts.stream().map(GuideProductDto::fromEntity).collect(Collectors.toList());
     }

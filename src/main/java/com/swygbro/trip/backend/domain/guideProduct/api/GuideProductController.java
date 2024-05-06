@@ -12,10 +12,12 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -335,5 +337,12 @@ public class GuideProductController {
     public List<GuideProductDto> getGuideListIn(@RequestParam double longitude,
                                                 @RequestParam double latitude) {
         return guideProductService.getGuideListIn(longitude, latitude);
+    }
+
+    @GetMapping("/search")
+    public List<GuideProductDto> getSearchedGuideList(@RequestParam String region,
+                                                      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+                                                      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
+        return guideProductService.getSearchedGuideList(region, start, end);
     }
 }
