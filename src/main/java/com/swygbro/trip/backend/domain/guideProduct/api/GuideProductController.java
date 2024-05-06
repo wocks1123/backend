@@ -340,6 +340,43 @@ public class GuideProductController {
     }
 
     @GetMapping("/search")
+    @Operation(summary = "지역 + 날짜로 검색", description = """
+            # 지역 + 날짜로 검색
+                        
+            지역과 날짜를 입력하면 두 조건에 만족하는 가이드 상품들을 검색한다.
+                        
+            각 필드의 제약 조건은 다음과 같습니다.
+            | 필드명 | 설명 | 제약조건 | null 가능 | 예시 |
+            |--------|------|----------|----------|------|
+            |region| 한국 지역 선택 | 서울특별시, 경기도, 광주광역시, 세종특별자치시, 부산광역시, 울산광역시, 대구광역시, 제주특별자치도, 인천광역시, 전라북도, 전라남도, 충청남도, 충청북도, 강원도, 경상북도, 경상남도, 대전광역시만 가능 | N | 서울특별시 |
+            |start| 범위 시작 날짜 | yyyy-MM-dd, 00:00:00시간부터 | N | 2024-05-01 |
+            |end| 범위 종료 날짜 | yyyy-MM-dd, 23:59:99시간까지 | N | 2024-05-02 |
+                        
+            ## 응답
+                        
+            - 검색 조건 내 가이드 상품이 존재할 경우 `200` 코드와 함께 가이드 상품 리스트를 반환합니다.
+            - 검색 조건 내 가이드 상품이 존재하지 않을 경우 `404` 에러를 반환합니다.
+            """, tags = "Search Guide Products")
+    @ApiResponse(
+            responseCode = "200",
+            description = "범위 내 가이드 상품 불러오기 성공",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = GuideProductDto.class)
+            )
+    )
+    @ApiResponse(
+            responseCode = "404",
+            description = "범위 내 가이드 상품이 존재하지 않음",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ApiErrorResponse.class),
+                    examples = @ExampleObject(
+                            name = "가이드 상품이 존재하지 않음",
+                            value = "{ \"status\" : \"NOT_FOUND\", \"message\" : \"해당 조건에 부합하는 가이드 상품이 존재하지 않습니다.\"}"
+                    )
+            )
+    )
     public List<GuideProductDto> getSearchedGuideList(@RequestParam String region,
                                                       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
                                                       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
