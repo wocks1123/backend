@@ -74,7 +74,7 @@ jobs:
                     -e LOG_PATH=${{ secrets.LOG_PATH }} \
                     -e LOG_LEVEL=${{ secrets.LOG_LEVEL }} \
                     -e DISCORD_WEB_HOOK_URL=${{ secrets.DISCORD_WEB_HOOK_URL }} \
-                    -d ${{ secrets.DOCKER_MOUNT_PATH }}:{{ secrets.LOG_PATH }} \
+                    -v ${{ secrets.DOCKER_MOUNT_PATH }}:${{ secrets.LOG_PATH }} \
                     ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
             docker rm $(docker ps --filter 'status=exited' -a -q)
             docker image prune -a -f
