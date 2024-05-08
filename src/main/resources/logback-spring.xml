@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <configuration>
+
+    <property resource="application.properties"/>
+
     <property name="CONSOLE_PATTERN"
               value="%d{yyyy-MM-dd HH:mm:ss.SSS} %magenta([%thread]) %highlight([%-3level]) %logger{5} - %msg %n"/>
     <property name="ROLLING_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS, Asia/Seoul}  %logger{5} - %msg %n"/>
-    <property name="LOG_PATH" value="${logging.custom.log-path:-logs}"/>
-    <property name="LOG_LEVEL" value="${logging.custom.log-level:-INFO}"/>
-    <property name="LOG_NAME_PATTERN" value="matthew-%d{yyyy-MM-dd-HH-mm, Asia/Seoul}.%i.log"/>
+    <property name="LOG_PATH" value="${logging.log-path:-logs}"/>
+    <property name="LOG_LEVEL" value="${logging.log-level:-INFO}"/>
+    <property name="FILE_NAME" value="matthew-%d{yyyy-MM-dd-HH-mm, Asia/Seoul}.log"/>
+    <property name="LOG_NAME_PATTERN" value="matthew-%d{yyyy-MM-dd-HH, Asia/Seoul}.%i.log"/>
     <property name="MAX_FILE_SIZE" value="10MB"/>
     <property name="TOTAL_SIZE" value="50MB"/>
     <property name="MAX_HISTORY" value="2"/>
@@ -29,21 +33,10 @@
         </rollingPolicy>
     </appender>
 
-    <logger name="jdbc" level="OFF" additive="false">
-        <appender-ref ref="STDOUT"/>
-        <appender-ref ref="ROLLING_LOG_FILE"/>
-    </logger>
-    <logger name="jdbc.sqlonly" level="DEBUG" additive="false">
-        <appender-ref ref="STDOUT"/>
-        <appender-ref ref="ROLLING_LOG_FILE"/>
-    </logger>
-    <logger name="jdbc.sqltiming" level="OFF" additive="false">
-        <appender-ref ref="STDOUT"/>
-        <appender-ref ref="ROLLING_LOG_FILE"/>
-    </logger>
-
     <root level="${LOG_LEVEL}">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="ROLLING_LOG_FILE"/>
     </root>
+
 </configuration>
+
