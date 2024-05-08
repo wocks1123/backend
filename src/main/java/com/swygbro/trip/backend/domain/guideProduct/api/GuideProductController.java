@@ -155,7 +155,7 @@ public class GuideProductController {
 
     @PutMapping(value = "/{productId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "가이드 상품 정보 수정", description = """
-            # 가이드 상품 등록
+            # 가이드 상품 수정
                         
             가이드 상품을 수정합니다.
                         
@@ -342,7 +342,7 @@ public class GuideProductController {
     }
 
     @GetMapping("/search")
-    @Operation(summary = "지역 + 날짜로 검색", description = """
+    @Operation(summary = "검색 + 필터 ", description = """
             # 지역 + 날짜로 검색
                         
             지역과 날짜를 입력하면 두 조건에 만족하는 가이드 상품들을 검색한다.
@@ -354,6 +354,27 @@ public class GuideProductController {
             |start| 범위 시작 날짜 | yyyy-MM-dd, 00:00:00시간부터 | N | 2024-05-01 |
             |end| 범위 종료 날짜 | yyyy-MM-dd, 23:59:99시간까지 | N | 2024-05-02 |
                         
+            # 상세 조건으로 필터
+                        
+            카테고리, 가격 범위, 소요 시간, 시간대, 같은 국적 여부를 이용해 추가 검색을 합니다.
+                        
+            각 필드의 제약 조건은 다음과 같습니다.
+            | 필드명 | 설명 | 제약조건 | null 가능 | 예시 |
+            |--------|------|----------|----------|------|
+            |category| 카테고리 선택 | (중복 가능) DINING,TOUR,OUTDOOR,ENTERTAINMENT,ART_CULTURE,SPORTS_FITNESS | Y | DINING |
+            |min| 최소 가격 범위 | 한국 재화 기준 | Y (default = 0) | 10000 |
+            |max| 최대 가격 범위 | 한국 재화 기준 | Y (default = 200000)| 30000 |
+            |minD| 최소 소요 시간 | 시간 단위 | Y (default = 1) | 2 |
+            |maxD| 최대 소요 시간 | 시간 단위 | Y (default = 24) | 5 |
+            |dayT| 시간대 | DAWN(0 ~ 6), MORNING(7 ~ 11), LUNCH (12 ~ 17), EVENING (18 ~ 23) | Y (default = ALL) | LUNCH |
+            |host| 같은 국적 여부 | 같을 경우 true, 다를 경우 false | Y (default = false) | false |
+                      
+            # 상황
+            1. 지역 + 날짜로만 검색 가능
+            2. 1번에서의 검색 결과에서 카테고리 선택으로 검색 가능
+            3. 1번 + 2번 검색 결과에서 세부 조건으로 검색 가능
+            4. 1번에서의 검색 결과에서 세부 조건으로 검색 가능
+              
             ## 응답
                         
             - 검색 조건 내 가이드 상품이 존재할 경우 `200` 코드와 함께 가이드 상품 리스트를 반환합니다.
