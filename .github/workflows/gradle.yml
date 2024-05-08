@@ -67,10 +67,12 @@ jobs:
                     -e GOOGLE_REDIRECT_URI=${{ secrets.GOOGLE_REDIRECT_URI }} \
                     -e AWS_CREDENTIAL_ACCESS_KEY=${{ secrets.AWS_CREDENTIAL_ACCESS_KEY }} \
                     -e AWS_CREDENTIAL_SECRET_KEY=${{ secrets.AWS_CREDENTIAL_SECRET_KEY }} \
-                    -e AWS_S3_BUCEKT_NAME=${{ secrets.AWS_S3_BUCEKT_NAME }} \
+                    -e AWS_S3_BUCEKT_NAME=${{ secrets.AWS_S3_BUCKET_NAME }} \
                     -e AWS_REGION_STATIC=${{ secrets.AWS_REGION_STATIC }} \
                     -e IMP_API_KEY=${{ secrets.IMP_API_KEY }} \
                     -e IMP_API_SECRET=${{ secrets.IMP_API_SECRET }} \
+                    -e LOG_PATH=${{ secrets.LOG_PATH }} \
+                    -e LOG_LEVEL=${{ secrets.LOG_LEVEL }} \
                     ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
             docker rm $(docker ps --filter 'status=exited' -a -q)
             docker image prune -a -f
