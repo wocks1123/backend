@@ -56,6 +56,8 @@ jobs:
             docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
             docker stop matthew
             docker rm matthew
+            docker ps -q --filter "name=matthew" | xargs --no-run-if-empty docker stop
+            docker ps -q --filter "name=matthew" | xargs --no-run-if-empty docker rm
             docker run -d --log-driver=syslog -p 80:8080 --name matthew \
                     -e DATASOURCE_URL=${{ secrets.DATASOURCE_URL }} \
                     -e DATASOURCE_USERNAME=${{ secrets.DATASOURCE_USERNAME }} \
