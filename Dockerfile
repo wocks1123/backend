@@ -4,4 +4,4 @@ WORKDIR /usr/app
 
 COPY ./build/libs/backend-*.jar /usr/app/app.jar
 
-CMD ["java", "-jar", "app.jar"]
+CMD ["java", "-jar", "-Dspring.profiles.active=deploy",  "app.jar"]
