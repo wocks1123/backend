@@ -61,7 +61,7 @@ public class UserService {
     public void updateUser(Long id, UpdateUserRequest dto, MultipartFile imageFile) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
-
+        
         if (imageFile != null) {
             user.setProfileImageUrl(s3Service.uploadImage(imageFile));
         }

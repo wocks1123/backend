@@ -5,10 +5,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swygbro.trip.backend.domain.user.dto.GoogleUserInfo;
 import com.swygbro.trip.backend.global.jwt.TokenService;
-import com.swygbro.trip.backend.global.jwt.dto.TokenDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -49,21 +49,20 @@ public class GoogleOauthService {
                 .build().toUriString();
     }
 
-    public TokenDto callback(String code) throws JsonProcessingException {
+    public ResponseEntity<?> callback(String code) throws JsonProcessingException {
         String googleAccessToken = getGoogleAccessToken(code);
         GoogleUserInfo userInfo = getGoogleUserInfo(googleAccessToken);
 
-        // TODO 회원가입 / 로그인 로직 상세화
-        // 등록된 회원인지 확인
         boolean exists = userService.existsByEmail(userInfo.getEmail());
 
         // 등록된 회원이라면 로그인처리
         if (exists) {
-            return tokenService.generateToken(userInfo.getEmail());
+            return ResponseEntity.ok(tokenService.generateToken(userInfo.getEmail()));
         }
 
-        // 등록되지 않은 회원이면 회원가입 진행
-        return tokenService.generateToken(userInfo.getEmail());
+        return ResponseEntity
+                .status(HttpStatus.MOVED_PERMANENTLY)
+                .body(userInfo);
     }
 
 
