@@ -1,6 +1,8 @@
 package com.swygbro.trip.backend.domain.guideProduct.api;
 
 import com.swygbro.trip.backend.domain.guideProduct.application.GuideProductService;
+import com.swygbro.trip.backend.domain.guideProduct.domain.DayTime;
+import com.swygbro.trip.backend.domain.guideProduct.domain.GuideCategoryCode;
 import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
 import com.swygbro.trip.backend.domain.guideProduct.dto.ModifyGuideProductRequest;
@@ -379,7 +381,14 @@ public class GuideProductController {
     )
     public List<GuideProductDto> getSearchedGuideList(@RequestParam String region,
                                                       @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
-                                                      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
-        return guideProductService.getSearchedGuideList(region, start, end);
+                                                      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
+                                                      @RequestParam(value = "category", required = false) List<GuideCategoryCode> categories,
+                                                      @RequestParam(value = "min", required = false, defaultValue = "0") Long minPrice,
+                                                      @RequestParam(value = "max", required = false, defaultValue = "200000") Long maxPrice,
+                                                      @RequestParam(value = "minD", required = false, defaultValue = "1") int minDuration,
+                                                      @RequestParam(value = "maxD", required = false, defaultValue = "24") int maxDuration,
+                                                      @RequestParam(value = "dayT", required = false, defaultValue = "ALL") DayTime dayTime,
+                                                      @RequestParam(value = "host", required = false, defaultValue = "false") boolean same) {
+        return guideProductService.getSearchedGuideList(region, start, end, categories, minPrice, maxPrice, minDuration, maxDuration, dayTime, same);
     }
 }
