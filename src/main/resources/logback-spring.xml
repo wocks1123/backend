@@ -20,7 +20,7 @@
         <encoder>
             <pattern>${ROLLING_PATTERN}</pattern>
         </encoder>
-        <file>${LOG_PATH}/matthew3.log</file>
+        <file>${LOG_PATH}/matthew.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${LOG_PATH}/${LOG_NAME_PATTERN}</fileNamePattern>
             <maxHistory>${MAX_HISTORY}</maxHistory>
