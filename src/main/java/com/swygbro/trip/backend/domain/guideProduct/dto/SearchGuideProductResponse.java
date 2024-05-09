@@ -15,6 +15,8 @@ import java.time.ZonedDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SearchGuideProductResponse {
+    @Schema(description = "상품 ID", example = "1")
+    private Long id;
     @Schema(description = "상품 제목", example = "신나는 서울 투어")
     private String title;
     @Schema(description = "대표 이미지 url", example = "https://S3저장소URL/저장위치/난수화된 이미지이름.이미지 타입")
@@ -28,6 +30,7 @@ public class SearchGuideProductResponse {
 
     public static SearchGuideProductResponse fromEntity(GuideProduct product) {
         return SearchGuideProductResponse.builder()
+                .id(product.getId())
                 .title(product.getTitle())
                 .thumb(product.getThumb())
                 .guideStart(product.getGuideStart())
