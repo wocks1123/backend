@@ -1,16 +1,16 @@
 package com.swygbro.trip.backend.domain.guideProduct.domain;
 
-import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductRequest;
+import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductRequest;
+import com.swygbro.trip.backend.domain.guideProduct.dto.ModifyGuideProductRequest;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import com.swygbro.trip.backend.global.entity.BaseEntity;
+import io.hypersistence.utils.hibernate.type.json.JsonType;
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
+import org.hibernate.annotations.Type;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
-import lombok.*;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -24,8 +24,8 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Getter
 @Table(name = "guide_product")
+@Getter
 public class GuideProduct extends BaseEntity {
 
     @Id
@@ -39,7 +39,7 @@ public class GuideProduct extends BaseEntity {
     @Column(length = 100, nullable = false)
     private String title;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "text")
     private String description;
 
     @Column(nullable = false)
@@ -55,29 +55,34 @@ public class GuideProduct extends BaseEntity {
     private ZonedDateTime guideEnd;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<GuideCategory> categories = new ArrayList<>();
+    private List<GuideCategory> categories;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<GuideImage> images = new ArrayList<>();
+    @Column(name = "guide_thumbnail", nullable = false)
+    private String thumb;
 
+    @Type(JsonType.class)
+    @Column(name = "guide_images", columnDefinition = "longtext")
+    private List<String> images;
 
-    public GuideProduct(User user, String title, String description, Long price, double longitude, double latitude, ZonedDateTime guideStart, ZonedDateTime guideEnd) {
+    public static GuideProduct setGuideProduct(User user, CreateGuideProductRequest request, List<String> images) {
         GeometryFactory geometryFactory = new GeometryFactory();
-        Point point = geometryFactory.createPoint(new Coordinate(latitude, longitude));
+        Point point = geometryFactory.createPoint(new Coordinate(request.getLatitude(), request.getLongitude()));
         point.setSRID(4326);
 
-        this.user = user;
-        this.title = title;
-        this.description = description;
-        this.price = price;
-        this.location = point;
-        this.guideStart = guideStart;
-        this.guideEnd = guideEnd;
-    }
-
-    public void addGuideImage(GuideImage image) {
-        this.images.add(image);
-        image.setProduct(this);
+        if (images.size() == 1)
+            return GuideProduct.builder().user(user)
+                    .title(request.getTitle()).description(request.getDescription())
+                    .price(request.getPrice()).location(point)
+                    .guideStart(request.getGuideStart()).guideEnd(request.getGuideEnd())
+                    .thumb(images.get(0)).categories(new ArrayList<>())
+                    .build();
+        else return GuideProduct.builder().user(user)
+                .title(request.getTitle()).description(request.getDescription())
+                .price(request.getPrice()).location(point)
+                .guideStart(request.getGuideStart()).guideEnd(request.getGuideEnd())
+                .thumb(images.get(0)).images(images.subList(1, images.size()).stream().toList())
+                .categories(new ArrayList<>())
+                .build();
     }
 
     public void addGuideCategory(GuideCategory category) {
@@ -95,7 +100,7 @@ public class GuideProduct extends BaseEntity {
         }
     }
 
-    public void setGuideProduct(GuideProductRequest request) {
+    public void setGuideProduct(ModifyGuideProductRequest request) {
         GeometryFactory geometryFactory = new GeometryFactory();
         Point point = geometryFactory.createPoint(new Coordinate(request.getLatitude(), request.getLongitude()));
         point.setSRID(4326);
@@ -106,5 +111,7 @@ public class GuideProduct extends BaseEntity {
         this.location = point;
         this.guideStart = request.getGuideStart();
         this.guideEnd = request.getGuideEnd();
+        this.thumb = request.getThumb();
+        this.images = request.getImages();
     }
 }
