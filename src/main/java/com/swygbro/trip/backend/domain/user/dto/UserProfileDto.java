@@ -1,11 +1,16 @@
 package com.swygbro.trip.backend.domain.user.dto;
 
+import com.swygbro.trip.backend.domain.guideProduct.dto.SimpleGuideProductDto;
 import io.swagger.v3.oas.annotations.media.Schema;
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
+
+import java.util.List;
 
 
 @Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class UserProfileDto {
     @Schema(description = "사용자 이메일", example = "user01@test.com")
@@ -22,4 +27,6 @@ public class UserProfileDto {
 
     @Schema(description = "사용자 프로필 이미지 URL", example = "/images/profile.jpg")
     private String profileImageUrl;
+
+    private List<SimpleGuideProductDto> guideProducts;
 }

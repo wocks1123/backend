@@ -65,8 +65,8 @@ public class UserController {
                     )
             )
     )
-    public UserProfileDto getUser(@PathVariable Long userId) {
-        return userService.getUser(userId);
+    public UserProfileDto getUserProfile(@PathVariable Long userId) {
+        return userService.getUserProfile(userId);
     }
 
     @PutMapping(value = "{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

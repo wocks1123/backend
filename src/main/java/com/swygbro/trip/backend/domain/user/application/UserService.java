@@ -1,8 +1,10 @@
 package com.swygbro.trip.backend.domain.user.application;
 
+import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProductRepository;
 import com.swygbro.trip.backend.domain.s3.application.S3Service;
 import com.swygbro.trip.backend.domain.user.domain.SignUpType;
 import com.swygbro.trip.backend.domain.user.domain.User;
+import com.swygbro.trip.backend.domain.user.domain.UserDao;
 import com.swygbro.trip.backend.domain.user.domain.UserRepository;
 import com.swygbro.trip.backend.domain.user.dto.CreateUserRequest;
 import com.swygbro.trip.backend.domain.user.dto.UpdateUserRequest;
@@ -21,6 +23,8 @@ public class UserService {
 
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
+    private final GuideProductRepository guideProductRepository;
+    private final UserDao userDao;
     private final UserValidationService userValidationService;
     private final S3Service s3Service;
 
@@ -40,16 +44,9 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public UserProfileDto getUser(Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new UserNotFoundException(id));
-        return UserProfileDto.builder()
-                .email(user.getEmail())
-                .nickname(user.getNickname())
-                .name(user.getName())
-                .profile(user.getProfile())
-                .profileImageUrl(user.getProfileImageUrl())
-                .build();
+    public UserProfileDto getUserProfile(Long userId) {
+        return userDao.getUserProfile(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
     }
 
     @Transactional(readOnly = true)
@@ -61,7 +58,7 @@ public class UserService {
     public void updateUser(Long id, UpdateUserRequest dto, MultipartFile imageFile) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UserNotFoundException(id));
-        
+
         if (imageFile != null) {
             user.setProfileImageUrl(s3Service.uploadImage(imageFile));
         }
