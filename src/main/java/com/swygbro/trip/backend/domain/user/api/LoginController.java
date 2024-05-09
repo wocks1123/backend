@@ -121,7 +121,6 @@ public class LoginController {
     )
     @ValidationErrorResponse
     public Long createUser(@Valid @RequestBody CreateUserRequest dto) {
-        discordMessageProvider.sendMessage("회원가입이 완료되었습니다.");
         return userService.createUser(dto);
     }
 
