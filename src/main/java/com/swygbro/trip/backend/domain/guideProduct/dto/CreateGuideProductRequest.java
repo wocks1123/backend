@@ -16,8 +16,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreateGuideProductRequest {
-    @Schema(description = "사용자 계정", example = "추후에 토큰에서 가져와서 사용")
-    private String email;
     @NotBlank
     @Schema(description = "상품 제목", example = "신나는 서울 투어")
     private String title;

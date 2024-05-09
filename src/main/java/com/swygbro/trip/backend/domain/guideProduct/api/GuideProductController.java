@@ -6,16 +6,23 @@ import com.swygbro.trip.backend.domain.guideProduct.domain.GuideCategoryCode;
 import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
 import com.swygbro.trip.backend.domain.guideProduct.dto.ModifyGuideProductRequest;
+import com.swygbro.trip.backend.domain.guideProduct.dto.SearchGuideProductResponse;
+import com.swygbro.trip.backend.domain.user.domain.User;
+import com.swygbro.trip.backend.global.document.ForbiddenResponse;
+import com.swygbro.trip.backend.global.document.InvalidTokenResponse;
 import com.swygbro.trip.backend.global.exception.ApiErrorResponse;
+import com.swygbro.trip.backend.global.jwt.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.MediaType;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,12 +38,14 @@ public class GuideProductController {
     private final GuideProductService guideProductService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("isAuthenticated() and hasRole('USER')")
+    @SecurityRequirement(name = "access-token")
     @Operation(summary = "가이드 상품 등록", description = """
             # 가이드 상품 등록
                         
             가이드 상품을 등록합니다.
                         
-            상품 등록 시 사용자 이메일(추후 토큰 사용으로 삭제 예정), 상품 제목, 상품 설명, 가이드 비용, 가이드 위치(위도, 경도), 가이드 시작/종료 날짜/시간, 카테고리, 대표 이미지, 이미지를 입력합니다.
+            상품 제목, 상품 설명, 가이드 비용, 가이드 위치(위도, 경도), 가이드 시작/종료 날짜/시간, 카테고리, 대표 이미지, 이미지를 입력합니다.
                         
             이미지는 MultipartFile 타입이며 대표 이미지는 `thumb`, 그 외 이미지는 `file` key로 입력하시면 됩니다.<br>
             대표 이미지는 Not Null 이며 그 외 이미지는 Null 가능 입니다.
@@ -44,7 +53,6 @@ public class GuideProductController {
             각 필드의 제약 조건은 다음과 같습니다.
             | 필드명 | 설명 | 제약조건 | null 가능 | 예시 |
             |--------|------|----------|----------|------|
-            |email| 사용자의 이메일 | 이메일 형식 | N | email01@email.com |
             |title| 상품 제목 | 한글 기준 최대 30자, 영어 기준 최대 100자 | N | 신나는 서울 투어 |
             |description| 상품 설명 | 한글 기준 21000자, 영어 기준 65535  | N | 서울 *** 여행 가이드 합니다. |
             |price| 가이드 비용 | 한국 재화 기준 | N | 10000 |
@@ -105,10 +113,13 @@ public class GuideProductController {
                     )
             )
     )
-    public GuideProductDto createGuideProduct(@Valid @RequestPart CreateGuideProductRequest request,
+    @ForbiddenResponse
+    @InvalidTokenResponse
+    public GuideProductDto createGuideProduct(@CurrentUser User user,
+                                              @Valid @RequestPart CreateGuideProductRequest request,
                                               @RequestPart(value = "thumb") MultipartFile thumbImage,
                                               @RequestPart(value = "file", required = false) Optional<List<MultipartFile>> images) {
-        return guideProductService.createGuideProduct(request, thumbImage, images);
+        return guideProductService.createGuideProduct(user.getEmail(), request, thumbImage, images);
     }
 
     @GetMapping("/{productId}")
@@ -154,12 +165,14 @@ public class GuideProductController {
     }
 
     @PutMapping(value = "/{productId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("isAuthenticated() and hasRole('USER')")
+    @SecurityRequirement(name = "access-token")
     @Operation(summary = "가이드 상품 정보 수정", description = """
             # 가이드 상품 수정
                         
             가이드 상품을 수정합니다.
                         
-            상품 수정 시 사용자 이메일(추후 토큰 사용으로 삭제 예정), 상품 제목, 상품 설명, 가이드 비용, 가이드 위치(위도, 경도), 가이드 시작/종료 날짜/시간, 카테고리, 대표 이미지, 이미지를 입력합니다.
+            상품 제목, 상품 설명, 가이드 비용, 가이드 위치(위도, 경도), 가이드 시작/종료 날짜/시간, 카테고리, 대표 이미지, 이미지를 입력합니다.
                         
             이미지는 MultipartFile 타입이며 대표 이미지는 `thumb`, 그 외 이미지는 `file` key로 입력하시면 됩니다.<br>
             대표 이미지, 그 외 이미지 모두 수정가능하며 대표 이미지를 수정할 경우 새로운 대표 이미지를 입력해주시고 기존 대표 이미지 url은 빼주시면 됩니다.<br>
@@ -169,7 +182,6 @@ public class GuideProductController {
             각 필드의 제약 조건은 다음과 같습니다.
             | 필드명 | 설명 | 제약조건 | null 가능 | 예시 |
             |--------|------|----------|----------|------|
-            |email| 사용자의 이메일 | 이메일 형식 | N | email01@email.com |
             |title| 상품 제목 | 한글 기준 최대 30자, 영어 기준 최대 100자 | N | 신나는 서울 투어 |
             |description| 상품 설명 | 한글 기준 21000자, 영어 기준 65535  | N | 서울 *** 여행 가이드 합니다. |
             |price| 가이드 비용 | 한국 재화 기준 | N | 10000 |
@@ -226,14 +238,19 @@ public class GuideProductController {
 
             )
     )
-    public GuideProductDto modifyGuideProduct(@PathVariable Long productId,
+    @ForbiddenResponse
+    @InvalidTokenResponse
+    public GuideProductDto modifyGuideProduct(@CurrentUser User user,
+                                              @PathVariable Long productId,
                                               @Valid @RequestPart ModifyGuideProductRequest request,
                                               @RequestPart(value = "thumb", required = false) Optional<MultipartFile> modifyThumbImage,
                                               @RequestPart(value = "file", required = false) Optional<List<MultipartFile>> modifyImages) {
-        return guideProductService.modifyGuideProduct(productId, request, modifyThumbImage, modifyImages);
+        return guideProductService.modifyGuideProduct(user.getEmail(), productId, request, modifyThumbImage, modifyImages);
     }
 
     @DeleteMapping("/{productId}")
+    @PreAuthorize("isAuthenticated() and hasRole('USER')")
+    @SecurityRequirement(name = "access-token")
     @Operation(summary = "가이드 상품 삭제", description = """
             # 가이드 상품 삭제
                         
@@ -245,7 +262,6 @@ public class GuideProductController {
             | 필드명 | 설명 | 제약조건 | null 가능 | 예시 |
             |--------|------|----------|----------|------|
             |productId| 가이드 상품 고유 id | 숫자 | N | 1 |
-            |email| 사용자의 이메일 | 이메일 형식 | N | email01@email.com |
                         
             ## 응답
                         
@@ -292,9 +308,11 @@ public class GuideProductController {
 
             )
     )
-    public String deleteGuideProduct(@PathVariable Long productId,
-                                     @RequestParam String email) {
-        guideProductService.deleteGuideProduct(productId, email);
+    @ForbiddenResponse
+    @InvalidTokenResponse
+    public String deleteGuideProduct(@CurrentUser User user,
+                                     @PathVariable Long productId) {
+        guideProductService.deleteGuideProduct(productId, user.getEmail());
 
         return "삭제에 성공했습니다.";
     }
@@ -321,7 +339,7 @@ public class GuideProductController {
             description = "범위 내 가이드 상품 불러오기 성공",
             content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = GuideProductDto.class)
+                    schema = @Schema(implementation = SearchGuideProductResponse.class)
             )
     )
     @ApiResponse(
@@ -336,8 +354,8 @@ public class GuideProductController {
                     )
             )
     )
-    public List<GuideProductDto> getGuideListIn(@RequestParam double longitude,
-                                                @RequestParam double latitude) {
+    public List<SearchGuideProductResponse> getGuideListIn(@RequestParam double longitude,
+                                                           @RequestParam double latitude) {
         return guideProductService.getGuideListIn(longitude, latitude);
     }
 
@@ -385,7 +403,7 @@ public class GuideProductController {
             description = "범위 내 가이드 상품 불러오기 성공",
             content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = GuideProductDto.class)
+                    schema = @Schema(implementation = SearchGuideProductResponse.class)
             )
     )
     @ApiResponse(
@@ -400,16 +418,16 @@ public class GuideProductController {
                     )
             )
     )
-    public List<GuideProductDto> getSearchedGuideList(@RequestParam String region,
-                                                      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
-                                                      @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
-                                                      @RequestParam(value = "category", required = false) List<GuideCategoryCode> categories,
-                                                      @RequestParam(value = "min", required = false, defaultValue = "0") Long minPrice,
-                                                      @RequestParam(value = "max", required = false, defaultValue = "200000") Long maxPrice,
-                                                      @RequestParam(value = "minD", required = false, defaultValue = "1") int minDuration,
-                                                      @RequestParam(value = "maxD", required = false, defaultValue = "24") int maxDuration,
-                                                      @RequestParam(value = "dayT", required = false, defaultValue = "ALL") DayTime dayTime,
-                                                      @RequestParam(value = "host", required = false, defaultValue = "false") boolean same) {
+    public List<SearchGuideProductResponse> getSearchedGuideList(@RequestParam String region,
+                                                                 @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+                                                                 @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
+                                                                 @RequestParam(value = "category", required = false) List<GuideCategoryCode> categories,
+                                                                 @RequestParam(value = "min", required = false, defaultValue = "0") Long minPrice,
+                                                                 @RequestParam(value = "max", required = false, defaultValue = "200000") Long maxPrice,
+                                                                 @RequestParam(value = "minD", required = false, defaultValue = "1") int minDuration,
+                                                                 @RequestParam(value = "maxD", required = false, defaultValue = "24") int maxDuration,
+                                                                 @RequestParam(value = "dayT", required = false, defaultValue = "ALL") DayTime dayTime,
+                                                                 @RequestParam(value = "host", required = false, defaultValue = "false") boolean same) {
         return guideProductService.getSearchedGuideList(region, start, end, categories, minPrice, maxPrice, minDuration, maxDuration, dayTime, same);
     }
 }

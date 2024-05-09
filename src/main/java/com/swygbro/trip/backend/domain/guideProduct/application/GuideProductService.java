@@ -4,6 +4,7 @@ import com.swygbro.trip.backend.domain.guideProduct.domain.*;
 import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
 import com.swygbro.trip.backend.domain.guideProduct.dto.ModifyGuideProductRequest;
+import com.swygbro.trip.backend.domain.guideProduct.dto.SearchGuideProductResponse;
 import com.swygbro.trip.backend.domain.guideProduct.exception.GuideProductNotFoundException;
 import com.swygbro.trip.backend.domain.guideProduct.exception.GuideProductNotInRangeException;
 import com.swygbro.trip.backend.domain.guideProduct.exception.MismatchUserFromCreatorException;
@@ -41,8 +42,8 @@ public class GuideProductService {
 
     // 가이드 상품 생성
     @Transactional
-    public GuideProductDto createGuideProduct(CreateGuideProductRequest request, MultipartFile thumb, Optional<List<MultipartFile>> images) {
-        User user = getUser(request.getEmail());
+    public GuideProductDto createGuideProduct(String email, CreateGuideProductRequest request, MultipartFile thumb, Optional<List<MultipartFile>> images) {
+        User user = getUser(email);
 
         isValidLocation(request.getLongitude(), request.getLatitude());
 
@@ -79,9 +80,9 @@ public class GuideProductService {
 
     // 가이드 상품 수정
     @Transactional
-    public GuideProductDto modifyGuideProduct(Long productId, ModifyGuideProductRequest edits, Optional<MultipartFile> modifyThumb, Optional<List<MultipartFile>> modifyImages) {
+    public GuideProductDto modifyGuideProduct(String email, Long productId, ModifyGuideProductRequest edits, Optional<MultipartFile> modifyThumb, Optional<List<MultipartFile>> modifyImages) {
         GuideProduct product = guideProductRepository.findById(productId).orElseThrow(() -> new GuideProductNotFoundException(productId));
-        User user = getUser(edits.getEmail());
+        User user = getUser(email);
 
         if (product.getUser() != user) throw new MismatchUserFromCreatorException("가이드 상품을 수정할 권한이 없습니다.");
 
@@ -122,7 +123,7 @@ public class GuideProductService {
     }
 
     // 30km 범위내 가이드 상품 불러오기
-    public List<GuideProductDto> getGuideListIn(double longitude, double latitude) {
+    public List<SearchGuideProductResponse> getGuideListIn(double longitude, double latitude) {
         GeometryFactory geometryFactory = new GeometryFactory();
         Point point = geometryFactory.createPoint(new Coordinate(latitude, longitude));
         point.setSRID(4326);
@@ -131,11 +132,11 @@ public class GuideProductService {
 
         if (guideProducts.isEmpty()) throw new GuideProductNotInRangeException("주변에 가이드 상품이 존재하지 않습니다.");
 
-        return guideProducts.stream().map(GuideProductDto::fromEntity).collect(Collectors.toList());
+        return guideProducts.stream().map(SearchGuideProductResponse::fromEntity).collect(Collectors.toList());
     }
 
     // 지역, 날짜로 검색
-    public List<GuideProductDto> getSearchedGuideList(String region, LocalDate start, LocalDate end, List<GuideCategoryCode> categories, Long minPrice, Long maxPrice, int minDuration, int maxDuration, DayTime dayTime, boolean same) {
+    public List<SearchGuideProductResponse> getSearchedGuideList(String region, LocalDate start, LocalDate end, List<GuideCategoryCode> categories, Long minPrice, Long maxPrice, int minDuration, int maxDuration, DayTime dayTime, boolean same) {
         ZonedDateTime zonedDateStart = start.atStartOfDay(ZoneId.of("Asia/Seoul"));
         ZonedDateTime zonedDateEnd = ZonedDateTime.of(end.atTime(LocalTime.MAX), ZoneId.of("Asia/Seoul"));
         MultiPolygon polygon = regionRepository.findByName(region).getPolygon();
@@ -144,15 +145,15 @@ public class GuideProductService {
 
         if (guideProducts.isEmpty()) throw new GuideProductNotInRangeException("해당 조건에 부합하는 가이드 상품이 존재하지 않습니다.");
 
-        return guideProducts.stream().map(GuideProductDto::fromEntity).collect(Collectors.toList());
+        return guideProducts.stream().map(SearchGuideProductResponse::fromEntity).collect(Collectors.toList());
     }
 
     // 가이드 상품 생성 시 필요한 호스트 정보 불러오가
     private User getUser(String email) {
         return userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
     }
-    // 가이드 위치 유효한지 검사
 
+    // 가이드 위치 유효한지 검사
     private void isValidLocation(double longitude, double latitude) throws NotValidLocationException {
         if (longitude < -90 || longitude > 90 || latitude < -180 || latitude > 180)
             throw new NotValidLocationException();

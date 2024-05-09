@@ -20,8 +20,6 @@ import java.util.List;
 public class GuideProductDto {
     @Schema(description = "상품 ID", example = "1")
     private Long id;
-    @Schema(description = "사용자 계정", example = "추후에 토큰에서 가져와서 사용")
-    private String email;
     @Schema(description = "상품 제목", example = "신나는 서울 투어")
     private String title;
     @Schema(description = "상품 설명", example = "서울 *** 여행 가이드 합니다.")
@@ -49,7 +47,7 @@ public class GuideProductDto {
         List<GuideCategoryCode> categories = product.getCategories().stream().map(GuideCategory::getCategoryCode).toList();
 
         return GuideProductDto.builder().id(product.getId())
-                .email(product.getUser().getEmail()).title(product.getTitle())
+                .title(product.getTitle())
                 .description(product.getDescription()).price(product.getPrice())
                 .longitude(product.getLocation().getY()).latitude(product.getLocation().getX())
                 .guideStart(product.getGuideStart()).guideEnd(product.getGuideEnd())
