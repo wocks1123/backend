@@ -1,5 +1,6 @@
 package com.swygbro.trip.backend.global.exception;
 
+import com.siot.IamportRestClient.exception.IamportResponseException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.ConversionNotSupportedException;
 import org.springframework.beans.TypeMismatchException;
@@ -57,7 +58,7 @@ public class GlobalExceptionAdvice {
             HttpMessageNotReadableException.class,
             HttpMessageNotWritableException.class,
             MethodValidationException.class,
-            BindException.class
+            BindException.class,
     })
     public ResponseEntity<?> handleSpringMvcException(Exception ex) {
         log.warn("handleSpringMvcException: {}", ex.getMessage());
@@ -68,6 +69,12 @@ public class GlobalExceptionAdvice {
     public ResponseEntity<?> handleAccessDeniedException(AccessDeniedException ex) {
         log.warn("handleAccessDeniedException: {}", ex.getMessage());
         return ApiErrorResponse.toResponseEntity(HttpStatus.FORBIDDEN, "접근 권한이 없습니다.");
+    }
+    
+    @ExceptionHandler(IamportResponseException.class)
+    public ResponseEntity<?> handleExternalApiException(Exception ex) {
+        log.warn("handleExternalApiException: {}", ex.getMessage());
+        return ExternalApiException.of(ex);
     }
 
     @ExceptionHandler(Exception.class)

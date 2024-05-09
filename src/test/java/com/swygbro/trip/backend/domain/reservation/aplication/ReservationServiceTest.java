@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.time.ZonedDateTime;
 import java.util.List;
 
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -46,7 +47,7 @@ class ReservationServiceTest {
         SaveReservationRequest saveReservationRequest = SaveReservationRequest.builder()
                 .guideId(1L)
                 .productId(1L)
-                .reservatedAt(Timestamp.valueOf("2024-04-29 12:30:45"))
+                .reservatedAt(ZonedDateTime.parse("2024-04-29 12:30:45"))
                 .personnel(1)
                 .message("안녕하세요")
                 .price(10000)
@@ -72,7 +73,7 @@ class ReservationServiceTest {
         SaveReservationRequest request = SaveReservationRequest.builder()
                 .guideId(0L)
                 .productId(1L)
-                .reservatedAt(Timestamp.valueOf("2024-04-29 12:30:45"))
+                .reservatedAt(ZonedDateTime.parse("2024-04-29 12:30:45"))
                 .personnel(1)
                 .message("안녕하세요")
                 .price(10000)
@@ -91,7 +92,7 @@ class ReservationServiceTest {
         SaveReservationRequest saveReservationRequest = SaveReservationRequest.builder()
                 .guideId(1L)
                 .productId(1L)
-                .reservatedAt(Timestamp.valueOf("2024-04-29 12:30:45"))
+                .reservatedAt(ZonedDateTime.parse("2024-04-29 12:30:45"))
                 .personnel(1)
                 .message("안녕하세요")
                 .price(10000)
@@ -159,7 +160,7 @@ class ReservationServiceTest {
                 .client(User.builder().id(1L).build())
                 .guide(User.builder().id(2L).build())
                 .product(GuideProduct.builder().id(1L).build())
-                .reservatedAt(Timestamp.valueOf("2024-04-29 12:30:45"))
+                .reservatedAt(ZonedDateTime.parse("2024-04-29 12:30:45"))
                 .personnel(1)
                 .message("안녕하세요")
                 .price(10000)
@@ -193,7 +194,7 @@ class ReservationServiceTest {
                 .client(User.builder().id(1L).build())
                 .guide(User.builder().id(2L).build())
                 .product(GuideProduct.builder().id(1L).build())
-                .reservatedAt(Timestamp.valueOf("2024-04-29 12:30:45"))
+                .reservatedAt(ZonedDateTime.parse("2024-04-29 12:30:45"))
                 .personnel(1)
                 .message("안녕하세요")
                 .price(10000)
@@ -207,7 +208,7 @@ class ReservationServiceTest {
                 .client(User.builder().id(1L).build())
                 .guide(User.builder().id(2L).build())
                 .product(GuideProduct.builder().id(2L).build())
-                .reservatedAt(Timestamp.valueOf("2024-04-28 12:30:45"))
+                .reservatedAt(ZonedDateTime.parse("2024-04-29 12:30:45"))
                 .personnel(1)
                 .message("두 번째 예약")
                 .price(15000)
@@ -218,7 +219,7 @@ class ReservationServiceTest {
                 .build());
 
         // when
-        List<ReservationDto> reservationList = reservationService.getReservationList();
+        List<ReservationDto> reservationList = reservationService.getReservationListByClient();
 
         // then
         assertThat(reservationList.size()).isEqualTo(2);
@@ -234,7 +235,7 @@ class ReservationServiceTest {
                 .client(User.builder().id(1L).build())
                 .guide(User.builder().id(2L).build())
                 .product(GuideProduct.builder().id(1L).build())
-                .reservatedAt(Timestamp.valueOf("2024-04-29 12:30:45"))
+                .reservatedAt(ZonedDateTime.parse("2024-04-29 12:30:45"))
                 .personnel(1)
                 .message("안녕하세요")
                 .price(10000)
