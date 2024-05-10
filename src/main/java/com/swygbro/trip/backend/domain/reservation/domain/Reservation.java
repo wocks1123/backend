@@ -74,6 +74,10 @@ public class Reservation extends BaseEntity {
         this.paymentStatus = PayStatus.COMPLETE;
     }
 
+    public void setClientId(Long clientId) {
+        this.client = User.builder().id(clientId).build();
+    }
+
     public void cancelReservation() {
         this.reservationStatus = ReservationStatus.CANCELLED;
     }
@@ -100,5 +104,6 @@ public class Reservation extends BaseEntity {
 
         this.merchantUid = prefix + suffix;
     }
+
 
 }

@@ -7,14 +7,18 @@ import com.swygbro.trip.backend.domain.reservation.aplication.ReservationService
 import com.swygbro.trip.backend.domain.reservation.dto.ReservationDto;
 import com.swygbro.trip.backend.domain.reservation.dto.SavePaymentRequest;
 import com.swygbro.trip.backend.domain.reservation.dto.SaveReservationRequest;
+import com.swygbro.trip.backend.domain.user.domain.User;
+import com.swygbro.trip.backend.global.jwt.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -28,6 +32,8 @@ public class ReservationController {
     private final ReservationService reservationService;
 
     @PostMapping("/client/save")
+    @PreAuthorize("isAuthenticated() and hasRole('USER')")
+    @SecurityRequirement(name = "access-token")
     @Operation(summary = "예약 정보 저장", description = """
             # 예약 정보 저장
                         
@@ -62,12 +68,15 @@ public class ReservationController {
             content = @Content(
                     mediaType = "application/json",
                     schema = @Schema(implementation = String.class)))
-    public ResponseEntity<String> saveReservation(@RequestBody @Valid SaveReservationRequest orderDto) {
+    public ResponseEntity<String> saveReservation(@CurrentUser User user,
+                                                  @RequestBody @Valid SaveReservationRequest orderDto) {
         log.info("Received orders: {}", orderDto.toString());
-        return ResponseEntity.ok(reservationService.saveReservation(orderDto));
+        return ResponseEntity.ok(reservationService.saveReservation(user.getId(), orderDto));
     }
 
     @PostMapping("/client/payment/{imp_uid}")
+    @PreAuthorize("isAuthenticated() and hasRole('USER')")
+    @SecurityRequirement(name = "access-token")
     @Operation(summary = "결제 내역 검증", description = """
             # 결제 내역 검증
                         
@@ -97,6 +106,8 @@ public class ReservationController {
 
 
     @PostMapping("/client/payment")
+    @PreAuthorize("isAuthenticated() and hasRole('USER')")
+    @SecurityRequirement(name = "access-token")
     @Operation(summary = "결제 정보 저장", description = """
             # 결제 정보 저장
                         
@@ -137,6 +148,8 @@ public class ReservationController {
     }
 
     @PostMapping("/client/cancel/{merchant_uid}")
+    @PreAuthorize("isAuthenticated() and hasRole('USER')")
+    @SecurityRequirement(name = "access-token")
     @Operation(summary = "예약 취소", description = """
             # 여행객 예약 취소
                         
@@ -166,6 +179,8 @@ public class ReservationController {
     }
 
     @GetMapping("/client/list")
+    @PreAuthorize("isAuthenticated() and hasRole('USER')")
+    @SecurityRequirement(name = "access-token")
     @Operation(summary = "예약 리스트 조회", description = """
             # 여행객 예약 리스트 조회
                         
@@ -173,7 +188,7 @@ public class ReservationController {
                         
             ## 응답
                         
-            - 정상 취소 시 `200` 코드와 함께 예약 내역 리스트를 반환합니다.
+            - 정상 조회 시 `200` 코드와 함께 예약 내역 리스트를 반환합니다.
              
             """, tags = "Reservation-Client")
     @ApiResponse(
@@ -182,16 +197,58 @@ public class ReservationController {
             content = @Content(
                     mediaType = "application/json",
                     schema = @Schema(implementation = List.class)))
-    public ResponseEntity<List<ReservationDto>> getReservationList() {
-        return ResponseEntity.ok(reservationService.getReservationListByClient());
+    public ResponseEntity<List<ReservationDto>> getReservationList(@CurrentUser User user) {
+        return ResponseEntity.ok(reservationService.getReservationListByClient(user.getId()));
     }
 
     @GetMapping("/client/list/past")
-    public ResponseEntity<List<ReservationDto>> getPastReservationList() {
-        return ResponseEntity.ok(reservationService.getPastReservationListByClient(1L));
+    @PreAuthorize("isAuthenticated() and hasRole('USER')")
+    @SecurityRequirement(name = "access-token")
+    @Operation(tags = "Reservation-Client", summary = "과거 예약 리스트 조회", description = """
+            # 여행객 과거 예약 리스트 조회
+                        
+            - 현재 시간 기준 여행객의 과거 예약 리스트를 조회합니다.            
+                        
+            ## 응답
+                        
+            - 정상 조회 시 `200` 코드와 함께 과거 예약 내역 리스트를 반환합니다.
+             
+            """)
+    @ApiResponse(
+            responseCode = "200",
+            description = "과거 예약 리스트 조회 성공",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = List.class)))
+    public ResponseEntity<List<ReservationDto>> getPastReservationClientList(@CurrentUser User user) {
+        return ResponseEntity.ok(reservationService.getPastReservationListByClient(user.getId()));
+    }
+
+    @GetMapping("/client/list/future")
+    @PreAuthorize("isAuthenticated() and hasRole('USER')")
+    @SecurityRequirement(name = "access-token")
+    @Operation(tags = "Reservation-Client", summary = "미래 예약 리스트 조회", description = """
+            # 여행객 미래 예약 리스트 조회
+                        
+            - 현재 시간 기준 여행객의 미래 예약 리스트를 조회합니다.            
+                        
+            ## 응답
+                        
+            - 정상 조회 시 `200` 코드와 함께 미래 예약 내역 리스트를 반환합니다.
+             
+            """)
+    @ApiResponse(responseCode = "200",
+            description = "미래 예약 리스트 조회 성공",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = List.class)))
+    public ResponseEntity<List<ReservationDto>> getFutureReservationClientList(@CurrentUser User user) {
+        return ResponseEntity.ok(reservationService.getFutureReservationListByClient(user.getId()));
     }
 
     @GetMapping("/guide/list")
+    @PreAuthorize("isAuthenticated() and hasRole('USER')")
+    @SecurityRequirement(name = "access-token")
     @Operation(summary = "예약 리스트 조회", description = """
             # 가이드 예약 조회
                         
@@ -207,12 +264,56 @@ public class ReservationController {
             content = @Content(
                     mediaType = "application/json",
                     schema = @Schema(implementation = List.class)))
-    public ResponseEntity<List<ReservationDto>> getReservationListByGuide() {
-        return ResponseEntity.ok(reservationService.getReservationListByGuide());
+    public ResponseEntity<List<ReservationDto>> getReservationListByGuide(@CurrentUser User user) {
+        return ResponseEntity.ok(reservationService.getReservationListByGuide(user.getId()));
     }
 
+    @GetMapping("/guide/list/past")
+    @PreAuthorize("isAuthenticated() and hasRole('USER')")
+    @SecurityRequirement(name = "access-token")
+    @Operation(tags = "Reservation-Guide", summary = "과거 예약 리스트 조회", description = """
+            # 가이드 과거 예약 리스트 조회
+                        
+            - 가이드가 자신의 과거 예약 리스트를 조회합니다.            
+                        
+            ## 응답
+                        
+            - 정상 조회 시 `200` 코드와 함께 과거 예약 내역 리스트를 반환합니다.
+             
+            """)
+    @ApiResponse(responseCode = "200",
+            description = "과거 예약 리스트 조회 성공",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = List.class)))
+    public ResponseEntity<List<ReservationDto>> getPastReservationGuideList(@CurrentUser User user) {
+        return ResponseEntity.ok(reservationService.getPastReservationListByGuide(user.getId()));
+    }
+
+    @GetMapping("/guide/list/future")
+    @PreAuthorize("isAuthenticated() and hasRole('USER')")
+    @SecurityRequirement(name = "access-token")
+    @Operation(tags = "Reservation-Guide", summary = "미래 예약 리스트 조회", description = """
+            # 가이드 미래 예약 리스트 조회
+                        
+            - 가이드가 자신의 미래 예약 리스트를 조회합니다.            
+                        
+            ## 응답
+                        
+            - 정상 조회 시 `200` 코드와 함께 미래 예약 내역 리스트를 반환합니다.
+             
+            """)
+    @ApiResponse(responseCode = "200", description = "미래 예약 리스트 조회 성공",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = List.class)))
+    public ResponseEntity<List<ReservationDto>> getFutureReservationGuideList(@CurrentUser User user) {
+        return ResponseEntity.ok(reservationService.getFutureReservationListByGuide(user.getId()));
+    }
 
     @PostMapping("/guide/confirm/{merchant_uid}")
+    @PreAuthorize("isAuthenticated() and hasRole('USER')")
+    @SecurityRequirement(name = "access-token")
     @Operation(summary = "예약 확정", description = """
             # 가이드 예약 확정
                         
@@ -242,6 +343,8 @@ public class ReservationController {
     }
 
     @PostMapping("/guide/cancel/{merchant_uid}")
+    @PreAuthorize("isAuthenticated() and hasRole('USER')")
+    @SecurityRequirement(name = "access-token")
     @Operation(summary = "예약 취소", description = """
             # 가이드 예약 취소
                         
@@ -271,6 +374,8 @@ public class ReservationController {
     }
 
     @GetMapping("/{merchant_uid}")
+    @PreAuthorize("isAuthenticated() and hasRole('USER')")
+    @SecurityRequirement(name = "access-token")
     @Operation(summary = "예약 정보 조회", description = """
             # 예약 조회
                         

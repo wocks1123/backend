@@ -37,12 +37,13 @@ public class ReservationService {
     /**
      * 예약 정보 저장
      *
+     * @param clientId
      * @param reservation
-     * @return TODO: LOGIN USER ID 추가
+     * @return
      */
-    public String saveReservation(SaveReservationRequest reservation) {
+    public String saveReservation(Long clientId, SaveReservationRequest reservation) {
         try {
-            Reservation entity = reservation.toEntity();
+            Reservation entity = reservation.toEntity(clientId);
             entity.generateMerchantUid();
             Reservation save = reservationRepository.save(entity);
             return save.getMerchantUid();
@@ -134,9 +135,8 @@ public class ReservationService {
     /**
      * Client ID 를 통한 모든 예약 조회
      */
-    //TODO: LOGIN USER ID 로 교체
-    public List<ReservationDto> getReservationListByClient() {
-        List<Reservation> reservations = reservationRepository.findByClientId(1L);
+    public List<ReservationDto> getReservationListByClient(Long clientId) {
+        List<Reservation> reservations = reservationRepository.findByClientId(clientId);
         List<ReservationDto> reservationDtos = new ArrayList<>();
 
         reservations.forEach(reservation -> {
@@ -150,7 +150,7 @@ public class ReservationService {
     /**
      * Client ID 를 통한 과거 예약 조회
      */
-    public List<ReservationDto> getPastReservationListByClient(long clientId) {
+    public List<ReservationDto> getPastReservationListByClient(Long clientId) {
         List<Reservation> pastReservationsByClientId = reservationRepository.findPastReservationsByClientId(clientId);
         List<ReservationDto> reservationDtos = new ArrayList<>();
 
@@ -165,8 +165,8 @@ public class ReservationService {
     /**
      * Client ID 를 통한 미래 예약 조회
      */
-    public List<ReservationDto> getFutureReservationListByClient() {
-        List<Reservation> futureReservationsByClientId = reservationRepository.findFutureReservationsByClientId(1L);
+    public List<ReservationDto> getFutureReservationListByClient(Long clientId) {
+        List<Reservation> futureReservationsByClientId = reservationRepository.findFutureReservationsByClientId(clientId);
         List<ReservationDto> reservationDtos = new ArrayList<>();
 
         futureReservationsByClientId.forEach(reservation -> {
@@ -177,7 +177,6 @@ public class ReservationService {
         return reservationDtos;
     }
 
-    //TODO: LOGIN USER ID 검증 추가
     public ReservationDto getReservation(String merchant_uid) {
         Reservation reservation = reservationRepository.findByMerchantUid(merchant_uid);
         if (reservation == null) {
@@ -186,9 +185,11 @@ public class ReservationService {
         return new ReservationDto().fromEntity(reservation);
     }
 
-    //TODO: LOGIN USER ID 로 교체
-    public List<ReservationDto> getReservationListByGuide() {
-        List<Reservation> reservations = reservationRepository.findByGuideId(1L);
+    /**
+     * Guide ID 를 통한 모든 예약 조회
+     */
+    public List<ReservationDto> getReservationListByGuide(Long guideId) {
+        List<Reservation> reservations = reservationRepository.findByGuideId(guideId);
         List<ReservationDto> reservationDtos = new ArrayList<>();
 
         reservations.forEach(reservation -> {
@@ -202,7 +203,7 @@ public class ReservationService {
     /**
      * 가이드 ID 를 통한 과거 예약 조회
      */
-    public List<ReservationDto> getPastReservationListByGuide(long guideId) {
+    public List<ReservationDto> getPastReservationListByGuide(Long guideId) {
         List<Reservation> pastReservationsByGuideId = reservationRepository.findPastReservationsByGuideId(guideId);
         List<ReservationDto> reservationDtos = new ArrayList<>();
 
@@ -217,8 +218,8 @@ public class ReservationService {
     /**
      * 가이드 ID 를 통한 미래 예약 조회
      */
-    public List<ReservationDto> getFutureReservationListByGuide() {
-        List<Reservation> futureReservationsByGuideId = reservationRepository.findFutureReservationsByGuideId(1L);
+    public List<ReservationDto> getFutureReservationListByGuide(Long guideId) {
+        List<Reservation> futureReservationsByGuideId = reservationRepository.findFutureReservationsByGuideId(guideId);
         List<ReservationDto> reservationDtos = new ArrayList<>();
 
         futureReservationsByGuideId.forEach(reservation -> {
