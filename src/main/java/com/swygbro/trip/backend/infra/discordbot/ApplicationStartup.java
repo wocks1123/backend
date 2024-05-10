@@ -15,6 +15,7 @@ import java.time.format.DateTimeFormatter;
 @Component
 @RequiredArgsConstructor
 @Slf4j
+@Profile("deploy")
 public class ApplicationStartup {
 
     private final DiscordMessageProvider discordMessageProvider;
@@ -22,16 +23,9 @@ public class ApplicationStartup {
     @Value("${version}")
     private String version;
 
-    @Profile("deploy")
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady() {
         discordMessageProvider.sendMessage(generateStartupMessage());
-    }
-
-    @Profile("!deploy")
-    @EventListener(ApplicationReadyEvent.class)
-    public void onApplicationReadyLocal() {
-        log.info(generateStartupMessage());
     }
 
     private String generateStartupMessage() {
