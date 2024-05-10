@@ -1,5 +1,6 @@
--- user 테이블에 데이터 삽입
-INSERT INTO `user` (`id`, `created_at`, `created_by`, `deleted_at`, `deleted_by`, `updated_at`, `updated_by`, `account`,
-                    `email`, `password`)
-VALUES (1, '2024-04-29 21:15:07', NULL, NULL, NULL, NULL, NULL, 'user1', 'user1@example.com', 'password1'),
-       (2, '2024-04-29 21:15:07', NULL, NULL, NULL, NULL, NULL, 'user2', 'user2@example.com', 'password2');
+INSERT INTO User (id, email, nickname, name, profile, profile_image_url, phone, nationality, birthdate, gender,
+                  password, sign_up_type)
+VALUES ('1', 'example@email.com', 'example_nickname', 'John Doe', 'Some profile text',
+        'http://example.com/profile.jpg', '1234567890', 'USA', '1990-01-01', 'MALE', 'password123', 0),
+       ('2', 'example@eamil.com', 'example_nickname2', 'Jane Doe', 'Some profile text2',
+        'http://example.com/profile2.jpg', '0987654321', 'KOR', '1990-01-02', 'MALE', 'password1234', 1);

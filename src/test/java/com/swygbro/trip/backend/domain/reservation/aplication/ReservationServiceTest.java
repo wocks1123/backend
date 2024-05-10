@@ -258,5 +258,30 @@ class ReservationServiceTest {
 
     }
 
+    @Test
+    @DisplayName("과거 예약 조회")
+    @Sql(scripts = {"/user.sql", "/guideProduct.sql", "/reservation.sql"})
+    void getPastReservation() {
+        // given
+
+        // when
+        List<ReservationDto> pastReservation = reservationService.getPastReservationListByClient(1L);
+
+        // then
+        assertThat(pastReservation.size()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("미래 예약 조회")
+    @Sql(scripts = {"/user.sql", "/guideProduct.sql", "/reservation.sql"})
+    void getFutureReservation() {
+        // given
+
+        // when
+        List<ReservationDto> futureReservation = reservationService.getFutureReservationListByClient();
+
+        // then
+        assertThat(futureReservation.size()).isEqualTo(2);
+    }
 
 }
