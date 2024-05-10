@@ -38,7 +38,7 @@ public class GuideProductController {
     private final GuideProductService guideProductService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("isAuthenticated() and hasRole('USER')")
+    @PreAuthorize("isAuthenticated() and hasRole('USER') and #user.id == principal.id")
     @SecurityRequirement(name = "access-token")
     @Operation(summary = "가이드 상품 등록", description = """
             # 가이드 상품 등록
@@ -119,7 +119,7 @@ public class GuideProductController {
                                               @Valid @RequestPart CreateGuideProductRequest request,
                                               @RequestPart(value = "thumb") MultipartFile thumbImage,
                                               @RequestPart(value = "file", required = false) Optional<List<MultipartFile>> images) {
-        return guideProductService.createGuideProduct(user.getEmail(), request, thumbImage, images);
+        return guideProductService.createGuideProduct(user, request, thumbImage, images);
     }
 
     @GetMapping("/{productId}")
@@ -165,7 +165,7 @@ public class GuideProductController {
     }
 
     @PutMapping(value = "/{productId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("isAuthenticated() and hasRole('USER')")
+    @PreAuthorize("isAuthenticated() and hasRole('USER') and #user.id == principal.id")
     @SecurityRequirement(name = "access-token")
     @Operation(summary = "가이드 상품 정보 수정", description = """
             # 가이드 상품 수정
@@ -245,18 +245,18 @@ public class GuideProductController {
                                               @Valid @RequestPart ModifyGuideProductRequest request,
                                               @RequestPart(value = "thumb", required = false) Optional<MultipartFile> modifyThumbImage,
                                               @RequestPart(value = "file", required = false) Optional<List<MultipartFile>> modifyImages) {
-        return guideProductService.modifyGuideProduct(user.getEmail(), productId, request, modifyThumbImage, modifyImages);
+        return guideProductService.modifyGuideProduct(user, productId, request, modifyThumbImage, modifyImages);
     }
 
     @DeleteMapping("/{productId}")
-    @PreAuthorize("isAuthenticated() and hasRole('USER')")
+    @PreAuthorize("isAuthenticated() and hasRole('USER') and #user.id == principal.id")
     @SecurityRequirement(name = "access-token")
     @Operation(summary = "가이드 상품 삭제", description = """
             # 가이드 상품 삭제
                         
             특정 가이드 상품을 삭제합니다.
                         
-            상품 삭제 시 상품 고유 id를 path에 입력하고 유저 email을 param으로 넘겨줍니다.
+            상품 삭제 시 상품 고유 id를 path에 입력합니다.
                         
             각 필드의 제약 조건은 다음과 같습니다.
             | 필드명 | 설명 | 제약조건 | null 가능 | 예시 |
@@ -312,7 +312,7 @@ public class GuideProductController {
     @InvalidTokenResponse
     public String deleteGuideProduct(@CurrentUser User user,
                                      @PathVariable Long productId) {
-        guideProductService.deleteGuideProduct(productId, user.getEmail());
+        guideProductService.deleteGuideProduct(productId, user);
 
         return "삭제에 성공했습니다.";
     }

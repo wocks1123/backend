@@ -4,22 +4,40 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.swygbro.trip.backend.domain.user.domain.Nationality;
-import lombok.extern.slf4j.Slf4j;
+import com.swygbro.trip.backend.domain.user.domain.QUser;
 import org.locationtech.jts.geom.MultiPolygon;
+import org.locationtech.jts.geom.Point;
 import org.springframework.stereotype.Repository;
 
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
-@Slf4j
 public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepository {
     private final JPAQueryFactory jpaQueryFactory;
     private final QGuideProduct product = QGuideProduct.guideProduct;
     private final QGuideCategory category = QGuideCategory.guideCategory;
+    private final QUser user = QUser.user;
 
     public GuideProductCustomRepositoryImpl(JPAQueryFactory jpaQueryFactory) {
         this.jpaQueryFactory = jpaQueryFactory;
+    }
+
+    @Override
+    public Optional<GuideProduct> findDetailById(Long productId) {
+        return Optional.ofNullable(jpaQueryFactory.selectFrom(product)
+                .join(product.categories, category).fetchJoin()
+                .where(product.id.eq(productId))
+                .fetchOne());
+    }
+
+    @Override
+    public List<GuideProduct> findAllByLocation(Point point, int radius) {
+        return jpaQueryFactory.selectFrom(product)
+                .join(product.categories, category).fetchJoin()
+                .where(nearGuideProduct(point, radius))
+                .fetch();
     }
 
     @Override
@@ -43,6 +61,11 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
                         hourEq(dayTime),
                         nationalityEq(nationality))
                 .fetch();
+    }
+
+    private BooleanExpression nearGuideProduct(Point center, int radius) {
+        return Expressions.booleanTemplate("ST_CONTAINS(ST_BUFFER({0}, {1}), {2})",
+                center, radius, product.location);
     }
 
     private BooleanExpression createTimeDiffCondition(int minDuration, int maxDuration) {

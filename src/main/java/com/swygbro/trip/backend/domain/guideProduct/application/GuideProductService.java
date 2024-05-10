@@ -12,8 +12,6 @@ import com.swygbro.trip.backend.domain.guideProduct.exception.NotValidLocationEx
 import com.swygbro.trip.backend.domain.s3.application.S3Service;
 import com.swygbro.trip.backend.domain.user.domain.Nationality;
 import com.swygbro.trip.backend.domain.user.domain.User;
-import com.swygbro.trip.backend.domain.user.domain.UserRepository;
-import com.swygbro.trip.backend.domain.user.excepiton.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
@@ -38,14 +36,11 @@ public class GuideProductService {
 
     private final S3Service s3Service;
     private final GuideProductRepository guideProductRepository;
-    private final UserRepository userRepository;
     private final RegionRepository regionRepository;
 
     // 가이드 상품 생성
     @Transactional
-    public GuideProductDto createGuideProduct(String email, CreateGuideProductRequest request, MultipartFile thumb, Optional<List<MultipartFile>> images) {
-        User user = getUser(email);
-
+    public GuideProductDto createGuideProduct(User user, CreateGuideProductRequest request, MultipartFile thumb, Optional<List<MultipartFile>> images) {
         isValidLocation(request.getLongitude(), request.getLatitude());
 
         List<String> imageUrls = new ArrayList<>();
@@ -74,16 +69,15 @@ public class GuideProductService {
     // 가이드 상품 조회
     @Transactional(readOnly = true)
     public GuideProductDto getProduct(Long productId) {
-        GuideProduct product = guideProductRepository.findById(productId).orElseThrow(() -> new GuideProductNotFoundException(productId));
+        GuideProduct product = guideProductRepository.findDetailById(productId).orElseThrow(() -> new GuideProductNotFoundException(productId));
 
         return GuideProductDto.fromEntity(product);
     }
 
     // 가이드 상품 수정
     @Transactional
-    public GuideProductDto modifyGuideProduct(String email, Long productId, ModifyGuideProductRequest edits, Optional<MultipartFile> modifyThumb, Optional<List<MultipartFile>> modifyImages) {
+    public GuideProductDto modifyGuideProduct(User user, Long productId, ModifyGuideProductRequest edits, Optional<MultipartFile> modifyThumb, Optional<List<MultipartFile>> modifyImages) {
         GuideProduct product = guideProductRepository.findById(productId).orElseThrow(() -> new GuideProductNotFoundException(productId));
-        User user = getUser(email);
 
         if (product.getUser() != user) throw new MismatchUserFromCreatorException("가이드 상품을 수정할 권한이 없습니다.");
 
@@ -111,9 +105,8 @@ public class GuideProductService {
 
     // 가이드 상품 삭제
     @Transactional
-    public void deleteGuideProduct(Long productId, String email) {
+    public void deleteGuideProduct(Long productId, User user) {
         GuideProduct product = guideProductRepository.findById(productId).orElseThrow(() -> new GuideProductNotFoundException(productId));
-        User user = getUser(email);
 
         if (product.getUser() != user) throw new MismatchUserFromCreatorException("가이드 상품을 삭제할 권한이 없습니다.");
 
@@ -147,11 +140,6 @@ public class GuideProductService {
         if (guideProducts.isEmpty()) throw new GuideProductNotInRangeException("해당 조건에 부합하는 가이드 상품이 존재하지 않습니다.");
 
         return guideProducts.stream().map(SearchGuideProductResponse::fromEntity).collect(Collectors.toList());
-    }
-
-    // 가이드 상품 생성 시 필요한 호스트 정보 불러오가
-    private User getUser(String email) {
-        return userRepository.findByEmail(email).orElseThrow(() -> new UserNotFoundException(email));
     }
 
     // 가이드 위치 유효한지 검사
