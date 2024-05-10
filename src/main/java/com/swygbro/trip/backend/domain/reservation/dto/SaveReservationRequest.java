@@ -48,8 +48,9 @@ public class SaveReservationRequest {
     Integer price;
 
 
-    public Reservation toEntity() {
+    public Reservation toEntity(Long clientId) {
         return Reservation.builder()
+                .client(User.builder().id(clientId).build())
                 .guide(User.builder().id(guideId).build())
                 .product(GuideProduct.builder().id(productId).build())
                 .reservatedAt(reservatedAt != null ? reservatedAt : null)

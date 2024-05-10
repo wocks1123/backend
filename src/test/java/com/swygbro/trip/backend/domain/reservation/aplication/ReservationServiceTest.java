@@ -52,9 +52,10 @@ class ReservationServiceTest {
                 .message("안녕하세요")
                 .price(10000)
                 .build();
+        Long userId = 1L;
 
         // when
-        String result = reservationService.saveReservation(saveReservationRequest);
+        String result = reservationService.saveReservation(userId, saveReservationRequest);
 
         // then
         Reservation reservation = reservationRepository.findByMerchantUid(result);
@@ -79,10 +80,12 @@ class ReservationServiceTest {
                 .price(10000)
                 .build();
 
+        Long userId = 1L;
+
         // when
 
         // then
-        assertThrows(ForeignKeyConstraintViolationException.class, () -> reservationService.saveReservation(request));
+        assertThrows(ForeignKeyConstraintViolationException.class, () -> reservationService.saveReservation(userId, request));
     }
 
     @Test
@@ -97,8 +100,10 @@ class ReservationServiceTest {
                 .message("안녕하세요")
                 .price(10000)
                 .build();
+        Long userId = 1L;
 
-        String merchantUid = reservationService.saveReservation(saveReservationRequest);
+
+        String merchantUid = reservationService.saveReservation(userId, saveReservationRequest);
 
         SavePaymentRequest savePaymentRequest = SavePaymentRequest.builder()
                 .impUid("imp_1234567890")
@@ -219,7 +224,7 @@ class ReservationServiceTest {
                 .build());
 
         // when
-        List<ReservationDto> reservationList = reservationService.getReservationListByClient();
+        List<ReservationDto> reservationList = reservationService.getReservationListByClient(1L);
 
         // then
         assertThat(reservationList.size()).isEqualTo(2);
@@ -258,5 +263,30 @@ class ReservationServiceTest {
 
     }
 
+    @Test
+    @DisplayName("과거 예약 조회")
+    @Sql(scripts = {"/user.sql", "/guideProduct.sql", "/reservation.sql"})
+    void getPastReservation() {
+        // given
+
+        // when
+        List<ReservationDto> pastReservation = reservationService.getPastReservationListByClient(1L);
+
+        // then
+        assertThat(pastReservation.size()).isEqualTo(2);
+    }
+
+    @Test
+    @DisplayName("미래 예약 조회")
+    @Sql(scripts = {"/user.sql", "/guideProduct.sql", "/reservation.sql"})
+    void getFutureReservation() {
+        // given
+
+        // when
+        List<ReservationDto> futureReservation = reservationService.getFutureReservationListByClient(1L);
+
+        // then
+        assertThat(futureReservation.size()).isEqualTo(2);
+    }
 
 }

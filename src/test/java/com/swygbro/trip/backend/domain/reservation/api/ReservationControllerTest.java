@@ -50,7 +50,7 @@ class ReservationControllerTest {
                 .build();
         String impUid = "imp_1234567890";
 
-        given(reservationService.saveReservation(any())).willReturn(impUid);
+        given(reservationService.saveReservation(any(), any())).willReturn(impUid);
 
         // when
         ResultActions result = mockMvc.perform(post("/api/v1/reservation/client/save")
@@ -79,7 +79,7 @@ class ReservationControllerTest {
                 .build();
         String impUid = "imp_1234567890";
 
-        given(reservationService.saveReservation(any())).willReturn(impUid);
+        given(reservationService.saveReservation(any(), any())).willReturn(impUid);
 
         // when
         ResultActions result = mockMvc.perform(post("/api/v1/reservation/client/save")
