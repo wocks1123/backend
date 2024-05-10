@@ -131,12 +131,45 @@ public class ReservationService {
         }
     }
 
+    /**
+     * Client ID 를 통한 모든 예약 조회
+     */
     //TODO: LOGIN USER ID 로 교체
     public List<ReservationDto> getReservationListByClient() {
         List<Reservation> reservations = reservationRepository.findByClientId(1L);
         List<ReservationDto> reservationDtos = new ArrayList<>();
 
         reservations.forEach(reservation -> {
+            ReservationDto reservationDto = new ReservationDto().fromEntity(reservation);
+            reservationDtos.add(reservationDto);
+        });
+
+        return reservationDtos;
+    }
+
+    /**
+     * Client ID 를 통한 과거 예약 조회
+     */
+    public List<ReservationDto> getPastReservationListByClient(long clientId) {
+        List<Reservation> pastReservationsByClientId = reservationRepository.findPastReservationsByClientId(clientId);
+        List<ReservationDto> reservationDtos = new ArrayList<>();
+
+        pastReservationsByClientId.forEach(reservation -> {
+            ReservationDto reservationDto = new ReservationDto().fromEntity(reservation);
+            reservationDtos.add(reservationDto);
+        });
+
+        return reservationDtos;
+    }
+
+    /**
+     * Client ID 를 통한 미래 예약 조회
+     */
+    public List<ReservationDto> getFutureReservationListByClient() {
+        List<Reservation> futureReservationsByClientId = reservationRepository.findFutureReservationsByClientId(1L);
+        List<ReservationDto> reservationDtos = new ArrayList<>();
+
+        futureReservationsByClientId.forEach(reservation -> {
             ReservationDto reservationDto = new ReservationDto().fromEntity(reservation);
             reservationDtos.add(reservationDto);
         });
@@ -159,6 +192,36 @@ public class ReservationService {
         List<ReservationDto> reservationDtos = new ArrayList<>();
 
         reservations.forEach(reservation -> {
+            ReservationDto reservationDto = new ReservationDto().fromEntity(reservation);
+            reservationDtos.add(reservationDto);
+        });
+
+        return reservationDtos;
+    }
+
+    /**
+     * 가이드 ID 를 통한 과거 예약 조회
+     */
+    public List<ReservationDto> getPastReservationListByGuide(long guideId) {
+        List<Reservation> pastReservationsByGuideId = reservationRepository.findPastReservationsByGuideId(guideId);
+        List<ReservationDto> reservationDtos = new ArrayList<>();
+
+        pastReservationsByGuideId.forEach(reservation -> {
+            ReservationDto reservationDto = new ReservationDto().fromEntity(reservation);
+            reservationDtos.add(reservationDto);
+        });
+
+        return reservationDtos;
+    }
+
+    /**
+     * 가이드 ID 를 통한 미래 예약 조회
+     */
+    public List<ReservationDto> getFutureReservationListByGuide() {
+        List<Reservation> futureReservationsByGuideId = reservationRepository.findFutureReservationsByGuideId(1L);
+        List<ReservationDto> reservationDtos = new ArrayList<>();
+
+        futureReservationsByGuideId.forEach(reservation -> {
             ReservationDto reservationDto = new ReservationDto().fromEntity(reservation);
             reservationDtos.add(reservationDto);
         });

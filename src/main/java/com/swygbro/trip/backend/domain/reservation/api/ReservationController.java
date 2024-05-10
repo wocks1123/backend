@@ -67,7 +67,7 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.saveReservation(orderDto));
     }
 
-    @PostMapping("/client/{imp_uid}")
+    @PostMapping("/client/payment/{imp_uid}")
     @Operation(summary = "결제 내역 검증", description = """
             # 결제 내역 검증
                         
@@ -165,7 +165,7 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.cancelReservation(merchant_uid));
     }
 
-    @GetMapping("client/list")
+    @GetMapping("/client/list")
     @Operation(summary = "예약 리스트 조회", description = """
             # 여행객 예약 리스트 조회
                         
@@ -186,34 +186,12 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.getReservationListByClient());
     }
 
-    @GetMapping("client/{merchant_uid}")
-    @Operation(summary = "예약 정보 조회", description = """
-            # 여행객 예약 조회
-                        
-            - 주문 번호를 통해 여행객의 예약을 조회합니다.            
-                        
-            ## 응답
-                        
-            - 정상 취소 시 `200` 코드와 함께 예약 내역을 반환합니다.
-            - 주문 번호에 오류가 있을 경우 `404` 에러를 반환합니다.
-            """, tags = "Reservation-Client")
-    @ApiResponse(
-            responseCode = "200",
-            description = "예약 정보 조회 성공",
-            content = @Content(
-                    mediaType = "application/json",
-                    schema = @Schema(implementation = ReservationDto.class)))
-    @ApiResponse(
-            responseCode = "404",
-            description = "존재하지 않는 주문 정보",
-            content = @Content(
-                    mediaType = "application/json",
-                    schema = @Schema(implementation = ReservationDto.class)))
-    public ResponseEntity<ReservationDto> getReservation(@PathVariable String merchant_uid) {
-        return ResponseEntity.ok(reservationService.getReservation(merchant_uid));
+    @GetMapping("/client/list/past")
+    public ResponseEntity<List<ReservationDto>> getPastReservationList() {
+        return ResponseEntity.ok(reservationService.getPastReservationListByClient(1L));
     }
 
-    @GetMapping("guide/list")
+    @GetMapping("/guide/list")
     @Operation(summary = "예약 리스트 조회", description = """
             # 가이드 예약 조회
                         
@@ -233,7 +211,8 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.getReservationListByGuide());
     }
 
-    @PostMapping("guide/confirm/{merchant_uid}")
+
+    @PostMapping("/guide/confirm/{merchant_uid}")
     @Operation(summary = "예약 확정", description = """
             # 가이드 예약 확정
                         
@@ -262,7 +241,7 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.confirmReservation(merchant_uid));
     }
 
-    @PostMapping("guide/cancel/{merchant_uid}")
+    @PostMapping("/guide/cancel/{merchant_uid}")
     @Operation(summary = "예약 취소", description = """
             # 가이드 예약 취소
                         
@@ -290,6 +269,34 @@ public class ReservationController {
     public ResponseEntity<ReservationDto> cancelReservation(@PathVariable String merchant_uid) {
         return ResponseEntity.ok(reservationService.cancelReservation(merchant_uid));
     }
+
+    @GetMapping("/{merchant_uid}")
+    @Operation(summary = "예약 정보 조회", description = """
+            # 예약 조회
+                        
+            - 주문 번호를 통해 여행객의 예약을 조회합니다.            
+                        
+            ## 응답
+                        
+            - 정상 취소 시 `200` 코드와 함께 예약 내역을 반환합니다.
+            - 주문 번호에 오류가 있을 경우 `404` 에러를 반환합니다.
+            """, tags = {"Reservation-Client", "Reservation-Guide"})
+    @ApiResponse(
+            responseCode = "200",
+            description = "예약 정보 조회 성공",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ReservationDto.class)))
+    @ApiResponse(
+            responseCode = "404",
+            description = "존재하지 않는 주문 정보",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = ReservationDto.class)))
+    public ResponseEntity<ReservationDto> getReservation(@PathVariable String merchant_uid) {
+        return ResponseEntity.ok(reservationService.getReservation(merchant_uid));
+    }
+
 }
 
 
