@@ -4,6 +4,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.swygbro.trip.backend.domain.user.domain.Nationality;
+import lombok.extern.slf4j.Slf4j;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.springframework.stereotype.Repository;
 
@@ -11,6 +12,7 @@ import java.time.ZonedDateTime;
 import java.util.List;
 
 @Repository
+@Slf4j
 public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepository {
     private final JPAQueryFactory jpaQueryFactory;
     private final QGuideProduct product = QGuideProduct.guideProduct;
@@ -35,10 +37,10 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
                 .join(product.categories, category).fetchJoin()
                 .where(regionEq(region),
                         categoryIn(categories),
-                        hourEq(start, end),
+                        product.guideStart.between(start, end),
                         product.price.between(minPrice, maxPrice),
                         createTimeDiffCondition(minDuration, maxDuration),
-                        hourEq(dayTime.getStart(), dayTime.getEnd()),
+                        hourEq(dayTime),
                         nationalityEq(nationality))
                 .fetch();
     }
@@ -48,14 +50,9 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
                 product.guideStart, product.guideEnd, minDuration, maxDuration);
     }
 
-    private BooleanExpression hourEq(int start, int end) {
-        return Expressions.booleanTemplate("{0} between {1} and {2}",
-                product.guideStart.hour().add(9), start, end);
-    }
-
-    private BooleanExpression hourEq(ZonedDateTime start, ZonedDateTime end) {
-        return Expressions.booleanTemplate("convert_tz({0}, '+00:00', '+09:00') between {1} and {2}",
-                product.guideStart, start, end);
+    private BooleanExpression hourEq(DayTime dayTime) {
+        return Expressions.booleanTemplate("DATE_FORMAT(convert_tz({0}, '+00:00', '+09:00'), '%H:%i:%s') between {1} and {2}",
+                product.guideStart, dayTime.getStart(), dayTime.getEnd());
     }
 
     private BooleanExpression regionEq(MultiPolygon region) {

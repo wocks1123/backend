@@ -2,6 +2,9 @@ package com.swygbro.trip.backend.domain.guideProduct.domain;
 
 import lombok.Getter;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+
 @Getter
 public enum DayTime {
     ALL(0, 23),
@@ -10,12 +13,14 @@ public enum DayTime {
     LUNCH(12, 17),
     EVENING(18, 23);
 
-    private final int start;
-    private final int end;
+    private final String start;
+    private final String end;
 
     DayTime(int start, int end) {
-        this.start = start;
-        this.end = end;
+        String startTime = LocalTime.of(start, 0, 0).format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+        String endTime = LocalTime.of(end, 59, 59).format(DateTimeFormatter.ofPattern("HH:mm:ss"));
+        this.start = startTime;
+        this.end = endTime;
     }
 
 }
