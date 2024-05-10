@@ -10,6 +10,7 @@ import com.swygbro.trip.backend.domain.guideProduct.exception.GuideProductNotInR
 import com.swygbro.trip.backend.domain.guideProduct.exception.MismatchUserFromCreatorException;
 import com.swygbro.trip.backend.domain.guideProduct.exception.NotValidLocationException;
 import com.swygbro.trip.backend.domain.s3.application.S3Service;
+import com.swygbro.trip.backend.domain.user.domain.Nationality;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import com.swygbro.trip.backend.domain.user.domain.UserRepository;
 import com.swygbro.trip.backend.domain.user.excepiton.UserNotFoundException;
@@ -136,12 +137,12 @@ public class GuideProductService {
     }
 
     // 지역, 날짜로 검색
-    public List<SearchGuideProductResponse> getSearchedGuideList(String region, LocalDate start, LocalDate end, List<GuideCategoryCode> categories, Long minPrice, Long maxPrice, int minDuration, int maxDuration, DayTime dayTime, boolean same) {
+    public List<SearchGuideProductResponse> getSearchedGuideList(String region, LocalDate start, LocalDate end, List<GuideCategoryCode> categories, Long minPrice, Long maxPrice, int minDuration, int maxDuration, DayTime dayTime, Nationality nationality) {
         ZonedDateTime zonedDateStart = start.atStartOfDay(ZoneId.of("Asia/Seoul"));
         ZonedDateTime zonedDateEnd = ZonedDateTime.of(end.atTime(LocalTime.MAX), ZoneId.of("Asia/Seoul"));
         MultiPolygon polygon = regionRepository.findByName(region).getPolygon();
 
-        List<GuideProduct> guideProducts = guideProductRepository.findByFilter(polygon, zonedDateStart, zonedDateEnd, categories, minPrice, maxPrice, minDuration, maxDuration, dayTime, same);
+        List<GuideProduct> guideProducts = guideProductRepository.findByFilter(polygon, zonedDateStart, zonedDateEnd, categories, minPrice, maxPrice, minDuration, maxDuration, dayTime, nationality);
 
         if (guideProducts.isEmpty()) throw new GuideProductNotInRangeException("해당 조건에 부합하는 가이드 상품이 존재하지 않습니다.");
 

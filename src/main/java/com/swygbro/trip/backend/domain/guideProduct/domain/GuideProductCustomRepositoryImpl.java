@@ -3,6 +3,7 @@ package com.swygbro.trip.backend.domain.guideProduct.domain;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.swygbro.trip.backend.domain.user.domain.Nationality;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.springframework.stereotype.Repository;
 
@@ -29,7 +30,7 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
                                            int minDuration,
                                            int maxDuration,
                                            DayTime dayTime,
-                                           boolean same) {
+                                           Nationality nationality) {
         return jpaQueryFactory.selectFrom(product)
                 .join(product.categories, category).fetchJoin()
                 .where(regionEq(region),
@@ -37,7 +38,8 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
                         hourEq(start, end),
                         product.price.between(minPrice, maxPrice),
                         createTimeDiffCondition(minDuration, maxDuration),
-                        hourEq(dayTime.getStart(), dayTime.getEnd()))
+                        hourEq(dayTime.getStart(), dayTime.getEnd()),
+                        nationalityEq(nationality))
                 .fetch();
     }
 
@@ -63,6 +65,11 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
 
     private BooleanExpression categoryIn(List<GuideCategoryCode> categories) {
         if (categories != null) return category.categoryCode.in(categories);
+        return null;
+    }
+
+    private BooleanExpression nationalityEq(Nationality nationality) {
+        if (nationality != null) return product.user.nationality.eq(nationality);
         return null;
     }
 }
