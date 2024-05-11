@@ -11,5 +11,6 @@ public interface ReservationCustomRepository {
 
     public List<Reservation> findFutureReservationsByGuideId(Long guideId);
 
+    public List<Reservation> findByClientId(Long clientId);
 
 }
