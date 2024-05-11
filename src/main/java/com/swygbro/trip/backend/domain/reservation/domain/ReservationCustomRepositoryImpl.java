@@ -1,8 +1,12 @@
 package com.swygbro.trip.backend.domain.reservation.domain;
 
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Ops;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.swygbro.trip.backend.domain.reservation.dto.ReservationSearchCriteria;
+import com.swygbro.trip.backend.global.status.ReservationStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -17,67 +21,79 @@ public class ReservationCustomRepositoryImpl implements ReservationCustomReposit
     private final JPAQueryFactory queryFactory;
 
     @Override
-    public List<Reservation> findPastReservationsByClientId(Long clientId) {
+    public List<Reservation> findReservationsByClientId(Long clientId, ReservationSearchCriteria criteria) {
+        BooleanBuilder builder = new BooleanBuilder();
+
+        timeFilter(criteria.isPast(), builder);
+        statusFilter(criteria.getStatusFilter(), builder);
+
         return queryFactory
                 .selectFrom(reservation)
                 .where(reservation.client.id.eq(clientId)
-                        .and(reservation.reservatedAt.before(
-                                Expressions.dateTimeOperation(
-                                        ZonedDateTime.class,
-                                        Ops.DateTimeOps.CURRENT_TIMESTAMP
-                                )
-                        )))
+                        .and(builder))
+                .offset(criteria.getOffset())
+                .limit(criteria.getPageSize())
                 .fetch();
     }
 
-    @Override
-    public List<Reservation> findFutureReservationsByClientId(Long clientId) {
-        return queryFactory
-                .selectFrom(reservation)
-                .where(reservation.client.id.eq(clientId)
-                        .and(reservation.reservatedAt.after(
-                                Expressions.dateTimeOperation(
-                                        ZonedDateTime.class,
-                                        Ops.DateTimeOps.CURRENT_TIMESTAMP
-                                )
-                        )))
-                .fetch();
-    }
 
     @Override
-    public List<Reservation> findPastReservationsByGuideId(Long guideId) {
+    public List<Reservation> findReservationsByGuideId(Long guideId, ReservationSearchCriteria criteria) {
+        BooleanBuilder builder = new BooleanBuilder();
+
+        timeFilter(criteria.isPast(), builder);
+        statusFilter(criteria.getStatusFilter(), builder);
+
         return queryFactory
                 .selectFrom(reservation)
                 .where(reservation.guide.id.eq(guideId)
-                        .and(reservation.reservatedAt.before(
-                                Expressions.dateTimeOperation(
-                                        ZonedDateTime.class,
-                                        Ops.DateTimeOps.CURRENT_TIMESTAMP
-                                )
-                        )))
+                        .and(builder))
+                .offset(criteria.getOffset())
+                .limit(criteria.getPageSize())
                 .fetch();
     }
 
-    @Override
-    public List<Reservation> findFutureReservationsByGuideId(Long guideId) {
-        return queryFactory
-                .selectFrom(reservation)
-                .where(reservation.guide.id.eq(guideId)
-                        .and(reservation.reservatedAt.after(
-                                Expressions.dateTimeOperation(
-                                        ZonedDateTime.class,
-                                        Ops.DateTimeOps.CURRENT_TIMESTAMP
-                                )
-                        )))
-                .fetch();
+    private static void statusFilter(int statusFilter, BooleanBuilder builder) {
+        switch (statusFilter) {
+            case 1: // 확정 대기 중인 예약
+                builder.and(reservation.reservationStatus.eq(ReservationStatus.PENDING_CONFIRMATION));
+                break;
+            case 2: // 확정된 예약
+                builder.and(reservation.reservationStatus.eq(ReservationStatus.RESERVED)
+                        .or(reservation.reservationStatus.eq(ReservationStatus.SETTLED)));
+                break;
+            case 3: // 취소된 예약
+                builder.and(reservation.reservationStatus.eq(ReservationStatus.CANCELLED));
+                break;
+            default: //모든 예약
+                break;
+        }
     }
 
-    @Override
-    public List<Reservation> findByClientId(Long clientId) {
-        return queryFactory
-                .selectFrom(reservation)
-                .where(reservation.client.id.eq(clientId))
-                .fetch();
+    private static void timeFilter(boolean isPast, BooleanBuilder builder) {
+        if (isPast) {
+            builder.and(isBeforeFromNow());
+        } else {
+            builder.and(isAfterFromNow());
+        }
+    }
+
+    private static BooleanExpression isBeforeFromNow() {
+        return reservation.reservedAt.before(
+                Expressions.dateTimeOperation(
+                        ZonedDateTime.class,
+                        Ops.DateTimeOps.CURRENT_TIMESTAMP
+                )
+        );
+    }
+
+    private static BooleanExpression isAfterFromNow() {
+        return reservation.reservedAt.after(
+                Expressions.dateTimeOperation(
+                        ZonedDateTime.class,
+                        Ops.DateTimeOps.CURRENT_TIMESTAMP
+                )
+        );
     }
 
 }

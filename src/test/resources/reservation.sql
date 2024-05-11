@@ -1,7 +1,7 @@
 -- reservation 테이블에 데이터 삽입
 INSERT INTO `reservation` (`id`, `created_at`, `created_by`, `deleted_at`, `deleted_by`, `updated_at`, `updated_by`,
                            `cancelled_at`, `imp_uid`, `merchant_uid`, `message`, `paid_at`, `payment_status`,
-                           `personnel`, `price`, `reservated_at`, `reservation_status`, `client_id`, `guide_id`,
+                           `personnel`, `price`, `reserved_at`, `reservation_status`, `client_id`, `guide_id`,
                            `product_id`)
 VALUES (1, NOW(), NULL, NULL, NULL, NULL, NULL, NULL, 'imp_uid_1', 'merchant_uid_1', '예약 메시지 1',
         NOW(), 1, 2, 10000, DATE_SUB(NOW(), INTERVAL 12 HOUR), 0, 1, 2, 1),

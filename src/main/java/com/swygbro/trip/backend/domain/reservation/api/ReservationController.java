@@ -4,9 +4,7 @@ import com.siot.IamportRestClient.exception.IamportResponseException;
 import com.siot.IamportRestClient.response.IamportResponse;
 import com.siot.IamportRestClient.response.Payment;
 import com.swygbro.trip.backend.domain.reservation.aplication.ReservationService;
-import com.swygbro.trip.backend.domain.reservation.dto.ReservationDto;
-import com.swygbro.trip.backend.domain.reservation.dto.SavePaymentRequest;
-import com.swygbro.trip.backend.domain.reservation.dto.SaveReservationRequest;
+import com.swygbro.trip.backend.domain.reservation.dto.*;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import com.swygbro.trip.backend.global.jwt.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
@@ -44,7 +42,7 @@ public class ReservationController {
             |--------|------|----------|----------|------|
             |guideId| 가이드의 ID | 실제 가이드 ID | N | 1 |
             |productId| 상품의 ID | 실제 상품 ID | N | 1 |
-            |reservatedAt| 예약 날짜 | yyyy-MM-dd HH:mm:ss | N | 2024-05-01 12:00:00 |
+            |reservedAt| 예약 날짜 | yyyy-MM-dd HH:mm:ss | N | 2024-05-01 12:00:00 |
             |personnel| 가이드 신청 인원 | 1보다 큰 정수값 | N | 1 |
             |message| 추가 메세지 | 문자열 | N | 안녕하세요 |
             |price| 가격 | 0보다 큰 정수값 | N | 10000 |
@@ -74,7 +72,7 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.saveReservation(user.getId(), orderDto));
     }
 
-    @PostMapping("/client/payment/{imp_uid}")
+    @PostMapping("/client/payment/validation")
     @PreAuthorize("isAuthenticated() and hasRole('USER')")
     @SecurityRequirement(name = "access-token")
     @Operation(summary = "결제 내역 검증", description = """
@@ -100,8 +98,8 @@ public class ReservationController {
             content = @Content(
                     mediaType = "application/json",
                     schema = @Schema(implementation = IamportResponse.class)))
-    public IamportResponse<Payment> validateIamport(@PathVariable String imp_uid) throws IamportResponseException, IOException {
-        return reservationService.validateIamport(imp_uid);
+    public IamportResponse<Payment> validateIamport(@RequestBody PayValidateRequest payValidateRequest) throws IamportResponseException, IOException {
+        return reservationService.validateIamport(payValidateRequest.getImp_uid());
     }
 
 
@@ -197,53 +195,8 @@ public class ReservationController {
             content = @Content(
                     mediaType = "application/json",
                     schema = @Schema(implementation = List.class)))
-    public ResponseEntity<List<ReservationDto>> getReservationList(@CurrentUser User user) {
-        return ResponseEntity.ok(reservationService.getReservationListByClient(user.getId()));
-    }
-
-    @GetMapping("/client/list/past")
-    @PreAuthorize("isAuthenticated() and hasRole('USER')")
-    @SecurityRequirement(name = "access-token")
-    @Operation(tags = "Reservation-Client", summary = "과거 예약 리스트 조회", description = """
-            # 여행객 과거 예약 리스트 조회
-                        
-            - 현재 시간 기준 여행객의 과거 예약 리스트를 조회합니다.            
-                        
-            ## 응답
-                        
-            - 정상 조회 시 `200` 코드와 함께 과거 예약 내역 리스트를 반환합니다.
-             
-            """)
-    @ApiResponse(
-            responseCode = "200",
-            description = "과거 예약 리스트 조회 성공",
-            content = @Content(
-                    mediaType = "application/json",
-                    schema = @Schema(implementation = List.class)))
-    public ResponseEntity<List<ReservationDto>> getPastReservationClientList(@CurrentUser User user) {
-        return ResponseEntity.ok(reservationService.getPastReservationListByClient(user.getId()));
-    }
-
-    @GetMapping("/client/list/future")
-    @PreAuthorize("isAuthenticated() and hasRole('USER')")
-    @SecurityRequirement(name = "access-token")
-    @Operation(tags = "Reservation-Client", summary = "미래 예약 리스트 조회", description = """
-            # 여행객 미래 예약 리스트 조회
-                        
-            - 현재 시간 기준 여행객의 미래 예약 리스트를 조회합니다.            
-                        
-            ## 응답
-                        
-            - 정상 조회 시 `200` 코드와 함께 미래 예약 내역 리스트를 반환합니다.
-             
-            """)
-    @ApiResponse(responseCode = "200",
-            description = "미래 예약 리스트 조회 성공",
-            content = @Content(
-                    mediaType = "application/json",
-                    schema = @Schema(implementation = List.class)))
-    public ResponseEntity<List<ReservationDto>> getFutureReservationClientList(@CurrentUser User user) {
-        return ResponseEntity.ok(reservationService.getFutureReservationListByClient(user.getId()));
+    public ResponseEntity<List<ReservationDto>> getReservationList(@CurrentUser User user, @RequestBody ReservationSearchCriteria criteria) {
+        return ResponseEntity.ok(reservationService.getReservationListByClient(user.getId(), criteria));
     }
 
     @GetMapping("/guide/list")
@@ -264,51 +217,8 @@ public class ReservationController {
             content = @Content(
                     mediaType = "application/json",
                     schema = @Schema(implementation = List.class)))
-    public ResponseEntity<List<ReservationDto>> getReservationListByGuide(@CurrentUser User user) {
-        return ResponseEntity.ok(reservationService.getReservationListByGuide(user.getId()));
-    }
-
-    @GetMapping("/guide/list/past")
-    @PreAuthorize("isAuthenticated() and hasRole('USER')")
-    @SecurityRequirement(name = "access-token")
-    @Operation(tags = "Reservation-Guide", summary = "과거 예약 리스트 조회", description = """
-            # 가이드 과거 예약 리스트 조회
-                        
-            - 가이드가 자신의 과거 예약 리스트를 조회합니다.            
-                        
-            ## 응답
-                        
-            - 정상 조회 시 `200` 코드와 함께 과거 예약 내역 리스트를 반환합니다.
-             
-            """)
-    @ApiResponse(responseCode = "200",
-            description = "과거 예약 리스트 조회 성공",
-            content = @Content(
-                    mediaType = "application/json",
-                    schema = @Schema(implementation = List.class)))
-    public ResponseEntity<List<ReservationDto>> getPastReservationGuideList(@CurrentUser User user) {
-        return ResponseEntity.ok(reservationService.getPastReservationListByGuide(user.getId()));
-    }
-
-    @GetMapping("/guide/list/future")
-    @PreAuthorize("isAuthenticated() and hasRole('USER')")
-    @SecurityRequirement(name = "access-token")
-    @Operation(tags = "Reservation-Guide", summary = "미래 예약 리스트 조회", description = """
-            # 가이드 미래 예약 리스트 조회
-                        
-            - 가이드가 자신의 미래 예약 리스트를 조회합니다.            
-                        
-            ## 응답
-                        
-            - 정상 조회 시 `200` 코드와 함께 미래 예약 내역 리스트를 반환합니다.
-             
-            """)
-    @ApiResponse(responseCode = "200", description = "미래 예약 리스트 조회 성공",
-            content = @Content(
-                    mediaType = "application/json",
-                    schema = @Schema(implementation = List.class)))
-    public ResponseEntity<List<ReservationDto>> getFutureReservationGuideList(@CurrentUser User user) {
-        return ResponseEntity.ok(reservationService.getFutureReservationListByGuide(user.getId()));
+    public ResponseEntity<List<ReservationDto>> getReservationListByGuide(@CurrentUser User user, @RequestBody ReservationSearchCriteria criteria) {
+        return ResponseEntity.ok(reservationService.getReservationListByGuide(user.getId(), criteria));
     }
 
     @PostMapping("/guide/confirm/{merchant_uid}")
