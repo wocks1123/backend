@@ -71,4 +71,13 @@ public class ReservationCustomRepositoryImpl implements ReservationCustomReposit
                         )))
                 .fetch();
     }
+
+    @Override
+    public List<Reservation> findByClientId(Long clientId) {
+        return queryFactory
+                .selectFrom(reservation)
+                .where(reservation.client.id.eq(clientId))
+                .fetch();
+    }
+
 }
