@@ -1,5 +1,6 @@
 package com.swygbro.trip.backend.domain.guideProduct.domain;
 
+import com.swygbro.trip.backend.domain.guideProduct.dto.SearchCategoriesRequest;
 import com.swygbro.trip.backend.domain.user.domain.Nationality;
 import org.locationtech.jts.geom.MultiPolygon;
 import org.locationtech.jts.geom.Point;
@@ -14,5 +15,5 @@ public interface GuideProductCustomRepository {
 
     List<GuideProduct> findAllByLocation(Point point, int radius);
 
-    List<GuideProduct> findByFilter(MultiPolygon region, ZonedDateTime start, ZonedDateTime end, List<GuideCategoryCode> categories, Long minPrice, Long maxPrice, int minDuration, int maxDuration, DayTime dayTime, Nationality nationality);
+    List<GuideProduct> findByFilter(MultiPolygon region, ZonedDateTime start, ZonedDateTime end, SearchCategoriesRequest categories, Long minPrice, Long maxPrice, int minDuration, int maxDuration, DayTime dayTime, Nationality nationality);
 }

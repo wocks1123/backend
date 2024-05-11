@@ -31,9 +31,9 @@ public class GuideProductDto {
     @Schema(description = "가이드 비용", example = "10000")
     private Long price;
     @Schema(description = "가이드 위치(위도)", example = "37")
-    private double longitude;
-    @Schema(description = "가이드 위치(경도)", example = "127")
     private double latitude;
+    @Schema(description = "가이드 위치(경도)", example = "127")
+    private double longitude;
     @Schema(description = "가이드 시작 날짜/시간", example = "2024-05-01 12:00:00")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private ZonedDateTime guideStart;
@@ -55,7 +55,7 @@ public class GuideProductDto {
                 .nickname(product.getUser().getNickname())
                 .title(product.getTitle())
                 .description(product.getDescription()).price(product.getPrice())
-                .longitude(product.getLocation().getY()).latitude(product.getLocation().getX())
+                .longitude(product.getLocation().getX()).latitude(product.getLocation().getY())
                 .guideStart(product.getGuideStart()).guideEnd(product.getGuideEnd())
                 .categories(categories).thumb(product.getThumb()).images(product.getImages())
                 .build();

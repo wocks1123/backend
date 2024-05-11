@@ -66,7 +66,7 @@ public class GuideProduct extends BaseEntity {
 
     public static GuideProduct setGuideProduct(User user, CreateGuideProductRequest request, List<String> images) {
         GeometryFactory geometryFactory = new GeometryFactory();
-        Point point = geometryFactory.createPoint(new Coordinate(request.getLatitude(), request.getLongitude()));
+        Point point = geometryFactory.createPoint(new Coordinate(request.getLongitude(), request.getLatitude()));
         point.setSRID(4326);
 
         if (images.size() == 1)
@@ -102,7 +102,7 @@ public class GuideProduct extends BaseEntity {
 
     public void setGuideProduct(ModifyGuideProductRequest request) {
         GeometryFactory geometryFactory = new GeometryFactory();
-        Point point = geometryFactory.createPoint(new Coordinate(request.getLatitude(), request.getLongitude()));
+        Point point = geometryFactory.createPoint(new Coordinate(request.getLongitude(), request.getLatitude()));
         point.setSRID(4326);
 
         this.title = request.getTitle();

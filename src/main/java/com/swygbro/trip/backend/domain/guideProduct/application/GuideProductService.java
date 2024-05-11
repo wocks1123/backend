@@ -1,10 +1,7 @@
 package com.swygbro.trip.backend.domain.guideProduct.application;
 
 import com.swygbro.trip.backend.domain.guideProduct.domain.*;
-import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductRequest;
-import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
-import com.swygbro.trip.backend.domain.guideProduct.dto.ModifyGuideProductRequest;
-import com.swygbro.trip.backend.domain.guideProduct.dto.SearchGuideProductResponse;
+import com.swygbro.trip.backend.domain.guideProduct.dto.*;
 import com.swygbro.trip.backend.domain.guideProduct.exception.GuideProductNotFoundException;
 import com.swygbro.trip.backend.domain.guideProduct.exception.GuideProductNotInRangeException;
 import com.swygbro.trip.backend.domain.guideProduct.exception.MismatchUserFromCreatorException;
@@ -21,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -41,7 +37,7 @@ public class GuideProductService {
     // 가이드 상품 생성
     @Transactional
     public GuideProductDto createGuideProduct(User user, CreateGuideProductRequest request, MultipartFile thumb, Optional<List<MultipartFile>> images) {
-        isValidLocation(request.getLongitude(), request.getLatitude());
+        isValidLocation(request.getLatitude(), request.getLongitude());
 
         List<String> imageUrls = new ArrayList<>();
         images.ifPresentOrElse(list -> {
@@ -130,10 +126,20 @@ public class GuideProductService {
     }
 
     // 지역, 날짜로 검색
-    public List<SearchGuideProductResponse> getSearchedGuideList(String region, LocalDate start, LocalDate end, List<GuideCategoryCode> categories, Long minPrice, Long maxPrice, int minDuration, int maxDuration, DayTime dayTime, Nationality nationality) {
-        ZonedDateTime zonedDateStart = start.atStartOfDay(ZoneId.of("Asia/Seoul"));
-        ZonedDateTime zonedDateEnd = ZonedDateTime.of(end.atTime(LocalTime.MAX), ZoneId.of("Asia/Seoul"));
-        MultiPolygon polygon = regionRepository.findByName(region).getPolygon();
+    public List<SearchGuideProductResponse> getSearchedGuideList(SearchGuideProductRequest request, SearchCategoriesRequest categories, Long minPrice, Long maxPrice, int minDuration, int maxDuration, DayTime dayTime, Nationality nationality) {
+        ZonedDateTime zonedDateStart;
+        ZonedDateTime zonedDateEnd;
+        MultiPolygon polygon;
+
+        if (request.getRegion() != null && request.getStart() != null && request.getEnd() != null) {
+            zonedDateStart = request.getStart().atStartOfDay(ZoneId.of("Asia/Seoul"));
+            zonedDateEnd = ZonedDateTime.of(request.getEnd().atTime(LocalTime.MAX), ZoneId.of("Asia/Seoul"));
+            polygon = regionRepository.findByName(request.getRegion()).getPolygon();
+        } else {
+            zonedDateStart = null;
+            zonedDateEnd = null;
+            polygon = regionRepository.findByName("서울특별시").getPolygon();
+        }
 
         List<GuideProduct> guideProducts = guideProductRepository.findByFilter(polygon, zonedDateStart, zonedDateEnd, categories, minPrice, maxPrice, minDuration, maxDuration, dayTime, nationality);
 
@@ -143,8 +149,8 @@ public class GuideProductService {
     }
 
     // 가이드 위치 유효한지 검사
-    private void isValidLocation(double longitude, double latitude) throws NotValidLocationException {
-        if (longitude < -90 || longitude > 90 || latitude < -180 || latitude > 180)
+    private void isValidLocation(double latitude, double longitude) throws NotValidLocationException {
+        if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180)
             throw new NotValidLocationException();
     }
 }
