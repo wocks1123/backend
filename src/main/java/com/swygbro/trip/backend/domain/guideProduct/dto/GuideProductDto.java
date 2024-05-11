@@ -18,6 +18,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GuideProductDto {
+    @Schema(description = "유저 ID", example = "1")
+    private Long userId;
+    @Schema(description = "사용자 닉네임", example = "nickname01")
+    private String nickname;
     @Schema(description = "상품 ID", example = "1")
     private Long id;
     @Schema(description = "상품 제목", example = "신나는 서울 투어")
@@ -47,6 +51,8 @@ public class GuideProductDto {
         List<GuideCategoryCode> categories = product.getCategories().stream().map(GuideCategory::getCategoryCode).toList();
 
         return GuideProductDto.builder().id(product.getId())
+                .userId(product.getUser().getId())
+                .nickname(product.getUser().getNickname())
                 .title(product.getTitle())
                 .description(product.getDescription()).price(product.getPrice())
                 .longitude(product.getLocation().getY()).latitude(product.getLocation().getX())
