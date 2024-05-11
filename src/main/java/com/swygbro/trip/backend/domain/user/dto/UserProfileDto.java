@@ -1,5 +1,6 @@
 package com.swygbro.trip.backend.domain.user.dto;
 
+import com.swygbro.trip.backend.domain.user.domain.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,4 +23,14 @@ public class UserProfileDto {
 
     @Schema(description = "사용자 프로필 이미지 URL", example = "/images/profile.jpg")
     private String profileImageUrl;
+
+    public static UserProfileDto fromEntity(User user) {
+        return UserProfileDto.builder()
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .name(user.getName())
+                .profile(user.getProfile())
+                .profileImageUrl(user.getProfileImageUrl())
+                .build();
+    }
 }

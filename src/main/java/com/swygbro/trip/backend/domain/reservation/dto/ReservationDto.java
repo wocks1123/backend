@@ -1,30 +1,32 @@
 package com.swygbro.trip.backend.domain.reservation.dto;
 
-import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProduct;
+import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
 import com.swygbro.trip.backend.domain.reservation.domain.Reservation;
-import com.swygbro.trip.backend.domain.user.domain.User;
+import com.swygbro.trip.backend.domain.user.dto.UserProfileDto;
 import com.swygbro.trip.backend.global.status.PayStatus;
 import com.swygbro.trip.backend.global.status.ReservationStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Builder;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.ZonedDateTime;
 
 //TODO: User, GuideProduct to DTO
-@Data
+@Getter
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class ReservationDto {
     @Schema(description = "가이드")
-    private User guide;
+    private UserProfileDto guide;
 
     @Schema(description = "상품")
-    private GuideProduct product;
+    private GuideProductDto product;
 
     @Schema(description = "예약 날짜", example = "2024-04-29T12:30:45Z")
-    private ZonedDateTime reservatedAt;
+    private ZonedDateTime reservedAt;
 
     @Schema(description = "인원", example = "1")
     private Integer personnel;
@@ -46,16 +48,16 @@ public class ReservationDto {
 
 
     public ReservationDto fromEntity(Reservation reservation) {
-        return new ReservationDto(
-                reservation.getGuide(),
-                reservation.getProduct(),
-                reservation.getReservatedAt(),
-                reservation.getPersonnel(),
-                reservation.getMessage(),
-                reservation.getPrice(),
-                reservation.getPaymentStatus(),
-                reservation.getReservationStatus(),
-                reservation.getMerchantUid()
-        );
+        return ReservationDto.builder()
+                .guide(UserProfileDto.fromEntity(reservation.getGuide()))
+                .product(GuideProductDto.fromEntity(reservation.getProduct()))
+                .reservedAt(reservation.getReservedAt())
+                .personnel(reservation.getPersonnel())
+                .message(reservation.getMessage())
+                .price(reservation.getPrice())
+                .paymentStatus(reservation.getPaymentStatus())
+                .reservationStatus(reservation.getReservationStatus())
+                .merchantUid(reservation.getMerchantUid())
+                .build();
     }
 }
