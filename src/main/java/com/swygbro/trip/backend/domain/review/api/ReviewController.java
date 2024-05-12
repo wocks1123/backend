@@ -3,19 +3,21 @@ package com.swygbro.trip.backend.domain.review.api;
 
 import com.swygbro.trip.backend.domain.review.application.ReviewService;
 import com.swygbro.trip.backend.domain.review.dto.CreateReviewRequest;
+import com.swygbro.trip.backend.domain.review.dto.ReviewInfoDto;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import com.swygbro.trip.backend.global.document.ForbiddenResponse;
 import com.swygbro.trip.backend.global.document.InvalidTokenResponse;
 import com.swygbro.trip.backend.global.document.ValidationErrorResponse;
 import com.swygbro.trip.backend.global.jwt.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,7 +25,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.net.URI;
 import java.util.List;
 
 
@@ -34,7 +35,7 @@ import java.util.List;
         가이드 상품 리뷰 API
         """)
 public class ReviewController {
-
+    
     private final ReviewService reviewService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -52,32 +53,38 @@ public class ReviewController {
                         
             | 필드명 | 설명 | 제약조건 | 예시 |
             |--------|------|----------|------|
-            | guideProductId | 가이드 상품 ID | 필수 | 1 |
+            | reservationId | 예약 ID | 필수 | 1 |
             | content | 리뷰 내용 | 선택, 최대 500자 | "정말 좋은 가이드입니다." | 
             | rating | 별점 | 선택, 1~5의 정수만 가능 | 5 |
                         
             ## 응답
                         
-            - 
+            - 성공 시 `200` 코드와 함께 생성한 리뷰 정보가 반환됩니다.
+            - 입력 값이 잘못된 경우 `400` 코드와 함께 에러 메시지가 반환됩니다.
+            - 리뷰를 작성할 수 없는 경우 `400` 코드와 함께 에러 메시지가 반환됩니다.
+                - 예약 ID가 존재하지 않는 경우 `400` 코드와 함께 에러 메시지를 반환합니다.
+                - 예약 상태가 `예약완료`인 경우에만 리뷰를 작성할 수 있습니다.
+                - 예약 내역과 요청한 사용자가 일치해야합니다.
+            - 토큰이 유효하지 않은 경우 `401` 코드와 함께 에러 메시지가 반환됩니다.
+            - 로그인하지 않은 경우 `403` 코드와 함께 에러 메시지가 반환됩니다.
                         
             """)
     @SecurityRequirement(name = "access-token")
     @ApiResponse(
-            responseCode = "201",
-            description = """
-                    응답 헤더의 location에 생성된 리뷰의 URI가 포함됩니다.
-                    - URI 형식 : `/api/v1/reviews/{reviewId}`
-                    """
+            responseCode = "200",
+            description = "`200` 코드와 함께 생성한 리뷰 정보가 반환됩니다.",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ReviewInfoDto.class)
+            )
     )
     @ValidationErrorResponse
     @ForbiddenResponse
     @InvalidTokenResponse
-    public ResponseEntity<?> createReview(@Valid @RequestPart CreateReviewRequest dto,
-                                          @RequestPart(value = "file", required = false) List<MultipartFile> images,
-                                          @CurrentUser User user) {
-        return ResponseEntity.created(
-                URI.create("/api/v1/reviews/" + reviewService.createReview(dto, user, images))
-        ).build();
+    public ReviewInfoDto createReview(@Valid @RequestPart CreateReviewRequest dto,
+                                      @RequestPart(value = "file", required = false) List<MultipartFile> images,
+                                      @CurrentUser User user) {
+        return reviewService.createReview(dto, user, images);
     }
 
 }
