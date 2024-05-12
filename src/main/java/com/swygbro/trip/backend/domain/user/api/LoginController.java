@@ -87,7 +87,7 @@ public class LoginController {
             | 필드명 | 설명 | 제약조건 | 중복확인 | 예시 |
             |--------|------|----------|----------|------|
             |email| 사용자의 이메일 | 이메일 형식 | Y | email01@email.com |
-            |nickname| 다른 사용자들에게 보이는 닉네임 | 4~20자 | Y | nickname01 |            
+            |nickname| 다른 사용자들에게 보이는 닉네임 | 4~20자 | N | nickname01 |            
             |name| 사용자의 이름 | 2~20자 | N | name01 |
             |phone| 사용자의 전화번호 | '-'를 제외한 숫자 | Y | 01012345678 |
             |nationality| 사용자의 국적 | 영문3자 국가 코드 | N | KOR |

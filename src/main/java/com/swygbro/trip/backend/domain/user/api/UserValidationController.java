@@ -22,21 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/validation")
 @RequiredArgsConstructor
-@Tag(name = "Users Validation", description = """
-        ### 개요
-                
-        - 회원가입 시 입력 값 중복을 확인하는 API입니다.
-        - 데이터가 중복되지 않을 경우 200 코드를 반환합니다.
-        - 데이터의 입력 양식이 올바르지 않을 경우 400 코드를 반환합니다.
-        - 데이터가 중복될 경우 409 코드를 반환합니다.
-                
-        ### 주요기능
-                
-        - 닉네임 중복 확인
-        - 전화번호 중복 확인
-        - 이메일 중복 확인
-                
-        """)
+@Tag(name = "Users Validation", description = "회원가입 시 입력 값 중복을 확인하는 API")
 public class UserValidationController {
 
     private final UserValidationService userValidationService;
