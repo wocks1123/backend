@@ -75,6 +75,16 @@ public class User extends BaseEntity {
 
     public void update(UpdateUserRequest dto) {
         this.profile = dto.getProfile();
+
+        if (dto.getNickname() != null) {
+            this.nickname = dto.getNickname();
+        }
+
+        if (dto.getLanguages() != null) {
+            this.userLanguages.clear();
+            dto.getLanguages().forEach(language -> this.userLanguages.add(new UserLanguage(this, language)));
+        }
+
     }
 
 }
