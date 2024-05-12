@@ -19,10 +19,10 @@ public class TokenService {
     private Key key;
     private final SignatureAlgorithm signatureAlgorithm = SignatureAlgorithm.HS256;
 
-    // ACCESS_TIME 10초*100
-    private static final long ACCESS_EXPIRE_TIME = 60 * 60 * 1000L;
-    // REFRESH_TIME 60초*100
-    private static final long REFRESH_EXPIRE_TIME = 60 * 60 * 24 * 1000L;
+    // 24시간
+    private static final long ACCESS_EXPIRE_TIME = 60 * 60 * 24 * 1000L;
+    // 14일
+    private static final long REFRESH_EXPIRE_TIME = 60 * 60 * 24 * 14 * 1000L;
 
     @PostConstruct
     public void init() {
