@@ -103,7 +103,7 @@ public class Reservation extends BaseEntity {
         String prefix = dateFormat.format(new Date());
 
         UUID uuid = UUID.randomUUID();
-        String suffix = uuid.toString().substring(0, 6);
+        String suffix = uuid.toString().substring(0, 8);
 
         this.merchantUid = prefix + suffix;
     }
