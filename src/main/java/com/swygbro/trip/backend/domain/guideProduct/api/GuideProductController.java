@@ -353,10 +353,8 @@ public class GuideProductController {
         return guideProductService.getGuideListIn(longitude, latitude);
     }
 
-    @GetMapping("/auth/search")
-    @PreAuthorize("isAuthenticated() and hasRole('USER') and #user.id == principal.id")
-    @SecurityRequirement(name = "access-token")
-    @Operation(summary = "로그인 했을 경우 검색 + 필터 ", description = """
+    @GetMapping("/search")
+    @Operation(summary = "검색 + 필터 ", description = """
             # 지역 + 날짜로 검색
                         
             지역과 날짜를 입력하면 두 조건에 만족하는 가이드 상품들을 검색한다.
@@ -385,7 +383,8 @@ public class GuideProductController {
             # 상세 조건으로 필터
                         
             가격 범위, 소요 시간, 시간대, 같은 국적 여부를 이용해 추가 검색을 합니다.<br>
-            로그인을 했을 경우 같은 국적 여부를 필터 조건에 포함할 수 있습니다.
+            로그인을 했을 경우 같은 국적 여부를 필터 조건에 포함할 수 있습니다.<br>
+            비로그인 경우 같은 국적 여부가 false로 적용됩니다.
                         
             각 필드의 제약 조건은 다음과 같습니다.
             | 필드명 | 설명 | 제약조건 | null 가능 | 예시 |
@@ -426,8 +425,6 @@ public class GuideProductController {
                     )
             )
     )
-    @ForbiddenResponse
-    @InvalidTokenResponse
     public List<SearchGuideProductResponse> getSearchedGuideListWithLogin(@CurrentUser User user,
                                                                           SearchGuideProductRequest request,
                                                                           SearchCategoriesRequest searchCategoriesRequest,
@@ -437,88 +434,9 @@ public class GuideProductController {
                                                                           @RequestParam(value = "maxD", required = false, defaultValue = "24") int maxDuration,
                                                                           @RequestParam(value = "dayT", required = false, defaultValue = "ALL") DayTime dayTime,
                                                                           @RequestParam(value = "host", required = false, defaultValue = "false") boolean same) {
-        if (!same)
+        if (user != null && same)
+            return guideProductService.getSearchedGuideList(request, searchCategoriesRequest, minPrice, maxPrice, minDuration, maxDuration, dayTime, user.getNationality());
+        else
             return guideProductService.getSearchedGuideList(request, searchCategoriesRequest, minPrice, maxPrice, minDuration, maxDuration, dayTime, null);
-        return guideProductService.getSearchedGuideList(request, searchCategoriesRequest, minPrice, maxPrice, minDuration, maxDuration, dayTime, user.getNationality());
-    }
-
-    @GetMapping("/search")
-    @Operation(summary = "로그인 안 했을 경우 검색 + 필터 ", description = """
-            # 지역 + 날짜로 검색
-                        
-            지역과 날짜를 입력하면 두 조건에 만족하는 가이드 상품들을 검색한다.
-                        
-            각 필드의 제약 조건은 다음과 같습니다.
-            | 필드명 | 설명 | 제약조건 | null 가능 | 예시 |
-            |--------|------|----------|----------|------|
-            |region| 한국 지역 선택 | 서울특별시, 경기도, 광주광역시, 세종특별자치시, 부산광역시, 울산광역시, 대구광역시, 제주특별자치도, 인천광역시, 전라북도, 전라남도, 충청남도, 충청북도, 강원도, 경상북도, 경상남도, 대전광역시만 가능 | Y | 서울특별시 |
-            |start| 범위 시작 날짜 | yyyy-MM-dd, 00:00:00시간부터 | Y | 2024-05-01 |
-            |end| 범위 종료 날짜 | yyyy-MM-dd, 23:59:99시간까지 | Y | 2024-05-02 |
-                        
-            # 카테고리로 검색
-                        
-            메인페이지 및 필터에서만 카테고리 중 BEST, NEAR 사용 가능합니다.<br>
-            검색 후 필터 사용 후에는 BEST, NEAR 사용 불가능합니다.(현재 추천 카테고리는 서울 지역 상품을 추천해줍니다.)<br>
-            NEAR 카테고리로 검색 시 위치 공유를 하지 않는 경우 서울 지역 상품을 추천해줍니다.<br>
-            전체 카테고리 시에는 param 입력 필요 x
-                        
-            각 필드의 제약 조건은 다음과 같습니다.
-            | 필드명 | 설명 | 제약조건 | null 가능 | 예시 |
-            |--------|------|----------|----------|------|
-            |latitude| 현재 위치(위도) | -90.0 이상, 90.0 이하 | Y | 37.435 |
-            |longitude| 현재 위치(경도) | -180.0 이상, 180.0 이하 | Y | 230.253 |
-            |category| 카테고리 선택 |NEAR,BEST,DINING,TOUR,OUTDOOR,ENTERTAINMENT,ART_CULTURE,SPORTS_FITNESS| Y | DINING |
-                        
-            # 상세 조건으로 필터
-                        
-            가격 범위, 소요 시간, 시간대, 같은 국적 여부를 이용해 추가 검색을 합니다.<br>
-            비로그인인 경우 같은 국적 여부를 필터 조건에 포함할 수 없습니다.
-                        
-            각 필드의 제약 조건은 다음과 같습니다.
-            | 필드명 | 설명 | 제약조건 | null 가능 | 예시 |
-            |--------|------|----------|----------|------|
-            |min| 최소 가격 범위 | 한국 재화 기준 | Y (default = 0) | 10000 |
-            |max| 최대 가격 범위 | 한국 재화 기준 | Y (default = 200000)| 30000 |
-            |minD| 최소 소요 시간 | 시간 단위 | Y (default = 1) | 2 |
-            |maxD| 최대 소요 시간 | 시간 단위 | Y (default = 24) | 5 |
-            |dayT| 시간대 | DAWN(0 ~ 6), MORNING(7 ~ 11), LUNCH (12 ~ 17), EVENING (18 ~ 23) | Y (default = ALL) | LUNCH |
-                      
-            ## 상황
-            모든 상황에서 검색, 필터, 카테고리가 단독으로 사용 가능하며 같이도 사용 가능합니다.
-            다만, 검색 후 카테고리로 추가 검색을 하는 경우만 NEAR, BEST 사용 불가능 합니다.
-              
-            ## 응답
-                        
-            - 검색 조건 내 가이드 상품이 존재할 경우 `200` 코드와 함께 가이드 상품 리스트를 반환합니다.
-            - 검색 조건 내 가이드 상품이 존재하지 않을 경우 `404` 에러를 반환합니다.
-            """, tags = "Search Guide Products")
-    @ApiResponse(
-            responseCode = "200",
-            description = "범위 내 가이드 상품 불러오기 성공",
-            content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = SearchGuideProductResponse.class)
-            )
-    )
-    @ApiResponse(
-            responseCode = "404",
-            description = "범위 내 가이드 상품이 존재하지 않음",
-            content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = ApiErrorResponse.class),
-                    examples = @ExampleObject(
-                            name = "가이드 상품이 존재하지 않음",
-                            value = "{ \"status\" : \"NOT_FOUND\", \"message\" : \"해당 조건에 부합하는 가이드 상품이 존재하지 않습니다.\"}"
-                    )
-            )
-    )
-    public List<SearchGuideProductResponse> getSearchedGuideList(SearchGuideProductRequest request,
-                                                                 SearchCategoriesRequest searchCategoriesRequest,
-                                                                 @RequestParam(value = "min", required = false, defaultValue = "0") Long minPrice,
-                                                                 @RequestParam(value = "max", required = false, defaultValue = "200000") Long maxPrice,
-                                                                 @RequestParam(value = "minD", required = false, defaultValue = "1") int minDuration,
-                                                                 @RequestParam(value = "maxD", required = false, defaultValue = "24") int maxDuration,
-                                                                 @RequestParam(value = "dayT", required = false, defaultValue = "ALL") DayTime dayTime) {
-        return guideProductService.getSearchedGuideList(request, searchCategoriesRequest, minPrice, maxPrice, minDuration, maxDuration, dayTime, null);
     }
 }
