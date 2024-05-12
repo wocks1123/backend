@@ -2,13 +2,14 @@ package com.swygbro.trip.backend.domain.guideProduct.domain;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
+import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.swygbro.trip.backend.domain.guideProduct.dto.SearchCategoriesRequest;
 import com.swygbro.trip.backend.domain.user.domain.Nationality;
 import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.MultiPolygon;
-import org.locationtech.jts.geom.Point;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.support.PageableExecutionUtils;
 import org.springframework.stereotype.Repository;
 
 import java.time.ZonedDateTime;
@@ -42,7 +43,7 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
     }
 
     @Override
-    public List<GuideProduct> findByFilter(MultiPolygon region,
+    public Page<GuideProduct> findByFilter(MultiPolygon region,
                                            ZonedDateTime start,
                                            ZonedDateTime end,
                                            SearchCategoriesRequest category,
@@ -51,17 +52,32 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
                                            int minDuration,
                                            int maxDuration,
                                            DayTime dayTime,
-                                           Nationality nationality) {
-        return jpaQueryFactory.selectFrom(qProduct)
+                                           Nationality nationality,
+                                           Pageable pageable) {
+        List<GuideProduct> fetch = jpaQueryFactory.selectFrom(qProduct)
                 .join(qProduct.categories, qCategory).fetchJoin()
                 .where(regionEq(region),
                         startDateBetween(start, end),
                         categoryIn(region, category),
                         qProduct.price.between(minPrice, maxPrice),
-                        createTimeDiffCondition(minDuration, maxDuration),
+                        qProduct.guideTime.between(minDuration, maxDuration),
                         hourEq(dayTime),
                         nationalityEq(nationality))
-                .fetch();
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .distinct().fetch();
+
+        JPQLQuery<Long> count = jpaQueryFactory.select(qProduct.count())
+                .from(qProduct)
+                .where(regionEq(region),
+                        startDateBetween(start, end),
+                        categoryIn(region, category),
+                        qProduct.price.between(minPrice, maxPrice),
+                        qProduct.guideTime.between(minDuration, maxDuration),
+                        hourEq(dayTime),
+                        nationalityEq(nationality));
+
+        return PageableExecutionUtils.getPage(fetch, pageable, count::fetchOne);
     }
 
     private BooleanExpression nearGuideProduct(Point center, int radius) {

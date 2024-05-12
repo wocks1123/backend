@@ -40,6 +40,9 @@ public class CreateGuideProductRequest {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private ZonedDateTime guideEnd;
     @NotNull
+    @Schema(description = "가이드 소요 시간", example = "3")
+    private int guideTime;
+    @NotNull
     @Schema(description = "상품 카테고리", example = "[\"DINING\", \"OUTDOOR\"]")
     private List<GuideCategoryCode> categories;
 

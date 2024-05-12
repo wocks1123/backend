@@ -39,7 +39,7 @@ public class GuideProductController {
                         
             가이드 상품을 등록합니다.
                         
-            상품 제목, 상품 설명, 가이드 비용, 가이드 위치(위도, 경도), 가이드 시작/종료 날짜/시간, 카테고리, 대표 이미지, 이미지를 입력합니다.
+            상품 제목, 상품 설명, 가이드 비용, 가이드 위치(위도, 경도), 가이드 시작/종료 날짜/시간, 가이드 소요 시간, 카테고리, 대표 이미지, 이미지를 입력합니다.
                         
             이미지는 MultipartFile 타입이며 대표 이미지는 `thumb`, 그 외 이미지는 `file` key로 입력하시면 됩니다.<br>
             대표 이미지는 Not Null 이며 그 외 이미지는 Null 가능 입니다.
@@ -54,6 +54,7 @@ public class GuideProductController {
             |longitude| 가이드 위치(경도) | -180.0 이상, 180.0 이하 | N | 127.5 |
             |guideStart| 가이드 시작 날짜/시간 | yyyy-MM-dd HH:mm:ss 패턴 | N | 2024-05-01 12:00:00 |
             |guideEnd| 가이드 종료 날짜/시간 | yyyy-MM-dd HH:mm:ss 패턴 | N | 2024-05-01 14:00:00 |
+            |guideTime| 가이드 소요 시간 | 시간 단위 | N | 3 (3시간 소요일 시) |
             |categories| 카테고리 | DINING,TOUR,OUTDOOR,ENTERTAINMENT,ART_CULTURE,SPORTS_FITNESS 중 여러개, 한개도 가능 | N | ["DINING", "OUTDOOR"]] |
                         
             ## 응답
@@ -166,7 +167,7 @@ public class GuideProductController {
                         
             가이드 상품을 수정합니다.
                         
-            상품 제목, 상품 설명, 가이드 비용, 가이드 위치(위도, 경도), 가이드 시작/종료 날짜/시간, 카테고리, 대표 이미지, 이미지를 입력합니다.
+            상품 제목, 상품 설명, 가이드 비용, 가이드 위치(위도, 경도), 가이드 시작/종료 날짜/시간, 가이드 소요 시간, 카테고리, 대표 이미지, 이미지를 입력합니다.
                         
             이미지는 MultipartFile 타입이며 대표 이미지는 `thumb`, 그 외 이미지는 `file` key로 입력하시면 됩니다.<br>
             대표 이미지, 그 외 이미지 모두 수정가능하며 대표 이미지를 수정할 경우 새로운 대표 이미지를 입력해주시고 기존 대표 이미지 url은 빼주시면 됩니다.<br>
@@ -183,6 +184,7 @@ public class GuideProductController {
             |longitude| 가이드 위치(경도) | -180.0 이상, 180.0 이하 | N | 127.5 |
             |guideStart| 가이드 시작 날짜/시간 | yyyy-MM-dd HH:mm:ss 패턴 | N | 2024-05-01 12:00:00 |
             |guideEnd| 가이드 종료 날짜/시간 | yyyy-MM-dd HH:mm:ss 패턴 | N | 2024-05-01 14:00:00 |
+            |guideTime| 가이드 소요 시간 | 시간 단위 | N | 3 (3시간 소요일 시) |
             |categories| 카테고리 | DINING,TOUR,OUTDOOR,ENTERTAINMENT,ART_CULTURE,SPORTS_FITNESS 중 여러개, 한개도 가능 | N | ["DINING", "OUTDOOR"]] |
             |thumb| 대표 이미지 url | 문자열 | Y | https://S3저장소URL/저장위치/난수화된 이미지이름.이미지 타입 |
             |images| 이미지 url 리스트 | 문자열 | Y | ["https://S3저장소URL/저장위치/난수화된 이미지이름.이미지 타입", "..."] |
@@ -357,7 +359,8 @@ public class GuideProductController {
     @Operation(summary = "검색 + 필터 ", description = """
             # 지역 + 날짜로 검색
                         
-            지역과 날짜를 입력하면 두 조건에 만족하는 가이드 상품들을 검색한다.
+            지역과 날짜를 입력하면 두 조건에 만족하는 가이드 상품들을 검색한다.<br>
+            page=?&size=? 로 page(0부터 시작) 번호와 size(가져올 데이터 갯수)를 지정해주면 됩니다.
                         
             각 필드의 제약 조건은 다음과 같습니다.
             | 필드명 | 설명 | 제약조건 | null 가능 | 예시 |
@@ -425,7 +428,7 @@ public class GuideProductController {
                     )
             )
     )
-    public List<SearchGuideProductResponse> getSearchedGuideListWithLogin(@CurrentUser User user,
+    public Page<SearchGuideProductResponse> getSearchedGuideListWithLogin(@CurrentUser User user,
                                                                           SearchGuideProductRequest request,
                                                                           SearchCategoriesRequest searchCategoriesRequest,
                                                                           @RequestParam(value = "min", required = false, defaultValue = "0") Long minPrice,
@@ -433,10 +436,11 @@ public class GuideProductController {
                                                                           @RequestParam(value = "minD", required = false, defaultValue = "1") int minDuration,
                                                                           @RequestParam(value = "maxD", required = false, defaultValue = "24") int maxDuration,
                                                                           @RequestParam(value = "dayT", required = false, defaultValue = "ALL") DayTime dayTime,
-                                                                          @RequestParam(value = "host", required = false, defaultValue = "false") boolean same) {
+                                                                          @RequestParam(value = "host", required = false, defaultValue = "false") boolean same,
+                                                                          Pageable pageable) {
         if (user != null && same)
-            return guideProductService.getSearchedGuideList(request, searchCategoriesRequest, minPrice, maxPrice, minDuration, maxDuration, dayTime, user.getNationality());
+            return guideProductService.getSearchedGuideList(request, searchCategoriesRequest, minPrice, maxPrice, minDuration, maxDuration, dayTime, user.getNationality(), pageable);
         else
-            return guideProductService.getSearchedGuideList(request, searchCategoriesRequest, minPrice, maxPrice, minDuration, maxDuration, dayTime, null);
+            return guideProductService.getSearchedGuideList(request, searchCategoriesRequest, minPrice, maxPrice, minDuration, maxDuration, dayTime, null, pageable);
     }
 }

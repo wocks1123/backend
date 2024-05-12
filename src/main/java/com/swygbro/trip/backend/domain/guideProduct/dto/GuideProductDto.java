@@ -40,6 +40,8 @@ public class GuideProductDto {
     @Schema(description = "가이드 종료 날짜/시간", example = "2024-05-01 14:00:00")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private ZonedDateTime guideEnd;
+    @Schema(description = "가이드 소요 시간", example = "3")
+    private int guideTime;
     @Schema(description = "상품 카테고리", example = "[\"DINING\", \"OUTDOOR\"]")
     private List<GuideCategoryCode> categories;
     @Schema(description = "대표 이미지 url", example = "https://S3저장소URL/저장위치/난수화된 이미지이름.이미지 타입")
@@ -57,7 +59,8 @@ public class GuideProductDto {
                 .description(product.getDescription()).price(product.getPrice())
                 .longitude(product.getLocation().getX()).latitude(product.getLocation().getY())
                 .guideStart(product.getGuideStart()).guideEnd(product.getGuideEnd())
-                .categories(categories).thumb(product.getThumb()).images(product.getImages())
+                .guideTime(product.getGuideTime()).categories(categories)
+                .thumb(product.getThumb()).images(product.getImages())
                 .build();
     }
 }

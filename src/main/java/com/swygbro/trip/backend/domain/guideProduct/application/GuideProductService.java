@@ -126,7 +126,8 @@ public class GuideProductService {
     }
 
     // 지역, 날짜로 검색
-    public List<SearchGuideProductResponse> getSearchedGuideList(SearchGuideProductRequest request, SearchCategoriesRequest categories, Long minPrice, Long maxPrice, int minDuration, int maxDuration, DayTime dayTime, Nationality nationality) {
+    @Transactional(readOnly = true)
+    public Page<SearchGuideProductResponse> getSearchedGuideList(SearchGuideProductRequest request, SearchCategoriesRequest categories, Long minPrice, Long maxPrice, int minDuration, int maxDuration, DayTime dayTime, Nationality nationality, Pageable pageable) {
         ZonedDateTime zonedDateStart;
         ZonedDateTime zonedDateEnd;
         MultiPolygon polygon;
@@ -141,11 +142,11 @@ public class GuideProductService {
             polygon = regionRepository.findByName("서울특별시").getPolygon();
         }
 
-        List<GuideProduct> guideProducts = guideProductRepository.findByFilter(polygon, zonedDateStart, zonedDateEnd, categories, minPrice, maxPrice, minDuration, maxDuration, dayTime, nationality);
+        Page<GuideProduct> guideProducts = guideProductRepository.findByFilter(polygon, zonedDateStart, zonedDateEnd, categories, minPrice, maxPrice, minDuration, maxDuration, dayTime, nationality, pageable);
 
         if (guideProducts.isEmpty()) throw new GuideProductNotInRangeException("해당 조건에 부합하는 가이드 상품이 존재하지 않습니다.");
 
-        return guideProducts.stream().map(SearchGuideProductResponse::fromEntity).collect(Collectors.toList());
+        return guideProducts.map(SearchGuideProductResponse::fromEntity);
     }
 
     // 가이드 위치 유효한지 검사
