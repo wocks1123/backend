@@ -40,7 +40,10 @@ public class Reservation extends BaseEntity {
     private GuideProduct product;
 
     @Column(nullable = false)
-    private ZonedDateTime reservedAt;
+    private ZonedDateTime guideStart;
+
+    @Column(nullable = false)
+    private ZonedDateTime guideEnd;
 
     @Column(nullable = false)
     private Integer personnel;

@@ -79,7 +79,7 @@ public class ReservationCustomRepositoryImpl implements ReservationCustomReposit
     }
 
     private static BooleanExpression isBeforeFromNow() {
-        return reservation.reservedAt.before(
+        return reservation.guideStart.before(
                 Expressions.dateTimeOperation(
                         ZonedDateTime.class,
                         Ops.DateTimeOps.CURRENT_TIMESTAMP
@@ -88,7 +88,7 @@ public class ReservationCustomRepositoryImpl implements ReservationCustomReposit
     }
 
     private static BooleanExpression isAfterFromNow() {
-        return reservation.reservedAt.after(
+        return reservation.guideEnd.after(
                 Expressions.dateTimeOperation(
                         ZonedDateTime.class,
                         Ops.DateTimeOps.CURRENT_TIMESTAMP

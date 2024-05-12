@@ -13,7 +13,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.ZonedDateTime;
 
-//TODO: User, GuideProduct to DTO
 @Getter
 @Builder
 @AllArgsConstructor
@@ -25,8 +24,11 @@ public class ReservationDto {
     @Schema(description = "상품")
     private GuideProductDto product;
 
-    @Schema(description = "예약 날짜", example = "2024-04-29T12:30:45Z")
-    private ZonedDateTime reservedAt;
+    @Schema(description = "가이드 시작 날짜", example = "2024-04-29T12:30:45Z")
+    private ZonedDateTime guideStart;
+
+    @Schema(description = "가이드 종료 날짜", example = "2024-04-30T12:30:45Z")
+    private ZonedDateTime guideEnd;
 
     @Schema(description = "인원", example = "1")
     private Integer personnel;
@@ -51,7 +53,8 @@ public class ReservationDto {
         return ReservationDto.builder()
                 .guide(UserProfileDto.fromEntity(reservation.getGuide()))
                 .product(GuideProductDto.fromEntity(reservation.getProduct()))
-                .reservedAt(reservation.getReservedAt())
+                .guideStart(reservation.getGuideStart())
+                .guideEnd(reservation.getGuideEnd())
                 .personnel(reservation.getPersonnel())
                 .message(reservation.getMessage())
                 .price(reservation.getPrice())

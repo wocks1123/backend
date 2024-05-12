@@ -26,9 +26,14 @@ public class SaveReservationRequest {
     Long productId;
 
     @NotNull
-    @Schema(description = "예약 날짜", example = "2024-05-01 12:00:00")
+    @Schema(description = "가이드 시작 날짜", example = "2024-05-01 12:00:00")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
-    ZonedDateTime reservedAt;
+    ZonedDateTime guideStart;
+
+    @NotNull
+    @Schema(description = "가이드 종료 날짜", example = "2024-05-01 12:00:00")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
+    ZonedDateTime guideEnd;
 
     @NotNull
     @Min(value = 1, message = "인원은 1 이상이어야 합니다.")
@@ -49,7 +54,8 @@ public class SaveReservationRequest {
                 .client(User.builder().id(clientId).build())
                 .guide(User.builder().id(guideId).build())
                 .product(GuideProduct.builder().id(productId).build())
-                .reservedAt(reservedAt != null ? reservedAt : null)
+                .guideStart(guideStart != null ? guideStart : null)
+                .guideEnd(guideEnd != null ? guideEnd : null)
                 .personnel(personnel != null ? personnel : null)
                 .message(message != null ? message : null)
                 .price(price != null ? price : null)

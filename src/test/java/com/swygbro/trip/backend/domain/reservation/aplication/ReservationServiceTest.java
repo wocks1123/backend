@@ -47,7 +47,7 @@ class ReservationServiceTest {
         // given
         SaveReservationRequest saveReservationRequest = SaveReservationRequest.builder()
                 .productId(1L)
-                .reservedAt(ZonedDateTime.parse("2024-04-29 12:30:45"))
+                .guideStart(ZonedDateTime.parse("2024-04-29 12:30:45"))
                 .personnel(1)
                 .message("안녕하세요")
                 .price(10000)
@@ -72,7 +72,7 @@ class ReservationServiceTest {
         // given
         SaveReservationRequest request = SaveReservationRequest.builder()
                 .productId(1L)
-                .reservedAt(ZonedDateTime.parse("2024-04-29 12:30:45"))
+                .guideStart(ZonedDateTime.parse("2024-04-29 12:30:45"))
                 .personnel(1)
                 .message("안녕하세요")
                 .price(10000)
@@ -92,7 +92,7 @@ class ReservationServiceTest {
         // given
         SaveReservationRequest saveReservationRequest = SaveReservationRequest.builder()
                 .productId(1L)
-                .reservedAt(ZonedDateTime.parse("2024-04-29 12:30:45"))
+                .guideStart(ZonedDateTime.parse("2024-04-29 12:30:45"))
                 .personnel(1)
                 .message("안녕하세요")
                 .price(10000)
@@ -261,7 +261,7 @@ class ReservationServiceTest {
         // then
         assertThat(reservationDto.getMerchantUid()).isEqualTo("merchant_uid_4");
         assertThat(reservationDto.getPrice()).isEqualTo(10000);
-        assertThat(reservationDto.getReservedAt()).isEqualTo(Timestamp.valueOf("2024-04-29 12:30:45"));
+        assertThat(reservationDto.getGuideStart()).isEqualTo(Timestamp.valueOf("2024-04-29 12:30:45"));
         assertThat(reservationDto.getPersonnel()).isEqualTo(1);
         assertThat(reservationDto.getMessage()).isEqualTo("안녕하세요");
 

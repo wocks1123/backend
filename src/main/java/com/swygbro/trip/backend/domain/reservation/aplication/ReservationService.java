@@ -124,7 +124,7 @@ public class ReservationService {
                 throw new ReservationNotFoundException(merchant_uid);
             }
 
-            if ((reservation.getReservedAt().equals(ReservationStatus.CANCELLED)) && (reservation.getPaymentStatus().equals(PayStatus.REFUNDED))) {
+            if ((reservation.getGuideStart().equals(ReservationStatus.CANCELLED)) && (reservation.getPaymentStatus().equals(PayStatus.REFUNDED))) {
                 throw new DuplicateCancelReservationException(merchant_uid);
             }
 

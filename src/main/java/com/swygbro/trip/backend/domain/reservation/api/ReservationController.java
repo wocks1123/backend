@@ -42,7 +42,8 @@ public class ReservationController {
             |--------|------|----------|----------|------|
             |guideId| 가이드의 ID | 실제 가이드 ID | N | 1 |
             |productId| 상품의 ID | 실제 상품 ID | N | 1 |
-            |reservedAt| 예약 날짜 | yyyy-MM-dd HH:mm:ss | N | 2024-05-01 12:00:00 |
+            |guideStart| 가이드 시작 날짜 | yyyy-MM-dd HH:mm:ss | N | 2024-05-01 12:00:00 |
+            |guideEnd| 가이드 종료 날짜 | yyyy-MM-dd HH:mm:ss | N | 2024-05-01 15:00:00 |
             |personnel| 가이드 신청 인원 | 1보다 큰 정수값 | N | 1 |
             |message| 추가 메세지 | 문자열 | N | 안녕하세요 |
             |price| 가격 | 0보다 큰 정수값 | N | 10000 |
@@ -176,7 +177,7 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.cancelReservation(merchant_uid));
     }
 
-    @GetMapping("/client/list")
+    @PostMapping("/client/list")
     @PreAuthorize("isAuthenticated() and hasRole('USER')")
     @SecurityRequirement(name = "access-token")
     @Operation(summary = "예약 리스트 조회", description = """
@@ -199,7 +200,7 @@ public class ReservationController {
         return ResponseEntity.ok(reservationService.getReservationListByClient(user.getId(), criteria));
     }
 
-    @GetMapping("/guide/list")
+    @PostMapping("/guide/list")
     @PreAuthorize("isAuthenticated() and hasRole('USER')")
     @SecurityRequirement(name = "access-token")
     @Operation(summary = "예약 리스트 조회", description = """

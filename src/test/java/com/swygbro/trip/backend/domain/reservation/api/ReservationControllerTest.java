@@ -42,7 +42,7 @@ class ReservationControllerTest {
         // given
         SaveReservationRequest request = SaveReservationRequest.builder()
                 .productId(1L)
-                .reservedAt(ZonedDateTime.parse("2024-04-29 12:30:45"))
+                .guideStart(ZonedDateTime.parse("2024-04-29 12:30:45"))
                 .personnel(1)
                 .message("안녕하세요")
                 .price(10000)
@@ -70,7 +70,7 @@ class ReservationControllerTest {
         // given
         SaveReservationRequest request = SaveReservationRequest.builder()
                 .productId(productId)
-                .reservedAt(reservedAt)
+                .guideStart(reservedAt)
                 .personnel(personnel)
                 .message(message)
                 .price(price)
