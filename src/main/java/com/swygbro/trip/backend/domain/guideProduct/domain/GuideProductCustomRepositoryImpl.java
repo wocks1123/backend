@@ -6,7 +6,7 @@ import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.swygbro.trip.backend.domain.guideProduct.dto.SearchCategoriesRequest;
 import com.swygbro.trip.backend.domain.user.domain.Nationality;
-import org.locationtech.jts.geom.Coordinate;
+import org.locationtech.jts.geom.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
@@ -35,11 +35,37 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
     }
 
     @Override
-    public List<GuideProduct> findAllByLocation(Point point, int radius) {
-        return jpaQueryFactory.selectFrom(qProduct)
+    public List<GuideProduct> findByLocation(Geometry geometry, int radius) {
+        return jpaQueryFactory
+                .selectFrom(qProduct)
                 .join(qProduct.categories, qCategory).fetchJoin()
-                .where(nearGuideProduct(point, radius))
-                .fetch();
+                .where(nearGuideProduct(geometry, radius))
+                .limit(4)
+                .distinct().fetch();
+    }
+
+    @Override
+    public List<GuideProduct> findByBest(MultiPolygon polygon) {
+        return jpaQueryFactory
+                .selectFrom(qProduct)
+                .join(qProduct.categories, qCategory).fetchJoin()
+                .where(regionEq(polygon))
+                .limit(4)
+                .distinct().fetch();
+    }
+
+    @Override
+    public Page<GuideProduct> findAllWithMain(Pageable pageable) {
+        List<GuideProduct> fetch = jpaQueryFactory.selectFrom(qProduct)
+                .join(qProduct.categories, qCategory).fetchJoin()
+                .offset(pageable.getOffset())
+                .limit(pageable.getPageSize())
+                .distinct().fetch();
+
+        JPQLQuery<Long> count = jpaQueryFactory.select(qProduct.count())
+                .from(qProduct);
+
+        return PageableExecutionUtils.getPage(fetch, pageable, count::fetchOne);
     }
 
     @Override
@@ -80,14 +106,12 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
         return PageableExecutionUtils.getPage(fetch, pageable, count::fetchOne);
     }
 
-    private BooleanExpression nearGuideProduct(Point center, int radius) {
-        return Expressions.booleanTemplate("ST_CONTAINS(ST_BUFFER({0}, {1}), {2})",
-                center, radius, qProduct.location);
-    }
-
-    private BooleanExpression createTimeDiffCondition(int minDuration, int maxDuration) {
-        return Expressions.booleanTemplate("TIMESTAMPDIFF(HOUR, {0}, {1}) between {2} and {3}",
-                qProduct.guideStart, qProduct.guideEnd, minDuration, maxDuration);
+    private BooleanExpression nearGuideProduct(Geometry geometry, int radius) {
+        if (geometry.getGeometryType().equals("Point")) {
+            return Expressions.booleanTemplate("ST_CONTAINS(ST_BUFFER({0}, {1}), {2})",
+                    geometry, radius, qProduct.location);
+        } else return Expressions.booleanTemplate("ST_CONTAINS({0}, {1})",
+                geometry, qProduct.location);
     }
 
     private BooleanExpression hourEq(DayTime dayTime) {

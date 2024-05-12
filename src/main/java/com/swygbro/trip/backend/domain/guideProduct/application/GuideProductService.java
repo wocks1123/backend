@@ -10,10 +10,10 @@ import com.swygbro.trip.backend.domain.s3.application.S3Service;
 import com.swygbro.trip.backend.domain.user.domain.Nationality;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import lombok.RequiredArgsConstructor;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.MultiPolygon;
-import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,6 +33,34 @@ public class GuideProductService {
     private final S3Service s3Service;
     private final GuideProductRepository guideProductRepository;
     private final RegionRepository regionRepository;
+
+    // 메인 페이지
+    @Transactional(readOnly = true)
+    public MainPageResponse getMainPage(Double latitude, Double longitude, int page) {
+        MultiPolygon polygon = regionRepository.findByName("서울특별시").getPolygon();
+        Geometry geometry;
+        Pageable pageable = PageRequest.of(page, 12);
+
+        if (page >= 1) {
+            Page<SearchGuideProductResponse> allGuideProducts = guideProductRepository.findAllWithMain(pageable).map(SearchGuideProductResponse::fromEntity);
+
+            return MainPageResponse.builder().allGuideProducts(allGuideProducts).build();
+        } else {
+            if (latitude != null && longitude != null) {
+                geometry = setPoint(latitude, longitude);
+            } else geometry = polygon;
+
+            List<SearchGuideProductResponse> nearGuideProducts = guideProductRepository.findByLocation(geometry, 30000)
+                    .stream().map(SearchGuideProductResponse::fromEntity).collect(Collectors.toList());
+
+            List<SearchGuideProductResponse> bestGuideProducts = guideProductRepository.findByBest(polygon)
+                    .stream().map(SearchGuideProductResponse::fromEntity).collect(Collectors.toList());
+
+            Page<SearchGuideProductResponse> allGuideProducts = guideProductRepository.findAllWithMain(pageable).map(SearchGuideProductResponse::fromEntity);
+
+            return MainPageResponse.from(nearGuideProducts, bestGuideProducts, allGuideProducts);
+        }
+    }
 
     // 가이드 상품 생성
     @Transactional
@@ -61,7 +89,6 @@ public class GuideProductService {
         return GuideProductDto.fromEntity(resultProduct);
     }
 
-    // TODO : fetch join 사용으로 쿼리문 단축
     // 가이드 상품 조회
     @Transactional(readOnly = true)
     public GuideProductDto getProduct(Long productId) {
@@ -112,19 +139,6 @@ public class GuideProductService {
         guideProductRepository.deleteById(productId);
     }
 
-    // 30km 범위내 가이드 상품 불러오기
-    public List<SearchGuideProductResponse> getGuideListIn(double longitude, double latitude) {
-        GeometryFactory geometryFactory = new GeometryFactory();
-        Point point = geometryFactory.createPoint(new Coordinate(latitude, longitude));
-        point.setSRID(4326);
-
-        List<GuideProduct> guideProducts = guideProductRepository.findAllByLocation(point, 30000);
-
-        if (guideProducts.isEmpty()) throw new GuideProductNotInRangeException("주변에 가이드 상품이 존재하지 않습니다.");
-
-        return guideProducts.stream().map(SearchGuideProductResponse::fromEntity).collect(Collectors.toList());
-    }
-
     // 지역, 날짜로 검색
     @Transactional(readOnly = true)
     public Page<SearchGuideProductResponse> getSearchedGuideList(SearchGuideProductRequest request, SearchCategoriesRequest categories, Long minPrice, Long maxPrice, int minDuration, int maxDuration, DayTime dayTime, Nationality nationality, Pageable pageable) {
@@ -153,5 +167,13 @@ public class GuideProductService {
     private void isValidLocation(double latitude, double longitude) throws NotValidLocationException {
         if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180)
             throw new NotValidLocationException();
+    }
+
+    private Point setPoint(double latitude, double longitude) {
+        GeometryFactory geometryFactory = new GeometryFactory();
+        Point point = geometryFactory.createPoint(new Coordinate(longitude, latitude));
+        point.setSRID(4326);
+
+        return point;
     }
 }

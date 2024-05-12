@@ -16,6 +16,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -25,13 +27,48 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/v1/products")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class GuideProductController {
 
     private final GuideProductService guideProductService;
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @GetMapping()
+    @Operation(summary = "메인 페이지", description = """
+            # 메인 페이지
+                        
+            근처 게시물, 추천 게시물, 전체 게시물을 조회합니다.
+                        
+            사용자의 위치가 없을 경우 근처 게시물은 서울 지역 게시물로 대체됩니다.<br>
+            추천 게시물은 현재 서울 지역 게시물 입니다.<br>
+            전체 게시물은 12개씩 조회되며 더보기 버튼을 누를 때 마다 12개의 게시물이 추가 조회됩니다.
+                        
+            각 필드의 제약 조건은 다음과 같습니다.
+            | 필드명 | 설명 | 제약조건 | null 가능 | 예시 |
+            |--------|------|----------|----------|------|
+            |latitude| 가이드 위치(위도) | -90.0 이상, 90.0 이하 | Y | 37.2 |
+            |longitude| 가이드 위치(경도) | -180.0 이상, 180.0 이하 | Y | 127.5 |
+            |page| 페이지 넘버 | default = 0 | Y | 2 |
+                        
+            ## 응답
+                        
+            - 상품 등록 성공 시 `200` 코드와 함께 메인 페이지 정보를 json 형태로 반환합니다.
+            """, tags = "Main Page")
+    @ApiResponse(
+            responseCode = "200",
+            description = "메인페이지 조회 성공",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = MainPageResponse.class)
+            )
+    )
+    public MainPageResponse getMainPage(@RequestParam(required = false) Double latitude,
+                                        @RequestParam(required = false) Double longitude,
+                                        @RequestParam(required = false, defaultValue = "0") int page) {
+        return guideProductService.getMainPage(latitude, longitude, page);
+    }
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, value = "/products")
     @PreAuthorize("isAuthenticated() and hasRole('USER') and #user.id == principal.id")
     @SecurityRequirement(name = "access-token")
     @Operation(summary = "가이드 상품 등록", description = """
@@ -117,7 +154,7 @@ public class GuideProductController {
         return guideProductService.createGuideProduct(user, request, thumbImage, images);
     }
 
-    @GetMapping("/{productId}")
+    @GetMapping("/products/{productId}")
     @Operation(summary = "가이드 상품 조회", description = """
             # 가이드 상품 조회
                         
@@ -159,7 +196,7 @@ public class GuideProductController {
         return guideProductService.getProduct(productId);
     }
 
-    @PutMapping(value = "/{productId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/products/{productId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("isAuthenticated() and hasRole('USER') and #user.id == principal.id")
     @SecurityRequirement(name = "access-token")
     @Operation(summary = "가이드 상품 정보 수정", description = """
@@ -244,7 +281,7 @@ public class GuideProductController {
         return guideProductService.modifyGuideProduct(user, productId, request, modifyThumbImage, modifyImages);
     }
 
-    @DeleteMapping("/{productId}")
+    @DeleteMapping("/products/{productId}")
     @PreAuthorize("isAuthenticated() and hasRole('USER') and #user.id == principal.id")
     @SecurityRequirement(name = "access-token")
     @Operation(summary = "가이드 상품 삭제", description = """
@@ -311,48 +348,6 @@ public class GuideProductController {
         guideProductService.deleteGuideProduct(productId, user);
 
         return "삭제에 성공했습니다.";
-    }
-
-    @GetMapping("/location")
-    @Operation(summary = "범위 내 가이드 상품 불어오기", description = """
-            # 범위 내 가이드 상품 불어오기
-                        
-            유저의 현재 위치 기준 30km 범위 내에 존재하는 가이드 상품 리스트를 불러옵니다.
-                        
-            각 필드의 제약 조건은 다음과 같습니다.
-            | 필드명 | 설명 | 제약조건 | null 가능 | 예시 |
-            |--------|------|----------|----------|------|
-            |latitude| 현재 위치(위도) | -90.0 이상, 90.0 이하 | N | 37.435 |
-            |longitude| 현재 위치(경도) | -180.0 이상, 180.0 이하 | N | 230.253 |
-                        
-            ## 응답
-                        
-            - 범위 내 가이드 상품이 존재할 경우 `200` 코드와 함께 가이드 상품 리스트를 반환합니다.
-            - 범위 내 가이드 상품이 존재하지 않을 경우 `404` 에러를 반환합니다.
-            """, tags = "Main Page")
-    @ApiResponse(
-            responseCode = "200",
-            description = "범위 내 가이드 상품 불러오기 성공",
-            content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = SearchGuideProductResponse.class)
-            )
-    )
-    @ApiResponse(
-            responseCode = "404",
-            description = "범위 내 가이드 상품이 존재하지 않음",
-            content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = ApiErrorResponse.class),
-                    examples = @ExampleObject(
-                            name = "가이드 상품이 존재하지 않음",
-                            value = "{ \"status\" : \"NOT_FOUND\", \"message\" : \"주변에 가이드 상품이 존재하지 않습니다.\"}"
-                    )
-            )
-    )
-    public List<SearchGuideProductResponse> getGuideListIn(@RequestParam double longitude,
-                                                           @RequestParam double latitude) {
-        return guideProductService.getGuideListIn(longitude, latitude);
     }
 
     @GetMapping("/search")
