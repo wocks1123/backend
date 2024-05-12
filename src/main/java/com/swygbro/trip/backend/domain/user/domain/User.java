@@ -66,6 +66,7 @@ public class User extends BaseEntity {
         this.name = dto.getName();
         this.phone = dto.getPhone();
         this.nationality = dto.getNationality();
+        this.birthdate = LocalDate.parse(dto.getBirthdate());
         this.gender = dto.getGender();
         this.password = encodedPassword;
         this.signUpType = signUpType;

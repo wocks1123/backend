@@ -4,10 +4,10 @@ import com.swygbro.trip.backend.domain.user.application.LoginService;
 import com.swygbro.trip.backend.domain.user.application.UserService;
 import com.swygbro.trip.backend.domain.user.dto.CreateUserRequest;
 import com.swygbro.trip.backend.domain.user.dto.LoginRequest;
+import com.swygbro.trip.backend.domain.user.dto.UserInfoDto;
 import com.swygbro.trip.backend.global.document.ValidationErrorResponse;
 import com.swygbro.trip.backend.global.exception.ApiErrorResponse;
 import com.swygbro.trip.backend.global.jwt.dto.TokenDto;
-import com.swygbro.trip.backend.infra.discordbot.DiscordMessageProvider;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -30,8 +30,6 @@ public class LoginController {
 
     private final LoginService loginService;
     private final UserService userService;
-    private final DiscordMessageProvider discordMessageProvider;
-
 
     @PostMapping("/login")
     @Operation(summary = "이메일 로그인", description = """
@@ -108,8 +106,8 @@ public class LoginController {
             responseCode = "200",
             description = "생성한 계정 고유 번호를 반환합니다.",
             content = @Content(
-                    mediaType = MediaType.TEXT_PLAIN_VALUE,
-                    schema = @Schema(implementation = Long.class, example = "1")))
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = UserInfoDto.class)))
     @ApiResponse(
             responseCode = "409",
             description = "입력 값 중 중복된 값이 있습니다.",
@@ -120,7 +118,7 @@ public class LoginController {
             )
     )
     @ValidationErrorResponse
-    public Long createUser(@Valid @RequestBody CreateUserRequest dto) {
+    public UserInfoDto createUser(@Valid @RequestBody CreateUserRequest dto) {
         return userService.createUser(dto);
     }
 
