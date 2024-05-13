@@ -2,11 +2,7 @@ package com.swygbro.trip.backend.domain.guideProduct.api;
 
 import com.swygbro.trip.backend.domain.guideProduct.application.GuideProductService;
 import com.swygbro.trip.backend.domain.guideProduct.domain.DayTime;
-import com.swygbro.trip.backend.domain.guideProduct.domain.GuideCategoryCode;
-import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductRequest;
-import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
-import com.swygbro.trip.backend.domain.guideProduct.dto.ModifyGuideProductRequest;
-import com.swygbro.trip.backend.domain.guideProduct.dto.SearchGuideProductResponse;
+import com.swygbro.trip.backend.domain.guideProduct.dto.*;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import com.swygbro.trip.backend.global.document.ForbiddenResponse;
 import com.swygbro.trip.backend.global.document.InvalidTokenResponse;
@@ -20,24 +16,59 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/v1/products")
+@RequestMapping("/api/v1")
 @RequiredArgsConstructor
 public class GuideProductController {
 
     private final GuideProductService guideProductService;
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @GetMapping()
+    @Operation(summary = "메인 페이지", description = """
+            # 메인 페이지
+                        
+            근처 게시물, 추천 게시물, 전체 게시물을 조회합니다.
+                        
+            사용자의 위치가 없을 경우 근처 게시물은 서울 지역 게시물로 대체됩니다.<br>
+            추천 게시물은 현재 서울 지역 게시물 입니다.<br>
+            전체 게시물은 12개씩 조회되며 더보기 버튼을 누를 때 마다 12개의 게시물이 추가 조회됩니다.
+                        
+            각 필드의 제약 조건은 다음과 같습니다.
+            | 필드명 | 설명 | 제약조건 | null 가능 | 예시 |
+            |--------|------|----------|----------|------|
+            |latitude| 가이드 위치(위도) | -90.0 이상, 90.0 이하 | Y | 37.2 |
+            |longitude| 가이드 위치(경도) | -180.0 이상, 180.0 이하 | Y | 127.5 |
+            |page| 페이지 넘버 | default = 0 | Y | 2 |
+                        
+            ## 응답
+                        
+            - 상품 등록 성공 시 `200` 코드와 함께 메인 페이지 정보를 json 형태로 반환합니다.
+            """, tags = "Main Page")
+    @ApiResponse(
+            responseCode = "200",
+            description = "메인페이지 조회 성공",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = MainPageResponse.class)
+            )
+    )
+    public MainPageResponse getMainPage(@RequestParam(required = false) Double latitude,
+                                        @RequestParam(required = false) Double longitude,
+                                        @RequestParam(required = false, defaultValue = "0") int page) {
+        return guideProductService.getMainPage(latitude, longitude, page);
+    }
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE, value = "/products")
     @PreAuthorize("isAuthenticated() and hasRole('USER') and #user.id == principal.id")
     @SecurityRequirement(name = "access-token")
     @Operation(summary = "가이드 상품 등록", description = """
@@ -45,7 +76,7 @@ public class GuideProductController {
                         
             가이드 상품을 등록합니다.
                         
-            상품 제목, 상품 설명, 가이드 비용, 가이드 위치(위도, 경도), 가이드 시작/종료 날짜/시간, 카테고리, 대표 이미지, 이미지를 입력합니다.
+            상품 제목, 상품 설명, 가이드 비용, 가이드 위치(위도, 경도), 가이드 시작/종료 날짜/시간, 가이드 소요 시간, 카테고리, 대표 이미지, 이미지를 입력합니다.
                         
             이미지는 MultipartFile 타입이며 대표 이미지는 `thumb`, 그 외 이미지는 `file` key로 입력하시면 됩니다.<br>
             대표 이미지는 Not Null 이며 그 외 이미지는 Null 가능 입니다.
@@ -56,10 +87,11 @@ public class GuideProductController {
             |title| 상품 제목 | 한글 기준 최대 30자, 영어 기준 최대 100자 | N | 신나는 서울 투어 |
             |description| 상품 설명 | 한글 기준 21000자, 영어 기준 65535  | N | 서울 *** 여행 가이드 합니다. |
             |price| 가이드 비용 | 한국 재화 기준 | N | 10000 |
-            |longitude| 가이드 위치(위도) | -90.0 이상, 90.0 이하 | N | 37.2 |
-            |latitude| 가이드 위치(경도) | -180.0 이상, 180.0 이하 | N | 127.5 |
+            |latitude| 가이드 위치(위도) | -90.0 이상, 90.0 이하 | N | 37.2 |
+            |longitude| 가이드 위치(경도) | -180.0 이상, 180.0 이하 | N | 127.5 |
             |guideStart| 가이드 시작 날짜/시간 | yyyy-MM-dd HH:mm:ss 패턴 | N | 2024-05-01 12:00:00 |
             |guideEnd| 가이드 종료 날짜/시간 | yyyy-MM-dd HH:mm:ss 패턴 | N | 2024-05-01 14:00:00 |
+            |guideTime| 가이드 소요 시간 | 시간 단위 | N | 3 (3시간 소요일 시) |
             |categories| 카테고리 | DINING,TOUR,OUTDOOR,ENTERTAINMENT,ART_CULTURE,SPORTS_FITNESS 중 여러개, 한개도 가능 | N | ["DINING", "OUTDOOR"]] |
                         
             ## 응답
@@ -122,7 +154,7 @@ public class GuideProductController {
         return guideProductService.createGuideProduct(user, request, thumbImage, images);
     }
 
-    @GetMapping("/{productId}")
+    @GetMapping("/products/{productId}")
     @Operation(summary = "가이드 상품 조회", description = """
             # 가이드 상품 조회
                         
@@ -164,7 +196,7 @@ public class GuideProductController {
         return guideProductService.getProduct(productId);
     }
 
-    @PutMapping(value = "/{productId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/products/{productId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("isAuthenticated() and hasRole('USER') and #user.id == principal.id")
     @SecurityRequirement(name = "access-token")
     @Operation(summary = "가이드 상품 정보 수정", description = """
@@ -172,7 +204,7 @@ public class GuideProductController {
                         
             가이드 상품을 수정합니다.
                         
-            상품 제목, 상품 설명, 가이드 비용, 가이드 위치(위도, 경도), 가이드 시작/종료 날짜/시간, 카테고리, 대표 이미지, 이미지를 입력합니다.
+            상품 제목, 상품 설명, 가이드 비용, 가이드 위치(위도, 경도), 가이드 시작/종료 날짜/시간, 가이드 소요 시간, 카테고리, 대표 이미지, 이미지를 입력합니다.
                         
             이미지는 MultipartFile 타입이며 대표 이미지는 `thumb`, 그 외 이미지는 `file` key로 입력하시면 됩니다.<br>
             대표 이미지, 그 외 이미지 모두 수정가능하며 대표 이미지를 수정할 경우 새로운 대표 이미지를 입력해주시고 기존 대표 이미지 url은 빼주시면 됩니다.<br>
@@ -185,10 +217,11 @@ public class GuideProductController {
             |title| 상품 제목 | 한글 기준 최대 30자, 영어 기준 최대 100자 | N | 신나는 서울 투어 |
             |description| 상품 설명 | 한글 기준 21000자, 영어 기준 65535  | N | 서울 *** 여행 가이드 합니다. |
             |price| 가이드 비용 | 한국 재화 기준 | N | 10000 |
-            |longitude| 가이드 위치(위도) | -90.0 이상, 90.0 이하 | N | 37.2 |
-            |latitude| 가이드 위치(경도) | -180.0 이상, 180.0 이하 | N | 127.5 |
+            |latitude| 가이드 위치(위도) | -90.0 이상, 90.0 이하 | N | 37.2 |
+            |longitude| 가이드 위치(경도) | -180.0 이상, 180.0 이하 | N | 127.5 |
             |guideStart| 가이드 시작 날짜/시간 | yyyy-MM-dd HH:mm:ss 패턴 | N | 2024-05-01 12:00:00 |
             |guideEnd| 가이드 종료 날짜/시간 | yyyy-MM-dd HH:mm:ss 패턴 | N | 2024-05-01 14:00:00 |
+            |guideTime| 가이드 소요 시간 | 시간 단위 | N | 3 (3시간 소요일 시) |
             |categories| 카테고리 | DINING,TOUR,OUTDOOR,ENTERTAINMENT,ART_CULTURE,SPORTS_FITNESS 중 여러개, 한개도 가능 | N | ["DINING", "OUTDOOR"]] |
             |thumb| 대표 이미지 url | 문자열 | Y | https://S3저장소URL/저장위치/난수화된 이미지이름.이미지 타입 |
             |images| 이미지 url 리스트 | 문자열 | Y | ["https://S3저장소URL/저장위치/난수화된 이미지이름.이미지 타입", "..."] |
@@ -248,7 +281,7 @@ public class GuideProductController {
         return guideProductService.modifyGuideProduct(user, productId, request, modifyThumbImage, modifyImages);
     }
 
-    @DeleteMapping("/{productId}")
+    @DeleteMapping("/products/{productId}")
     @PreAuthorize("isAuthenticated() and hasRole('USER') and #user.id == principal.id")
     @SecurityRequirement(name = "access-token")
     @Operation(summary = "가이드 상품 삭제", description = """
@@ -317,71 +350,43 @@ public class GuideProductController {
         return "삭제에 성공했습니다.";
     }
 
-    @GetMapping("/location")
-    @Operation(summary = "범위 내 가이드 상품 불어오기", description = """
-            # 범위 내 가이드 상품 불어오기
-                        
-            유저의 현재 위치 기준 30km 범위 내에 존재하는 가이드 상품 리스트를 불러옵니다.
-                        
-            각 필드의 제약 조건은 다음과 같습니다.
-            | 필드명 | 설명 | 제약조건 | null 가능 | 예시 |
-            |--------|------|----------|----------|------|
-            |longitude| 현재 위치(위도) | -90.0 이상, 90.0 이하 | N | 37.435 |
-            |latitude| 현재 위치(경도) | -180.0 이상, 180.0 이하 | N | 230.253 |
-                        
-            ## 응답
-                        
-            - 범위 내 가이드 상품이 존재할 경우 `200` 코드와 함께 가이드 상품 리스트를 반환합니다.
-            - 범위 내 가이드 상품이 존재하지 않을 경우 `404` 에러를 반환합니다.
-            """, tags = "Search Guide Products")
-    @ApiResponse(
-            responseCode = "200",
-            description = "범위 내 가이드 상품 불러오기 성공",
-            content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = SearchGuideProductResponse.class)
-            )
-    )
-    @ApiResponse(
-            responseCode = "404",
-            description = "범위 내 가이드 상품이 존재하지 않음",
-            content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = ApiErrorResponse.class),
-                    examples = @ExampleObject(
-                            name = "가이드 상품이 존재하지 않음",
-                            value = "{ \"status\" : \"NOT_FOUND\", \"message\" : \"주변에 가이드 상품이 존재하지 않습니다.\"}"
-                    )
-            )
-    )
-    public List<SearchGuideProductResponse> getGuideListIn(@RequestParam double longitude,
-                                                           @RequestParam double latitude) {
-        return guideProductService.getGuideListIn(longitude, latitude);
-    }
-
-    @GetMapping("/login/search")
-    @PreAuthorize("isAuthenticated() and hasRole('USER') and #user.id == principal.id")
-    @SecurityRequirement(name = "access-token")
-    @Operation(summary = "로그인 했을 경우 검색 + 필터 ", description = """
+    @GetMapping("/search")
+    @Operation(summary = "검색 + 필터 ", description = """
             # 지역 + 날짜로 검색
                         
-            지역과 날짜를 입력하면 두 조건에 만족하는 가이드 상품들을 검색한다.
+            지역과 날짜를 입력하면 두 조건에 만족하는 가이드 상품들을 검색한다.<br>
+            page=?&size=? 로 page(0부터 시작) 번호와 size(가져올 데이터 갯수)를 지정해주면 됩니다.
                         
             각 필드의 제약 조건은 다음과 같습니다.
             | 필드명 | 설명 | 제약조건 | null 가능 | 예시 |
             |--------|------|----------|----------|------|
-            |region| 한국 지역 선택 | 서울특별시, 경기도, 광주광역시, 세종특별자치시, 부산광역시, 울산광역시, 대구광역시, 제주특별자치도, 인천광역시, 전라북도, 전라남도, 충청남도, 충청북도, 강원도, 경상북도, 경상남도, 대전광역시만 가능 | N | 서울특별시 |
-            |start| 범위 시작 날짜 | yyyy-MM-dd, 00:00:00시간부터 | N | 2024-05-01 |
-            |end| 범위 종료 날짜 | yyyy-MM-dd, 23:59:99시간까지 | N | 2024-05-02 |
+            |region| 한국 지역 선택 | 서울특별시, 경기도, 광주광역시, 세종특별자치시, 부산광역시, 울산광역시, 대구광역시, 제주특별자치도, 인천광역시, 전라북도, 전라남도, 충청남도, 충청북도, 강원도, 경상북도, 경상남도, 대전광역시만 가능 | Y | 서울특별시 |
+            |start| 범위 시작 날짜 | yyyy-MM-dd, 00:00:00시간부터 | Y | 2024-05-01 |
+            |end| 범위 종료 날짜 | yyyy-MM-dd, 23:59:99시간까지 | Y | 2024-05-02 |
+                        
+            # 카테고리로 검색
+                        
+            메인페이지 및 필터에서만 카테고리 중 BEST, NEAR 사용 가능합니다.<br>
+            검색 후 필터 사용 후에는 BEST, NEAR 사용 불가능합니다.(현재 추천 카테고리는 서울 지역 상품을 추천해줍니다.)<br>
+            NEAR 카테고리로 검색 시 위치 공유를 하지 않는 경우 서울 지역 상품을 추천해줍니다.<br>
+            전체 카테고리 시에는 param 입력 필요 x
+                        
+            각 필드의 제약 조건은 다음과 같습니다.
+            | 필드명 | 설명 | 제약조건 | null 가능 | 예시 |
+            |--------|------|----------|----------|------|
+            |latitude| 현재 위치(위도) | -90.0 이상, 90.0 이하 | Y | 37.435 |
+            |longitude| 현재 위치(경도) | -180.0 이상, 180.0 이하 | Y | 230.253 |
+            |category| 카테고리 선택 |NEAR,BEST,DINING,TOUR,OUTDOOR,ENTERTAINMENT,ART_CULTURE,SPORTS_FITNESS| Y | DINING |
                         
             # 상세 조건으로 필터
                         
-            카테고리, 가격 범위, 소요 시간, 시간대, 같은 국적 여부를 이용해 추가 검색을 합니다.
+            가격 범위, 소요 시간, 시간대, 같은 국적 여부를 이용해 추가 검색을 합니다.<br>
+            로그인을 했을 경우 같은 국적 여부를 필터 조건에 포함할 수 있습니다.<br>
+            비로그인 경우 같은 국적 여부가 false로 적용됩니다.
                         
             각 필드의 제약 조건은 다음과 같습니다.
             | 필드명 | 설명 | 제약조건 | null 가능 | 예시 |
             |--------|------|----------|----------|------|
-            |category| 카테고리 선택 | (중복 가능) DINING,TOUR,OUTDOOR,ENTERTAINMENT,ART_CULTURE,SPORTS_FITNESS | Y | DINING |
             |min| 최소 가격 범위 | 한국 재화 기준 | Y (default = 0) | 10000 |
             |max| 최대 가격 범위 | 한국 재화 기준 | Y (default = 200000)| 30000 |
             |minD| 최소 소요 시간 | 시간 단위 | Y (default = 1) | 2 |
@@ -389,11 +394,9 @@ public class GuideProductController {
             |dayT| 시간대 | DAWN(0 ~ 6), MORNING(7 ~ 11), LUNCH (12 ~ 17), EVENING (18 ~ 23) | Y (default = ALL) | LUNCH |
             |host| 같은 국적 여부 | 같을 경우 true, 다를 경우 false | Y (default = false) | false |
                       
-            # 상황
-            1. 지역 + 날짜로만 검색 가능
-            2. 1번에서의 검색 결과에서 카테고리 선택으로 검색 가능
-            3. 1번 + 2번 검색 결과에서 세부 조건으로 검색 가능
-            4. 1번에서의 검색 결과에서 세부 조건으로 검색 가능
+            ## 상황
+            모든 상황에서 검색, 필터, 카테고리가 단독으로 사용 가능하며 같이도 사용 가능합니다.
+            다만, 검색 후 카테고리로 추가 검색을 하는 경우만 NEAR, BEST 사용 불가능 합니다.
               
             ## 응답
                         
@@ -420,91 +423,19 @@ public class GuideProductController {
                     )
             )
     )
-    @ForbiddenResponse
-    @InvalidTokenResponse
-    public List<SearchGuideProductResponse> getSearchedGuideListWithLogin(@CurrentUser User user,
-                                                                          @RequestParam String region,
-                                                                          @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
-                                                                          @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
-                                                                          @RequestParam(value = "category", required = false) List<GuideCategoryCode> categories,
+    public Page<SearchGuideProductResponse> getSearchedGuideListWithLogin(@CurrentUser User user,
+                                                                          SearchGuideProductRequest request,
+                                                                          SearchCategoriesRequest searchCategoriesRequest,
                                                                           @RequestParam(value = "min", required = false, defaultValue = "0") Long minPrice,
                                                                           @RequestParam(value = "max", required = false, defaultValue = "200000") Long maxPrice,
                                                                           @RequestParam(value = "minD", required = false, defaultValue = "1") int minDuration,
                                                                           @RequestParam(value = "maxD", required = false, defaultValue = "24") int maxDuration,
                                                                           @RequestParam(value = "dayT", required = false, defaultValue = "ALL") DayTime dayTime,
-                                                                          @RequestParam(value = "host", required = false, defaultValue = "false") boolean same) {
-        if (!same)
-            return guideProductService.getSearchedGuideList(region, start, end, categories, minPrice, maxPrice, minDuration, maxDuration, dayTime, null);
-        return guideProductService.getSearchedGuideList(region, start, end, categories, minPrice, maxPrice, minDuration, maxDuration, dayTime, user.getNationality());
-    }
-
-    @GetMapping("/search")
-    @Operation(summary = "로그인 안 했을 경우 검색 + 필터 ", description = """
-            # 지역 + 날짜로 검색
-                        
-            지역과 날짜를 입력하면 두 조건에 만족하는 가이드 상품들을 검색한다.
-                        
-            각 필드의 제약 조건은 다음과 같습니다.
-            | 필드명 | 설명 | 제약조건 | null 가능 | 예시 |
-            |--------|------|----------|----------|------|
-            |region| 한국 지역 선택 | 서울특별시, 경기도, 광주광역시, 세종특별자치시, 부산광역시, 울산광역시, 대구광역시, 제주특별자치도, 인천광역시, 전라북도, 전라남도, 충청남도, 충청북도, 강원도, 경상북도, 경상남도, 대전광역시만 가능 | N | 서울특별시 |
-            |start| 범위 시작 날짜 | yyyy-MM-dd, 00:00:00시간부터 | N | 2024-05-01 |
-            |end| 범위 종료 날짜 | yyyy-MM-dd, 23:59:99시간까지 | N | 2024-05-02 |
-                        
-            # 상세 조건으로 필터
-                        
-            카테고리, 가격 범위, 소요 시간, 시간대, 같은 국적 여부를 이용해 추가 검색을 합니다.
-                        
-            각 필드의 제약 조건은 다음과 같습니다.
-            | 필드명 | 설명 | 제약조건 | null 가능 | 예시 |
-            |--------|------|----------|----------|------|
-            |category| 카테고리 선택 | (중복 가능) DINING,TOUR,OUTDOOR,ENTERTAINMENT,ART_CULTURE,SPORTS_FITNESS | Y | DINING |
-            |min| 최소 가격 범위 | 한국 재화 기준 | Y (default = 0) | 10000 |
-            |max| 최대 가격 범위 | 한국 재화 기준 | Y (default = 200000)| 30000 |
-            |minD| 최소 소요 시간 | 시간 단위 | Y (default = 1) | 2 |
-            |maxD| 최대 소요 시간 | 시간 단위 | Y (default = 24) | 5 |
-            |dayT| 시간대 | DAWN(0 ~ 6), MORNING(7 ~ 11), LUNCH (12 ~ 17), EVENING (18 ~ 23) | Y (default = ALL) | LUNCH |
-                      
-            # 상황
-            1. 지역 + 날짜로만 검색 가능
-            2. 1번에서의 검색 결과에서 카테고리 선택으로 검색 가능
-            3. 1번 + 2번 검색 결과에서 세부 조건으로 검색 가능
-            4. 1번에서의 검색 결과에서 세부 조건으로 검색 가능
-              
-            ## 응답
-                        
-            - 검색 조건 내 가이드 상품이 존재할 경우 `200` 코드와 함께 가이드 상품 리스트를 반환합니다.
-            - 검색 조건 내 가이드 상품이 존재하지 않을 경우 `404` 에러를 반환합니다.
-            """, tags = "Search Guide Products")
-    @ApiResponse(
-            responseCode = "200",
-            description = "범위 내 가이드 상품 불러오기 성공",
-            content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = SearchGuideProductResponse.class)
-            )
-    )
-    @ApiResponse(
-            responseCode = "404",
-            description = "범위 내 가이드 상품이 존재하지 않음",
-            content = @Content(
-                    mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = ApiErrorResponse.class),
-                    examples = @ExampleObject(
-                            name = "가이드 상품이 존재하지 않음",
-                            value = "{ \"status\" : \"NOT_FOUND\", \"message\" : \"해당 조건에 부합하는 가이드 상품이 존재하지 않습니다.\"}"
-                    )
-            )
-    )
-    public List<SearchGuideProductResponse> getSearchedGuideList(@RequestParam String region,
-                                                                 @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
-                                                                 @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
-                                                                 @RequestParam(value = "category", required = false) List<GuideCategoryCode> categories,
-                                                                 @RequestParam(value = "min", required = false, defaultValue = "0") Long minPrice,
-                                                                 @RequestParam(value = "max", required = false, defaultValue = "200000") Long maxPrice,
-                                                                 @RequestParam(value = "minD", required = false, defaultValue = "1") int minDuration,
-                                                                 @RequestParam(value = "maxD", required = false, defaultValue = "24") int maxDuration,
-                                                                 @RequestParam(value = "dayT", required = false, defaultValue = "ALL") DayTime dayTime) {
-        return guideProductService.getSearchedGuideList(region, start, end, categories, minPrice, maxPrice, minDuration, maxDuration, dayTime, null);
+                                                                          @RequestParam(value = "host", required = false, defaultValue = "false") boolean same,
+                                                                          Pageable pageable) {
+        if (user != null && same)
+            return guideProductService.getSearchedGuideList(request, searchCategoriesRequest, minPrice, maxPrice, minDuration, maxDuration, dayTime, user.getNationality(), pageable);
+        else
+            return guideProductService.getSearchedGuideList(request, searchCategoriesRequest, minPrice, maxPrice, minDuration, maxDuration, dayTime, null, pageable);
     }
 }

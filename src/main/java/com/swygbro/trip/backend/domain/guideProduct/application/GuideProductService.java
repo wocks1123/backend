@@ -1,10 +1,7 @@
 package com.swygbro.trip.backend.domain.guideProduct.application;
 
 import com.swygbro.trip.backend.domain.guideProduct.domain.*;
-import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductRequest;
-import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
-import com.swygbro.trip.backend.domain.guideProduct.dto.ModifyGuideProductRequest;
-import com.swygbro.trip.backend.domain.guideProduct.dto.SearchGuideProductResponse;
+import com.swygbro.trip.backend.domain.guideProduct.dto.*;
 import com.swygbro.trip.backend.domain.guideProduct.exception.GuideProductNotFoundException;
 import com.swygbro.trip.backend.domain.guideProduct.exception.GuideProductNotInRangeException;
 import com.swygbro.trip.backend.domain.guideProduct.exception.MismatchUserFromCreatorException;
@@ -13,22 +10,20 @@ import com.swygbro.trip.backend.domain.s3.application.S3Service;
 import com.swygbro.trip.backend.domain.user.domain.Nationality;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import lombok.RequiredArgsConstructor;
-import org.locationtech.jts.geom.Coordinate;
-import org.locationtech.jts.geom.GeometryFactory;
-import org.locationtech.jts.geom.MultiPolygon;
-import org.locationtech.jts.geom.Point;
+import org.locationtech.jts.geom.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,10 +33,36 @@ public class GuideProductService {
     private final GuideProductRepository guideProductRepository;
     private final RegionRepository regionRepository;
 
+    // 메인 페이지
+    @Transactional(readOnly = true)
+    public MainPageResponse getMainPage(Double latitude, Double longitude, int page) {
+        MultiPolygon polygon = regionRepository.findByName("서울특별시").getPolygon();
+        Geometry geometry;
+        Pageable pageable = PageRequest.of(page, 12);
+
+        if (page >= 1) {
+            Page<SearchGuideProductResponse> allGuideProducts = guideProductRepository.findAllWithMain(pageable);
+
+            return MainPageResponse.builder().allGuideProducts(allGuideProducts).build();
+        } else {
+            if (latitude != null && longitude != null) {
+                geometry = setPoint(latitude, longitude);
+            } else geometry = polygon;
+
+            List<SearchGuideProductResponse> nearGuideProducts = guideProductRepository.findByLocation(geometry, 30000);
+
+            List<SearchGuideProductResponse> bestGuideProducts = guideProductRepository.findByBest(polygon);
+
+            Page<SearchGuideProductResponse> allGuideProducts = guideProductRepository.findAllWithMain(pageable);
+
+            return MainPageResponse.from(nearGuideProducts, bestGuideProducts, allGuideProducts);
+        }
+    }
+
     // 가이드 상품 생성
     @Transactional
     public GuideProductDto createGuideProduct(User user, CreateGuideProductRequest request, MultipartFile thumb, Optional<List<MultipartFile>> images) {
-        isValidLocation(request.getLongitude(), request.getLatitude());
+        isValidLocation(request.getLatitude(), request.getLongitude());
 
         List<String> imageUrls = new ArrayList<>();
         images.ifPresentOrElse(list -> {
@@ -65,7 +86,6 @@ public class GuideProductService {
         return GuideProductDto.fromEntity(resultProduct);
     }
 
-    // TODO : fetch join 사용으로 쿼리문 단축
     // 가이드 상품 조회
     @Transactional(readOnly = true)
     public GuideProductDto getProduct(Long productId) {
@@ -116,35 +136,41 @@ public class GuideProductService {
         guideProductRepository.deleteById(productId);
     }
 
-    // 30km 범위내 가이드 상품 불러오기
-    public List<SearchGuideProductResponse> getGuideListIn(double longitude, double latitude) {
-        GeometryFactory geometryFactory = new GeometryFactory();
-        Point point = geometryFactory.createPoint(new Coordinate(latitude, longitude));
-        point.setSRID(4326);
-
-        List<GuideProduct> guideProducts = guideProductRepository.findAllByLocation(point, 30000);
-
-        if (guideProducts.isEmpty()) throw new GuideProductNotInRangeException("주변에 가이드 상품이 존재하지 않습니다.");
-
-        return guideProducts.stream().map(SearchGuideProductResponse::fromEntity).collect(Collectors.toList());
-    }
-
     // 지역, 날짜로 검색
-    public List<SearchGuideProductResponse> getSearchedGuideList(String region, LocalDate start, LocalDate end, List<GuideCategoryCode> categories, Long minPrice, Long maxPrice, int minDuration, int maxDuration, DayTime dayTime, Nationality nationality) {
-        ZonedDateTime zonedDateStart = start.atStartOfDay(ZoneId.of("Asia/Seoul"));
-        ZonedDateTime zonedDateEnd = ZonedDateTime.of(end.atTime(LocalTime.MAX), ZoneId.of("Asia/Seoul"));
-        MultiPolygon polygon = regionRepository.findByName(region).getPolygon();
+    @Transactional(readOnly = true)
+    public Page<SearchGuideProductResponse> getSearchedGuideList(SearchGuideProductRequest request, SearchCategoriesRequest categories, Long minPrice, Long maxPrice, int minDuration, int maxDuration, DayTime dayTime, Nationality nationality, Pageable pageable) {
+        ZonedDateTime zonedDateStart;
+        ZonedDateTime zonedDateEnd;
+        MultiPolygon polygon;
 
-        List<GuideProduct> guideProducts = guideProductRepository.findByFilter(polygon, zonedDateStart, zonedDateEnd, categories, minPrice, maxPrice, minDuration, maxDuration, dayTime, nationality);
+        if (request.getRegion() != null && request.getStart() != null && request.getEnd() != null) {
+            zonedDateStart = request.getStart().atStartOfDay(ZoneId.of("Asia/Seoul"));
+            zonedDateEnd = ZonedDateTime.of(request.getEnd().atTime(LocalTime.MAX), ZoneId.of("Asia/Seoul"));
+            polygon = regionRepository.findByName(request.getRegion()).getPolygon();
+        } else {
+            zonedDateStart = null;
+            zonedDateEnd = null;
+            polygon = regionRepository.findByName("서울특별시").getPolygon();
+        }
+
+        Page<SearchGuideProductResponse> guideProducts = guideProductRepository.findByFilter(polygon, zonedDateStart, zonedDateEnd, categories, minPrice, maxPrice, minDuration, maxDuration, dayTime, nationality, pageable);
 
         if (guideProducts.isEmpty()) throw new GuideProductNotInRangeException("해당 조건에 부합하는 가이드 상품이 존재하지 않습니다.");
 
-        return guideProducts.stream().map(SearchGuideProductResponse::fromEntity).collect(Collectors.toList());
+        return guideProducts;
     }
 
     // 가이드 위치 유효한지 검사
-    private void isValidLocation(double longitude, double latitude) throws NotValidLocationException {
-        if (longitude < -90 || longitude > 90 || latitude < -180 || latitude > 180)
+    private void isValidLocation(double latitude, double longitude) throws NotValidLocationException {
+        if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180)
             throw new NotValidLocationException();
+    }
+
+    private Point setPoint(double latitude, double longitude) {
+        GeometryFactory geometryFactory = new GeometryFactory();
+        Point point = geometryFactory.createPoint(new Coordinate(longitude, latitude));
+        point.setSRID(4326);
+
+        return point;
     }
 }

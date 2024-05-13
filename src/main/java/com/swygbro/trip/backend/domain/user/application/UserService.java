@@ -8,6 +8,7 @@ import com.swygbro.trip.backend.domain.user.domain.UserDao;
 import com.swygbro.trip.backend.domain.user.domain.UserRepository;
 import com.swygbro.trip.backend.domain.user.dto.CreateUserRequest;
 import com.swygbro.trip.backend.domain.user.dto.UpdateUserRequest;
+import com.swygbro.trip.backend.domain.user.dto.UserInfoDto;
 import com.swygbro.trip.backend.domain.user.dto.UserProfileDto;
 import com.swygbro.trip.backend.domain.user.excepiton.PasswordNotMatchException;
 import com.swygbro.trip.backend.domain.user.excepiton.UserNotFoundException;
@@ -29,7 +30,7 @@ public class UserService {
     private final S3Service s3Service;
 
     @Transactional
-    public Long createUser(CreateUserRequest dto) {
+    public UserInfoDto createUser(CreateUserRequest dto) {
         userValidationService.checkUniqueUser(dto);
 
         if (!dto.getPassword().equals(dto.getPasswordCheck())) {
@@ -40,7 +41,15 @@ public class UserService {
                 new User(dto, SignUpType.Local, passwordEncoder.encode(dto.getPassword()))
         );
 
-        return createdUser.getId();
+        return UserInfoDto.builder()
+                .id(createdUser.getId())
+                .email(createdUser.getEmail())
+                .nickname(createdUser.getNickname())
+                .name(createdUser.getName())
+                .birthdate(createdUser.getBirthdate())
+                .gender(createdUser.getGender())
+                .nationality(createdUser.getNationality())
+                .build();
     }
 
     @Transactional(readOnly = true)

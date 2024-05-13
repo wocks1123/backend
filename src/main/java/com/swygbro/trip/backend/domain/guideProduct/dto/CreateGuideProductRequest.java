@@ -27,18 +27,21 @@ public class CreateGuideProductRequest {
     private Long price;
     @NotNull
     @Schema(description = "가이드 위치(위도)", example = "37")
-    private double longitude;
-    @NotNull
-    @Schema(description = "가이드 위치(경도)", example = "127")
     private double latitude;
     @NotNull
-    @Schema(description = "가이드 시작 날짜/시간", example = "2024-05-01 12:00:00")
+    @Schema(description = "가이드 위치(경도)", example = "127")
+    private double longitude;
+    @NotNull
+    @Schema(description = "가이드 시작 날짜/시간", example = "2024-05-01 12:00:00", type = "string")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private ZonedDateTime guideStart;
     @NotNull
-    @Schema(description = "가이드 종료 날짜/시간", example = "2024-05-01 14:00:00")
+    @Schema(description = "가이드 종료 날짜/시간", example = "2024-05-01 14:00:00", type = "string")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private ZonedDateTime guideEnd;
+    @NotNull
+    @Schema(description = "가이드 소요 시간", example = "3")
+    private int guideTime;
     @NotNull
     @Schema(description = "상품 카테고리", example = "[\"DINING\", \"OUTDOOR\"]")
     private List<GuideCategoryCode> categories;

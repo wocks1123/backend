@@ -32,9 +32,6 @@ public class UserValidationService {
         if (checkers.get(FieldName.Email).check(dto.getEmail())) {
             throw new DuplicateDataException(dto.getEmail());
         }
-        if (checkers.get(FieldName.Nickname).check(dto.getNickname())) {
-            throw new DuplicateDataException(dto.getNickname());
-        }
         if (checkers.get(FieldName.Phone).check(dto.getPhone())) {
             throw new DuplicateDataException(dto.getPhone());
         }
