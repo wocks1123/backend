@@ -18,6 +18,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GuideProductDto {
+    @Schema(description = "유저 ID", example = "1")
+    private Long userId;
+    @Schema(description = "사용자 닉네임", example = "nickname01")
+    private String nickname;
     @Schema(description = "상품 ID", example = "1")
     private Long id;
     @Schema(description = "상품 제목", example = "신나는 서울 투어")
@@ -27,15 +31,17 @@ public class GuideProductDto {
     @Schema(description = "가이드 비용", example = "10000")
     private Long price;
     @Schema(description = "가이드 위치(위도)", example = "37")
-    private double longitude;
-    @Schema(description = "가이드 위치(경도)", example = "127")
     private double latitude;
+    @Schema(description = "가이드 위치(경도)", example = "127")
+    private double longitude;
     @Schema(description = "가이드 시작 날짜/시간", example = "2024-05-01 12:00:00")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private ZonedDateTime guideStart;
     @Schema(description = "가이드 종료 날짜/시간", example = "2024-05-01 14:00:00")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private ZonedDateTime guideEnd;
+    @Schema(description = "가이드 소요 시간", example = "3")
+    private int guideTime;
     @Schema(description = "상품 카테고리", example = "[\"DINING\", \"OUTDOOR\"]")
     private List<GuideCategoryCode> categories;
     @Schema(description = "대표 이미지 url", example = "https://S3저장소URL/저장위치/난수화된 이미지이름.이미지 타입")
@@ -47,11 +53,14 @@ public class GuideProductDto {
         List<GuideCategoryCode> categories = product.getCategories().stream().map(GuideCategory::getCategoryCode).toList();
 
         return GuideProductDto.builder().id(product.getId())
+                .userId(product.getUser().getId())
+                .nickname(product.getUser().getNickname())
                 .title(product.getTitle())
                 .description(product.getDescription()).price(product.getPrice())
-                .longitude(product.getLocation().getY()).latitude(product.getLocation().getX())
+                .longitude(product.getLocation().getX()).latitude(product.getLocation().getY())
                 .guideStart(product.getGuideStart()).guideEnd(product.getGuideEnd())
-                .categories(categories).thumb(product.getThumb()).images(product.getImages())
+                .guideTime(product.getGuideTime()).categories(categories)
+                .thumb(product.getThumb()).images(product.getImages())
                 .build();
     }
 }

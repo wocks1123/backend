@@ -1,7 +1,6 @@
 package com.swygbro.trip.backend.domain.guideProduct.domain;
 
 public enum GuideCategoryCode {
-    ALL,
     NEAR,
     BEST,
     DINING,
