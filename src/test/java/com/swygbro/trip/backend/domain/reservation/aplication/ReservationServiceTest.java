@@ -5,6 +5,7 @@ import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProduct;
 import com.swygbro.trip.backend.domain.reservation.domain.Reservation;
 import com.swygbro.trip.backend.domain.reservation.domain.ReservationRepository;
 import com.swygbro.trip.backend.domain.reservation.dto.ReservationDto;
+import com.swygbro.trip.backend.domain.reservation.dto.ReservationSearchCriteria;
 import com.swygbro.trip.backend.domain.reservation.dto.SavePaymentRequest;
 import com.swygbro.trip.backend.domain.reservation.dto.SaveReservationRequest;
 import com.swygbro.trip.backend.domain.reservation.exception.ForeignKeyConstraintViolationException;
@@ -45,9 +46,8 @@ class ReservationServiceTest {
     void saveReservationFail() {
         // given
         SaveReservationRequest saveReservationRequest = SaveReservationRequest.builder()
-                .guideId(1L)
                 .productId(1L)
-                .reservatedAt(ZonedDateTime.parse("2024-04-29 12:30:45"))
+                .guideStart(ZonedDateTime.parse("2024-04-29 12:30:45"))
                 .personnel(1)
                 .message("안녕하세요")
                 .price(10000)
@@ -61,7 +61,6 @@ class ReservationServiceTest {
         Reservation reservation = reservationRepository.findByMerchantUid(result);
         log.info("reservation merchantUid: {}", reservation.getMerchantUid());
 
-        assertThat(reservation.getGuide().getId()).isEqualTo(saveReservationRequest.getGuideId());
         assertThat(reservation.getProduct().getId()).isEqualTo(saveReservationRequest.getProductId());
         assertThat(result).isEqualTo(reservation.getMerchantUid());
 
@@ -72,9 +71,8 @@ class ReservationServiceTest {
     void saveReservation() {
         // given
         SaveReservationRequest request = SaveReservationRequest.builder()
-                .guideId(0L)
                 .productId(1L)
-                .reservatedAt(ZonedDateTime.parse("2024-04-29 12:30:45"))
+                .guideStart(ZonedDateTime.parse("2024-04-29 12:30:45"))
                 .personnel(1)
                 .message("안녕하세요")
                 .price(10000)
@@ -93,9 +91,8 @@ class ReservationServiceTest {
     void savePayment() throws IamportResponseException, IOException {
         // given
         SaveReservationRequest saveReservationRequest = SaveReservationRequest.builder()
-                .guideId(1L)
                 .productId(1L)
-                .reservatedAt(ZonedDateTime.parse("2024-04-29 12:30:45"))
+                .guideStart(ZonedDateTime.parse("2024-04-29 12:30:45"))
                 .personnel(1)
                 .message("안녕하세요")
                 .price(10000)
@@ -165,7 +162,7 @@ class ReservationServiceTest {
                 .client(User.builder().id(1L).build())
                 .guide(User.builder().id(2L).build())
                 .product(GuideProduct.builder().id(1L).build())
-                .reservatedAt(ZonedDateTime.parse("2024-04-29 12:30:45"))
+                .reservedAt(ZonedDateTime.parse("2024-04-29 12:30:45"))
                 .personnel(1)
                 .message("안녕하세요")
                 .price(10000)
@@ -199,7 +196,7 @@ class ReservationServiceTest {
                 .client(User.builder().id(1L).build())
                 .guide(User.builder().id(2L).build())
                 .product(GuideProduct.builder().id(1L).build())
-                .reservatedAt(ZonedDateTime.parse("2024-04-29 12:30:45"))
+                .reservedAt(ZonedDateTime.now())
                 .personnel(1)
                 .message("안녕하세요")
                 .price(10000)
@@ -213,7 +210,7 @@ class ReservationServiceTest {
                 .client(User.builder().id(1L).build())
                 .guide(User.builder().id(2L).build())
                 .product(GuideProduct.builder().id(2L).build())
-                .reservatedAt(ZonedDateTime.parse("2024-04-29 12:30:45"))
+                .reservedAt(ZonedDateTime.now())
                 .personnel(1)
                 .message("두 번째 예약")
                 .price(15000)
@@ -223,8 +220,15 @@ class ReservationServiceTest {
                 .impUid("imp_uid_3")
                 .build());
 
+        ReservationSearchCriteria criteria = ReservationSearchCriteria.builder()
+                .statusFilter(0)
+                .isPast(false)
+                .offset(0)
+                .pageSize(10)
+                .build();
+
         // when
-        List<ReservationDto> reservationList = reservationService.getReservationListByClient(1L);
+        List<ReservationDto> reservationList = reservationService.getReservationListByClient(1L, criteria);
 
         // then
         assertThat(reservationList.size()).isEqualTo(2);
@@ -240,7 +244,7 @@ class ReservationServiceTest {
                 .client(User.builder().id(1L).build())
                 .guide(User.builder().id(2L).build())
                 .product(GuideProduct.builder().id(1L).build())
-                .reservatedAt(ZonedDateTime.parse("2024-04-29 12:30:45"))
+                .reservedAt(ZonedDateTime.parse("2024-04-29 12:30:45"))
                 .personnel(1)
                 .message("안녕하세요")
                 .price(10000)
@@ -257,36 +261,10 @@ class ReservationServiceTest {
         // then
         assertThat(reservationDto.getMerchantUid()).isEqualTo("merchant_uid_4");
         assertThat(reservationDto.getPrice()).isEqualTo(10000);
-        assertThat(reservationDto.getReservatedAt()).isEqualTo(Timestamp.valueOf("2024-04-29 12:30:45"));
+        assertThat(reservationDto.getGuideStart()).isEqualTo(Timestamp.valueOf("2024-04-29 12:30:45"));
         assertThat(reservationDto.getPersonnel()).isEqualTo(1);
         assertThat(reservationDto.getMessage()).isEqualTo("안녕하세요");
 
-    }
-
-    @Test
-    @DisplayName("과거 예약 조회")
-    @Sql(scripts = {"/user.sql", "/guideProduct.sql", "/reservation.sql"})
-    void getPastReservation() {
-        // given
-
-        // when
-        List<ReservationDto> pastReservation = reservationService.getPastReservationListByClient(1L);
-
-        // then
-        assertThat(pastReservation.size()).isEqualTo(2);
-    }
-
-    @Test
-    @DisplayName("미래 예약 조회")
-    @Sql(scripts = {"/user.sql", "/guideProduct.sql", "/reservation.sql"})
-    void getFutureReservation() {
-        // given
-
-        // when
-        List<ReservationDto> futureReservation = reservationService.getFutureReservationListByClient(1L);
-
-        // then
-        assertThat(futureReservation.size()).isEqualTo(2);
     }
 
 }

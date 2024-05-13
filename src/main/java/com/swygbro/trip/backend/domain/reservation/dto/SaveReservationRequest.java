@@ -11,28 +11,29 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.ZonedDateTime;
 
-@Data
+@Getter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
 public class SaveReservationRequest {
     @NotNull
-    @Schema(description = "가이드 ID", example = "1")
-    Long guideId;
-
-    @NotNull
     @Schema(description = "상품 ID", example = "1")
     Long productId;
 
     @NotNull
-    @Schema(description = "예약 날짜", example = "2024-05-01 12:00:00")
+    @Schema(description = "가이드 시작 날짜", example = "2024-05-01 12:00:00")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
-    ZonedDateTime reservatedAt;
+    ZonedDateTime guideStart;
+
+    @NotNull
+    @Schema(description = "가이드 종료 날짜", example = "2024-05-01 12:00:00")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
+    ZonedDateTime guideEnd;
 
     @NotNull
     @Min(value = 1, message = "인원은 1 이상이어야 합니다.")
@@ -48,12 +49,13 @@ public class SaveReservationRequest {
     Integer price;
 
 
-    public Reservation toEntity(Long clientId) {
+    public Reservation toEntity(Long clientId, Long guideId) {
         return Reservation.builder()
                 .client(User.builder().id(clientId).build())
                 .guide(User.builder().id(guideId).build())
                 .product(GuideProduct.builder().id(productId).build())
-                .reservatedAt(reservatedAt != null ? reservatedAt : null)
+                .guideStart(guideStart != null ? guideStart : null)
+                .guideEnd(guideEnd != null ? guideEnd : null)
                 .personnel(personnel != null ? personnel : null)
                 .message(message != null ? message : null)
                 .price(price != null ? price : null)

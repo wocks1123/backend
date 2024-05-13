@@ -1,16 +1,12 @@
 package com.swygbro.trip.backend.domain.reservation.domain;
 
+import com.swygbro.trip.backend.domain.reservation.dto.ReservationSearchCriteria;
+
 import java.util.List;
 
 public interface ReservationCustomRepository {
-    public List<Reservation> findPastReservationsByClientId(Long clientId);
 
-    public List<Reservation> findFutureReservationsByClientId(Long clientId);
+    List<Reservation> findReservationsByClientId(Long clientId, ReservationSearchCriteria criteria);
 
-    public List<Reservation> findPastReservationsByGuideId(Long guideId);
-
-    public List<Reservation> findFutureReservationsByGuideId(Long guideId);
-
-    public List<Reservation> findByClientId(Long clientId);
-
+    List<Reservation> findReservationsByGuideId(Long clientId, ReservationSearchCriteria criteria);
 }

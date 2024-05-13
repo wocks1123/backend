@@ -5,9 +5,13 @@ import com.siot.IamportRestClient.exception.IamportResponseException;
 import com.siot.IamportRestClient.request.CancelData;
 import com.siot.IamportRestClient.response.IamportResponse;
 import com.siot.IamportRestClient.response.Payment;
+import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProduct;
+import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProductRepository;
+import com.swygbro.trip.backend.domain.guideProduct.exception.GuideProductNotFoundException;
 import com.swygbro.trip.backend.domain.reservation.domain.Reservation;
 import com.swygbro.trip.backend.domain.reservation.domain.ReservationRepository;
 import com.swygbro.trip.backend.domain.reservation.dto.ReservationDto;
+import com.swygbro.trip.backend.domain.reservation.dto.ReservationSearchCriteria;
 import com.swygbro.trip.backend.domain.reservation.dto.SavePaymentRequest;
 import com.swygbro.trip.backend.domain.reservation.dto.SaveReservationRequest;
 import com.swygbro.trip.backend.domain.reservation.exception.DuplicateCancelReservationException;
@@ -33,6 +37,7 @@ public class ReservationService {
 
     private final IamportClient iamportClient;
     private final ReservationRepository reservationRepository;
+    private final GuideProductRepository guideProductRepository;
 
     /**
      * 예약 정보 저장
@@ -43,7 +48,10 @@ public class ReservationService {
      */
     public String saveReservation(Long clientId, SaveReservationRequest reservation) {
         try {
-            Reservation entity = reservation.toEntity(clientId);
+            GuideProduct guideProduct = guideProductRepository.findById(reservation.getProductId()).orElseThrow(
+                    () -> new GuideProductNotFoundException(reservation.getProductId())
+            );
+            Reservation entity = reservation.toEntity(clientId, guideProduct.getUser().getId());
             entity.generateMerchantUid();
             Reservation save = reservationRepository.save(entity);
             return save.getMerchantUid();
@@ -116,7 +124,7 @@ public class ReservationService {
                 throw new ReservationNotFoundException(merchant_uid);
             }
 
-            if ((reservation.getReservatedAt().equals(ReservationStatus.CANCELLED)) && (reservation.getPaymentStatus().equals(PayStatus.REFUNDED))) {
+            if ((reservation.getGuideStart().equals(ReservationStatus.CANCELLED)) && (reservation.getPaymentStatus().equals(PayStatus.REFUNDED))) {
                 throw new DuplicateCancelReservationException(merchant_uid);
             }
 
@@ -133,10 +141,10 @@ public class ReservationService {
     }
 
     /**
-     * Client ID 를 통한 모든 예약 조회
+     * Client ID 를 통한 예약 조회
      */
-    public List<ReservationDto> getReservationListByClient(Long clientId) {
-        List<Reservation> reservations = reservationRepository.findByClientId(clientId);
+    public List<ReservationDto> getReservationListByClient(Long clientId, ReservationSearchCriteria criteria) {
+        List<Reservation> reservations = reservationRepository.findReservationsByClientId(clientId, criteria);
         List<ReservationDto> reservationDtos = new ArrayList<>();
 
         reservations.forEach(reservation -> {
@@ -147,35 +155,6 @@ public class ReservationService {
         return reservationDtos;
     }
 
-    /**
-     * Client ID 를 통한 과거 예약 조회
-     */
-    public List<ReservationDto> getPastReservationListByClient(Long clientId) {
-        List<Reservation> pastReservationsByClientId = reservationRepository.findPastReservationsByClientId(clientId);
-        List<ReservationDto> reservationDtos = new ArrayList<>();
-
-        pastReservationsByClientId.forEach(reservation -> {
-            ReservationDto reservationDto = new ReservationDto().fromEntity(reservation);
-            reservationDtos.add(reservationDto);
-        });
-
-        return reservationDtos;
-    }
-
-    /**
-     * Client ID 를 통한 미래 예약 조회
-     */
-    public List<ReservationDto> getFutureReservationListByClient(Long clientId) {
-        List<Reservation> futureReservationsByClientId = reservationRepository.findFutureReservationsByClientId(clientId);
-        List<ReservationDto> reservationDtos = new ArrayList<>();
-
-        futureReservationsByClientId.forEach(reservation -> {
-            ReservationDto reservationDto = new ReservationDto().fromEntity(reservation);
-            reservationDtos.add(reservationDto);
-        });
-
-        return reservationDtos;
-    }
 
     public ReservationDto getReservation(String merchant_uid) {
         Reservation reservation = reservationRepository.findByMerchantUid(merchant_uid);
@@ -186,10 +165,10 @@ public class ReservationService {
     }
 
     /**
-     * Guide ID 를 통한 모든 예약 조회
+     * Guide ID 를 통한 예약 조회
      */
-    public List<ReservationDto> getReservationListByGuide(Long guideId) {
-        List<Reservation> reservations = reservationRepository.findByGuideId(guideId);
+    public List<ReservationDto> getReservationListByGuide(Long guideId, ReservationSearchCriteria criteria) {
+        List<Reservation> reservations = reservationRepository.findReservationsByGuideId(guideId, criteria);
         List<ReservationDto> reservationDtos = new ArrayList<>();
 
         reservations.forEach(reservation -> {
@@ -200,35 +179,6 @@ public class ReservationService {
         return reservationDtos;
     }
 
-    /**
-     * 가이드 ID 를 통한 과거 예약 조회
-     */
-    public List<ReservationDto> getPastReservationListByGuide(Long guideId) {
-        List<Reservation> pastReservationsByGuideId = reservationRepository.findPastReservationsByGuideId(guideId);
-        List<ReservationDto> reservationDtos = new ArrayList<>();
-
-        pastReservationsByGuideId.forEach(reservation -> {
-            ReservationDto reservationDto = new ReservationDto().fromEntity(reservation);
-            reservationDtos.add(reservationDto);
-        });
-
-        return reservationDtos;
-    }
-
-    /**
-     * 가이드 ID 를 통한 미래 예약 조회
-     */
-    public List<ReservationDto> getFutureReservationListByGuide(Long guideId) {
-        List<Reservation> futureReservationsByGuideId = reservationRepository.findFutureReservationsByGuideId(guideId);
-        List<ReservationDto> reservationDtos = new ArrayList<>();
-
-        futureReservationsByGuideId.forEach(reservation -> {
-            ReservationDto reservationDto = new ReservationDto().fromEntity(reservation);
-            reservationDtos.add(reservationDto);
-        });
-
-        return reservationDtos;
-    }
 
     public ReservationDto confirmReservation(String merchantUid) {
         Reservation reservation = reservationRepository.findByMerchantUid(merchantUid);

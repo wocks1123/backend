@@ -27,20 +27,23 @@ public class Reservation extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id")
     private User client;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "guide_id")
     private User guide;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
     private GuideProduct product;
 
     @Column(nullable = false)
-    private ZonedDateTime reservatedAt;
+    private ZonedDateTime guideStart;
+
+    @Column(nullable = false)
+    private ZonedDateTime guideEnd;
 
     @Column(nullable = false)
     private Integer personnel;
@@ -100,7 +103,7 @@ public class Reservation extends BaseEntity {
         String prefix = dateFormat.format(new Date());
 
         UUID uuid = UUID.randomUUID();
-        String suffix = uuid.toString().substring(0, 6);
+        String suffix = uuid.toString().substring(0, 8);
 
         this.merchantUid = prefix + suffix;
     }
