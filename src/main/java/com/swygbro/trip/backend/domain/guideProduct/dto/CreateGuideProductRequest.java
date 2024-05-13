@@ -32,11 +32,11 @@ public class CreateGuideProductRequest {
     @Schema(description = "가이드 위치(경도)", example = "127")
     private double longitude;
     @NotNull
-    @Schema(description = "가이드 시작 날짜/시간", example = "2024-05-01 12:00:00")
+    @Schema(description = "가이드 시작 날짜/시간", example = "2024-05-01 12:00:00", type = "string")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private ZonedDateTime guideStart;
     @NotNull
-    @Schema(description = "가이드 종료 날짜/시간", example = "2024-05-01 14:00:00")
+    @Schema(description = "가이드 종료 날짜/시간", example = "2024-05-01 14:00:00", type = "string")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private ZonedDateTime guideEnd;
     @NotNull
