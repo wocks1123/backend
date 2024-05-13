@@ -185,6 +185,13 @@ public class ReservationController {
                         
             - 여행객의 예약 리스트를 조회합니다.            
                         
+            | 필드명 | 설명 | 제약조건  | 예시 |
+            |--------|------|----------|----------|------|
+            |isPast| 과거 or 미래 조건 | Boolean  | ture |
+            |statusFilter| 예약 Status 조건 | 0(확정 대기), 1(확정 및 정산 완료), 2(취소) | 1 |
+            |offset| 조회 offset | -  | 0 |
+            |pageSize| 조회 페이지 크기 | -  | 10 |
+                        
             ## 응답
                         
             - 정상 조회 시 `200` 코드와 함께 예약 내역 리스트를 반환합니다.
@@ -208,6 +215,13 @@ public class ReservationController {
                         
             - 가이드가 자신의 예약 리스트를 조회합니다.           
                         
+            | 필드명 | 설명 | 제약조건  | 예시 |
+            |--------|------|----------|----------|------|
+            |isPast| 과거 or 미래 조건 | Boolean  | ture |
+            |statusFilter| 예약 Status 조건 | 0(확정 대기), 1(확정 및 정산 완료), 2(취소) | 1 |
+            |offset| 조회 offset | -  | 0 |
+            |pageSize| 조회 페이지 크기 | -  | 10 |
+                                    
             ## 응답
                         
             - 정상 취소 시 `200` 코드와 함께 예약 내역을 반환합니다.
