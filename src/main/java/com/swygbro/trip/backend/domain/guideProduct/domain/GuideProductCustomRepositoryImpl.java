@@ -1,10 +1,12 @@
 package com.swygbro.trip.backend.domain.guideProduct.domain;
 
+import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.swygbro.trip.backend.domain.guideProduct.dto.SearchCategoriesRequest;
+import com.swygbro.trip.backend.domain.guideProduct.dto.SearchGuideProductResponse;
 import com.swygbro.trip.backend.domain.user.domain.Nationality;
 import org.locationtech.jts.geom.*;
 import org.springframework.data.domain.Page;
@@ -35,29 +37,45 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
     }
 
     @Override
-    public List<GuideProduct> findByLocation(Geometry geometry, int radius) {
+    public List<SearchGuideProductResponse> findByLocation(Geometry geometry, int radius) {
         return jpaQueryFactory
-                .selectFrom(qProduct)
-                .join(qProduct.categories, qCategory).fetchJoin()
+                .select(Projections.fields(SearchGuideProductResponse.class,
+                        qProduct.id,
+                        qProduct.title,
+                        qProduct.thumb,
+                        qProduct.guideStart,
+                        qProduct.guideEnd))
+                .from(qProduct)
                 .where(nearGuideProduct(geometry, radius))
                 .limit(4)
                 .distinct().fetch();
     }
 
     @Override
-    public List<GuideProduct> findByBest(MultiPolygon polygon) {
+    public List<SearchGuideProductResponse> findByBest(MultiPolygon polygon) {
         return jpaQueryFactory
-                .selectFrom(qProduct)
-                .join(qProduct.categories, qCategory).fetchJoin()
+                .select(Projections.fields(SearchGuideProductResponse.class,
+                        qProduct.id,
+                        qProduct.title,
+                        qProduct.thumb,
+                        qProduct.guideStart,
+                        qProduct.guideEnd))
+                .from(qProduct)
                 .where(regionEq(polygon))
                 .limit(4)
                 .distinct().fetch();
     }
 
     @Override
-    public Page<GuideProduct> findAllWithMain(Pageable pageable) {
-        List<GuideProduct> fetch = jpaQueryFactory.selectFrom(qProduct)
-                .join(qProduct.categories, qCategory).fetchJoin()
+    public Page<SearchGuideProductResponse> findAllWithMain(Pageable pageable) {
+        List<SearchGuideProductResponse> fetch = jpaQueryFactory
+                .select(Projections.fields(SearchGuideProductResponse.class,
+                        qProduct.id,
+                        qProduct.title,
+                        qProduct.thumb,
+                        qProduct.guideStart,
+                        qProduct.guideEnd))
+                .from(qProduct)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .distinct().fetch();
@@ -69,19 +87,25 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
     }
 
     @Override
-    public Page<GuideProduct> findByFilter(MultiPolygon region,
-                                           ZonedDateTime start,
-                                           ZonedDateTime end,
-                                           SearchCategoriesRequest category,
-                                           Long minPrice,
-                                           Long maxPrice,
-                                           int minDuration,
-                                           int maxDuration,
-                                           DayTime dayTime,
-                                           Nationality nationality,
-                                           Pageable pageable) {
-        List<GuideProduct> fetch = jpaQueryFactory.selectFrom(qProduct)
-                .join(qProduct.categories, qCategory).fetchJoin()
+    public Page<SearchGuideProductResponse> findByFilter(MultiPolygon region,
+                                                         ZonedDateTime start,
+                                                         ZonedDateTime end,
+                                                         SearchCategoriesRequest category,
+                                                         Long minPrice,
+                                                         Long maxPrice,
+                                                         int minDuration,
+                                                         int maxDuration,
+                                                         DayTime dayTime,
+                                                         Nationality nationality,
+                                                         Pageable pageable) {
+        List<SearchGuideProductResponse> fetch = jpaQueryFactory
+                .select(Projections.fields(SearchGuideProductResponse.class,
+                        qProduct.id,
+                        qProduct.title,
+                        qProduct.thumb,
+                        qProduct.guideStart,
+                        qProduct.guideEnd))
+                .from(qProduct)
                 .where(regionEq(region),
                         startDateBetween(start, end),
                         categoryIn(region, category),

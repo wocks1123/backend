@@ -24,7 +24,6 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +41,7 @@ public class GuideProductService {
         Pageable pageable = PageRequest.of(page, 12);
 
         if (page >= 1) {
-            Page<SearchGuideProductResponse> allGuideProducts = guideProductRepository.findAllWithMain(pageable).map(SearchGuideProductResponse::fromEntity);
+            Page<SearchGuideProductResponse> allGuideProducts = guideProductRepository.findAllWithMain(pageable);
 
             return MainPageResponse.builder().allGuideProducts(allGuideProducts).build();
         } else {
@@ -50,13 +49,11 @@ public class GuideProductService {
                 geometry = setPoint(latitude, longitude);
             } else geometry = polygon;
 
-            List<SearchGuideProductResponse> nearGuideProducts = guideProductRepository.findByLocation(geometry, 30000)
-                    .stream().map(SearchGuideProductResponse::fromEntity).collect(Collectors.toList());
+            List<SearchGuideProductResponse> nearGuideProducts = guideProductRepository.findByLocation(geometry, 30000);
 
-            List<SearchGuideProductResponse> bestGuideProducts = guideProductRepository.findByBest(polygon)
-                    .stream().map(SearchGuideProductResponse::fromEntity).collect(Collectors.toList());
+            List<SearchGuideProductResponse> bestGuideProducts = guideProductRepository.findByBest(polygon);
 
-            Page<SearchGuideProductResponse> allGuideProducts = guideProductRepository.findAllWithMain(pageable).map(SearchGuideProductResponse::fromEntity);
+            Page<SearchGuideProductResponse> allGuideProducts = guideProductRepository.findAllWithMain(pageable);
 
             return MainPageResponse.from(nearGuideProducts, bestGuideProducts, allGuideProducts);
         }
@@ -156,11 +153,11 @@ public class GuideProductService {
             polygon = regionRepository.findByName("서울특별시").getPolygon();
         }
 
-        Page<GuideProduct> guideProducts = guideProductRepository.findByFilter(polygon, zonedDateStart, zonedDateEnd, categories, minPrice, maxPrice, minDuration, maxDuration, dayTime, nationality, pageable);
+        Page<SearchGuideProductResponse> guideProducts = guideProductRepository.findByFilter(polygon, zonedDateStart, zonedDateEnd, categories, minPrice, maxPrice, minDuration, maxDuration, dayTime, nationality, pageable);
 
         if (guideProducts.isEmpty()) throw new GuideProductNotInRangeException("해당 조건에 부합하는 가이드 상품이 존재하지 않습니다.");
 
-        return guideProducts.map(SearchGuideProductResponse::fromEntity);
+        return guideProducts;
     }
 
     // 가이드 위치 유효한지 검사
