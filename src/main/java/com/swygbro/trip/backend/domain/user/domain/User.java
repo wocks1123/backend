@@ -7,6 +7,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -49,7 +51,10 @@ public class User extends BaseEntity {
     @Column(nullable = false)
     private String password;
 
-    @Column(nullable = false)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<UserLanguage> userLanguages = new ArrayList<>();
+
+    @Enumerated(EnumType.STRING)
     private SignUpType signUpType;
 
     @Enumerated(EnumType.STRING)
@@ -61,6 +66,7 @@ public class User extends BaseEntity {
         this.name = dto.getName();
         this.phone = dto.getPhone();
         this.nationality = dto.getNationality();
+        this.birthdate = LocalDate.parse(dto.getBirthdate());
         this.gender = dto.getGender();
         this.password = encodedPassword;
         this.signUpType = signUpType;
@@ -69,6 +75,16 @@ public class User extends BaseEntity {
 
     public void update(UpdateUserRequest dto) {
         this.profile = dto.getProfile();
+
+        if (dto.getNickname() != null) {
+            this.nickname = dto.getNickname();
+        }
+
+        if (dto.getLanguages() != null) {
+            this.userLanguages.clear();
+            dto.getLanguages().forEach(language -> this.userLanguages.add(new UserLanguage(this, language)));
+        }
+
     }
 
 }
