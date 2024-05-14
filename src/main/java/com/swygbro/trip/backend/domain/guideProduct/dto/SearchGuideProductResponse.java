@@ -27,14 +27,4 @@ public class SearchGuideProductResponse {
     @Schema(description = "가이드 종료 날짜/시간", example = "2024-05-01 14:00:00")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private ZonedDateTime guideEnd;
-
-    public static SearchGuideProductResponse fromEntity(GuideProduct product) {
-        return SearchGuideProductResponse.builder()
-                .id(product.getId())
-                .title(product.getTitle())
-                .thumb(product.getThumb())
-                .guideStart(product.getGuideStart())
-                .guideEnd(product.getGuideEnd())
-                .build();
-    }
 }

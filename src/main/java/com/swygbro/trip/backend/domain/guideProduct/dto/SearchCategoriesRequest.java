@@ -16,10 +16,4 @@ public class SearchCategoriesRequest {
     private Double longitude;
     @Schema(description = "상품 카테고리", example = "DINING")
     private GuideCategoryCode category;
-
-    public SearchCategoriesRequest(GuideCategoryCode category) {
-        this.latitude = null;
-        this.longitude = null;
-        this.category = category;
-    }
 }

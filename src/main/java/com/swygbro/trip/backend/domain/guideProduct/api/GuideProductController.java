@@ -352,10 +352,12 @@ public class GuideProductController {
 
     @GetMapping("/search")
     @Operation(summary = "검색 + 필터 ", description = """
+            page=?&size=? 로 page(0부터 시작) 번호와 size(가져올 데이터 갯수)를 지정해주면 됩니다.
+            
             # 지역 + 날짜로 검색
                         
-            지역과 날짜를 입력하면 두 조건에 만족하는 가이드 상품들을 검색한다.<br>
-            page=?&size=? 로 page(0부터 시작) 번호와 size(가져올 데이터 갯수)를 지정해주면 됩니다.
+            지역과 날짜를 입력하면 두 조건에 만족하는 가이드 상품들을 검색합니다.<br>
+            지역과 날짜로 검색할 시 지역과 날짜는 둘 다 null 불가능입니다.
                         
             각 필드의 제약 조건은 다음과 같습니다.
             | 필드명 | 설명 | 제약조건 | null 가능 | 예시 |
