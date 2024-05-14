@@ -33,7 +33,7 @@ public class GuideProductController {
 
     private final GuideProductService guideProductService;
 
-    @GetMapping()
+    @GetMapping("/search/main")
     @Operation(summary = "메인 페이지", description = """
             # 메인 페이지
                         
@@ -53,7 +53,7 @@ public class GuideProductController {
             ## 응답
                         
             - 상품 등록 성공 시 `200` 코드와 함께 메인 페이지 정보를 json 형태로 반환합니다.
-            """, tags = "Main Page")
+            """, tags = "Search Guide Products")
     @ApiResponse(
             responseCode = "200",
             description = "메인페이지 조회 성공",
