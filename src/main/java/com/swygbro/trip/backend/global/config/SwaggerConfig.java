@@ -42,7 +42,6 @@ public class SwaggerConfig {
         return List.of(
                 new Tag().name("Reservation-Client").description("여행객의 예약 관련 기능을 제공합니다."),
                 new Tag().name("Reservation-Guide").description("가이드의 예약 관련 기능을 제공합니다."),
-                new Tag().name("Main Page").description("메인 페이지 API"),
                 new Tag().name("Guide Products").description("가이드 상품 관련 API"),
                 new Tag().name("Search Guide Products").description("검색 + 필터 API")
         );
