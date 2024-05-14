@@ -164,7 +164,9 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
             } else if (request.getCategory() == GuideCategoryCode.BEST)
                 return Expressions.booleanTemplate("ST_CONTAINS({0}, {1})",
                         region, qProduct.location);
-            else return qCategory.categoryCode.eq(request.getCategory());
+            else return qProduct.id.in(jpaQueryFactory.select(qCategory.product.id)
+                        .from(qCategory)
+                        .where(qCategory.categoryCode.eq(request.getCategory())));
         }
         return null;
     }

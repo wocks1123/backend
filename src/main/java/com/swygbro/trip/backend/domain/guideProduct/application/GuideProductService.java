@@ -96,7 +96,8 @@ public class GuideProductService {
 
     // 가이드 상품 수정
     @Transactional
-    public GuideProductDto modifyGuideProduct(User user, Long productId, ModifyGuideProductRequest edits, Optional<MultipartFile> modifyThumb, Optional<List<MultipartFile>> modifyImages) {
+    public GuideProductDto modifyGuideProduct(User user, Long productId, ModifyGuideProductRequest edits,
+                                              Optional<MultipartFile> modifyThumb, Optional<List<MultipartFile>> modifyImages) {
         GuideProduct product = guideProductRepository.findById(productId).orElseThrow(() -> new GuideProductNotFoundException(productId));
 
         if (product.getUser() != user) throw new MismatchUserFromCreatorException("가이드 상품을 수정할 권한이 없습니다.");
