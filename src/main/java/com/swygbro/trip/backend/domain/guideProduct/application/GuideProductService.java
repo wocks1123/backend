@@ -7,6 +7,7 @@ import com.swygbro.trip.backend.domain.guideProduct.exception.GuideProductNotInR
 import com.swygbro.trip.backend.domain.guideProduct.exception.MismatchUserFromCreatorException;
 import com.swygbro.trip.backend.domain.guideProduct.exception.NotValidLocationException;
 import com.swygbro.trip.backend.domain.s3.application.S3Service;
+import com.swygbro.trip.backend.domain.user.domain.Language;
 import com.swygbro.trip.backend.domain.user.domain.Nationality;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import lombok.RequiredArgsConstructor;
@@ -139,7 +140,10 @@ public class GuideProductService {
 
     // 지역, 날짜로 검색
     @Transactional(readOnly = true)
-    public Page<SearchGuideProductResponse> getSearchedGuideList(SearchGuideProductRequest request, SearchCategoriesRequest categories, Long minPrice, Long maxPrice, int minDuration, int maxDuration, DayTime dayTime, Nationality nationality, Pageable pageable) {
+    public Page<SearchGuideProductResponse> getSearchedGuideList(SearchGuideProductRequest request, SearchCategoriesRequest categories,
+                                                                 Long minPrice, Long maxPrice, int minDuration, int maxDuration,
+                                                                 DayTime dayTime, Nationality nationality, List<Language> languages,
+                                                                 Pageable pageable) {
         ZonedDateTime zonedDateStart;
         ZonedDateTime zonedDateEnd;
         MultiPolygon polygon;
@@ -154,7 +158,8 @@ public class GuideProductService {
             polygon = regionRepository.findByName("서울특별시").getPolygon();
         }
 
-        Page<SearchGuideProductResponse> guideProducts = guideProductRepository.findByFilter(polygon, zonedDateStart, zonedDateEnd, categories, minPrice, maxPrice, minDuration, maxDuration, dayTime, nationality, pageable);
+        Page<SearchGuideProductResponse> guideProducts = guideProductRepository.findByFilter(polygon, zonedDateStart,
+                zonedDateEnd, categories, minPrice, maxPrice, minDuration, maxDuration, dayTime, nationality, languages, pageable);
 
         if (guideProducts.isEmpty()) throw new GuideProductNotInRangeException("해당 조건에 부합하는 가이드 상품이 존재하지 않습니다.");
 

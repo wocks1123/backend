@@ -3,6 +3,7 @@ package com.swygbro.trip.backend.domain.guideProduct.api;
 import com.swygbro.trip.backend.domain.guideProduct.application.GuideProductService;
 import com.swygbro.trip.backend.domain.guideProduct.domain.DayTime;
 import com.swygbro.trip.backend.domain.guideProduct.dto.*;
+import com.swygbro.trip.backend.domain.user.domain.Language;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import com.swygbro.trip.backend.global.document.ForbiddenResponse;
 import com.swygbro.trip.backend.global.document.InvalidTokenResponse;
@@ -395,6 +396,7 @@ public class GuideProductController {
             |maxD| 최대 소요 시간 | 시간 단위 | Y (default = 24) | 5 |
             |dayT| 시간대 | DAWN(0 ~ 6), MORNING(7 ~ 11), LUNCH (12 ~ 17), EVENING (18 ~ 23) | Y (default = ALL) | LUNCH |
             |host| 같은 국적 여부 | 같을 경우 true, 다를 경우 false | Y (default = false) | false |
+            |lan| 선호 언어 | 선호하는 언어 목록을 ISO 639-1 형식으로 입력, 단일 및 여러개 가능 | Y | ["ko", "en"] |
                       
             ## 상황
             모든 상황에서 검색, 필터, 카테고리가 단독으로 사용 가능하며 같이도 사용 가능합니다.
@@ -434,10 +436,11 @@ public class GuideProductController {
                                                                           @RequestParam(value = "maxD", required = false, defaultValue = "24") int maxDuration,
                                                                           @RequestParam(value = "dayT", required = false, defaultValue = "ALL") DayTime dayTime,
                                                                           @RequestParam(value = "host", required = false, defaultValue = "false") boolean same,
+                                                                          @RequestParam(value = "lan", required = false) List<Language> languages,
                                                                           Pageable pageable) {
         if (user != null && same)
-            return guideProductService.getSearchedGuideList(request, searchCategoriesRequest, minPrice, maxPrice, minDuration, maxDuration, dayTime, user.getNationality(), pageable);
+            return guideProductService.getSearchedGuideList(request, searchCategoriesRequest, minPrice, maxPrice, minDuration, maxDuration, dayTime, user.getNationality(), languages, pageable);
         else
-            return guideProductService.getSearchedGuideList(request, searchCategoriesRequest, minPrice, maxPrice, minDuration, maxDuration, dayTime, null, pageable);
+            return guideProductService.getSearchedGuideList(request, searchCategoriesRequest, minPrice, maxPrice, minDuration, maxDuration, dayTime, null, languages, pageable);
     }
 }

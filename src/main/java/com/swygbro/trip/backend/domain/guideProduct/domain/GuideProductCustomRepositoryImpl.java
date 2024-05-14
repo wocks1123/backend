@@ -7,7 +7,10 @@ import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.swygbro.trip.backend.domain.guideProduct.dto.SearchCategoriesRequest;
 import com.swygbro.trip.backend.domain.guideProduct.dto.SearchGuideProductResponse;
+import com.swygbro.trip.backend.domain.user.domain.Language;
 import com.swygbro.trip.backend.domain.user.domain.Nationality;
+import com.swygbro.trip.backend.domain.user.domain.QUser;
+import com.swygbro.trip.backend.domain.user.domain.QUserLanguage;
 import org.locationtech.jts.geom.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -23,6 +26,7 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
     private final JPAQueryFactory jpaQueryFactory;
     private final QGuideProduct qProduct = QGuideProduct.guideProduct;
     private final QGuideCategory qCategory = QGuideCategory.guideCategory;
+    private final QUserLanguage qUserLanguage = QUserLanguage.userLanguage;
 
     public GuideProductCustomRepositoryImpl(JPAQueryFactory jpaQueryFactory) {
         this.jpaQueryFactory = jpaQueryFactory;
@@ -97,6 +101,7 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
                                                          int maxDuration,
                                                          DayTime dayTime,
                                                          Nationality nationality,
+                                                         List<Language> languages,
                                                          Pageable pageable) {
         List<SearchGuideProductResponse> fetch = jpaQueryFactory
                 .select(Projections.fields(SearchGuideProductResponse.class,
@@ -112,7 +117,8 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
                         qProduct.price.between(minPrice, maxPrice),
                         qProduct.guideTime.between(minDuration, maxDuration),
                         hourEq(dayTime),
-                        nationalityEq(nationality))
+                        nationalityEq(nationality),
+                        languageIn(languages))
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .distinct().fetch();
@@ -125,7 +131,8 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
                         qProduct.price.between(minPrice, maxPrice),
                         qProduct.guideTime.between(minDuration, maxDuration),
                         hourEq(dayTime),
-                        nationalityEq(nationality));
+                        nationalityEq(nationality),
+                        languageIn(languages));
 
         return PageableExecutionUtils.getPage(fetch, pageable, count::fetchOne);
     }
@@ -178,6 +185,13 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
 
     private BooleanExpression nationalityEq(Nationality nationality) {
         if (nationality != null) return qProduct.user.nationality.eq(nationality);
+        return null;
+    }
+
+    private BooleanExpression languageIn(List<Language> languages){
+        if (languages != null) return qProduct.user.id.in(jpaQueryFactory.select(qUserLanguage.user.id)
+                .from(qUserLanguage)
+                .where(qUserLanguage.language.in(languages)));
         return null;
     }
 }
