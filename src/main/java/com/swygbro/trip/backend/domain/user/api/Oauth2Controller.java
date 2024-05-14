@@ -149,7 +149,7 @@ public class Oauth2Controller {
             )
     )
     @ValidationErrorResponse
-    public UserInfoDto createUser(@Valid @RequestBody CreateGoogleUserRequest dto) throws JsonProcessingException {
+    public UserInfoDto createGoogleUser(@Valid @RequestBody CreateGoogleUserRequest dto) throws JsonProcessingException {
         return googleOauthService.createUser(dto);
     }
 
