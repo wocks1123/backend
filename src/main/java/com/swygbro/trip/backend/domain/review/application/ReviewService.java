@@ -11,7 +11,7 @@ import com.swygbro.trip.backend.domain.review.dto.ReviewDetailDto;
 import com.swygbro.trip.backend.domain.review.dto.ReviewInfoDto;
 import com.swygbro.trip.backend.domain.review.exception.InvalidReviewRequestException;
 import com.swygbro.trip.backend.domain.review.exception.ReviewNotFoundException;
-import com.swygbro.trip.backend.domain.s3.application.ImageUploader;
+import com.swygbro.trip.backend.domain.s3.application.S3Service;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -28,7 +28,7 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final ReservationRepository reservationRepository;
     private final GuideProductRepository guideProductRepository;
-    private final ImageUploader s3Service;
+    private final S3Service s3Service;
 
     @Transactional(readOnly = true)
     public ReviewDetailDto getReviewById(Long id) {
