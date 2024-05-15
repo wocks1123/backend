@@ -48,6 +48,7 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
                         qProduct.id,
                         qProduct.title,
                         qProduct.thumb,
+                        qProduct.locationName,
                         qProduct.guideStart,
                         qProduct.guideEnd))
                 .from(qProduct)
@@ -63,6 +64,7 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
                         qProduct.id,
                         qProduct.title,
                         qProduct.thumb,
+                        qProduct.locationName,
                         qProduct.guideStart,
                         qProduct.guideEnd))
                 .from(qProduct)
@@ -78,6 +80,7 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
                         qProduct.id,
                         qProduct.title,
                         qProduct.thumb,
+                        qProduct.locationName,
                         qProduct.guideStart,
                         qProduct.guideEnd))
                 .from(qProduct)
@@ -109,6 +112,7 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
                         qProduct.id,
                         qProduct.title,
                         qProduct.thumb,
+                        qProduct.locationName,
                         qProduct.guideStart,
                         qProduct.guideEnd))
                 .from(qProduct)
@@ -126,7 +130,6 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
         JPQLQuery<Long> count = jpaQueryFactory.select(qProduct.count())
                 .from(qProduct)
                 .where(regionEqAndStartDateBetween(region, start, end),
-                        startDateBetween(start, end),
                         categoryIn(region, category),
                         qProduct.price.between(minPrice, maxPrice),
                         qProduct.guideTime.between(minDuration, maxDuration),

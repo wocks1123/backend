@@ -45,6 +45,9 @@ public class GuideProduct extends BaseEntity {
     @Column(nullable = false)
     private Long price;
 
+    @Column(name = "location_name", length = 100, nullable = false)
+    private String locationName;
+
     @Column(nullable = false, columnDefinition = "POINT SRID 4326")
     private Point location;
 
@@ -75,14 +78,14 @@ public class GuideProduct extends BaseEntity {
         if (images.size() == 1)
             return GuideProduct.builder().user(user)
                     .title(request.getTitle()).description(request.getDescription())
-                    .price(request.getPrice()).location(point)
+                    .price(request.getPrice()).locationName(request.getLocationName()).location(point)
                     .guideStart(request.getGuideStart()).guideEnd(request.getGuideEnd())
                     .guideTime(request.getGuideTime()).thumb(images.get(0))
                     .categories(new ArrayList<>())
                     .build();
         else return GuideProduct.builder().user(user)
                 .title(request.getTitle()).description(request.getDescription())
-                .price(request.getPrice()).location(point)
+                .price(request.getPrice()).locationName(request.getLocationName()).location(point)
                 .guideStart(request.getGuideStart()).guideEnd(request.getGuideEnd())
                 .guideTime(request.getGuideTime()).thumb(images.get(0))
                 .images(images.subList(1, images.size()).stream().toList())
@@ -113,6 +116,7 @@ public class GuideProduct extends BaseEntity {
         this.title = request.getTitle();
         this.description = request.getDescription();
         this.price = request.getPrice();
+        this.locationName = request.getLocationName();
         this.location = point;
         this.guideStart = request.getGuideStart();
         this.guideEnd = request.getGuideEnd();
