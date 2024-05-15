@@ -34,7 +34,7 @@ public class User extends BaseEntity {
 
     @Setter
     @Column(length = 100, nullable = false)
-    private String profileImageUrl = "";
+    private String profileImageUrl = "https://metthew-s3.s3.us-east-2.amazonaws.com/guide/default_profile4x.png";
 
     @Column(unique = true, length = 20, nullable = false)
     private String phone;
