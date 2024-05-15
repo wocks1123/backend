@@ -1,5 +1,6 @@
 package com.swygbro.trip.backend.domain.guideProduct.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -27,7 +28,9 @@ public class SimpleGuideProductDto {
     private String thumb;
     //    private Point location; // TODO 위치 정보 추가
     @Schema(description = "가이드 상품 시작 시간", example = "2024-05-05 00:00:00")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private ZonedDateTime guideStart;
     @Schema(description = "가이드 상품 종료 시간", example = "2024-05-05 00:00:00")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private ZonedDateTime guideEnd;
 }

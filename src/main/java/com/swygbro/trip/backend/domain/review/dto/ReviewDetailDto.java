@@ -22,7 +22,7 @@ public class ReviewDetailDto {
     private String content;
     @Schema(description = "별점", example = "5")
     private Integer rating;
-    @Schema(description = "이미지 링크들", example = "['http://s3bucket.com/000', ...]", type = "string")
+    @Schema(description = "이미지 링크들", example = "['http://s3bucket.com/000', ...]", type = "array")
     private List<String> images;
     @Schema(description = "리뷰 생성일", example = "2024-05-05 00:00:00", type = "string")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
