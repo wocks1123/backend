@@ -5,6 +5,7 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
 import com.swygbro.trip.backend.domain.guideProduct.dto.SearchCategoriesRequest;
 import com.swygbro.trip.backend.domain.guideProduct.dto.SearchGuideProductResponse;
 import com.swygbro.trip.backend.domain.user.domain.Language;
@@ -111,8 +112,7 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
                         qProduct.guideStart,
                         qProduct.guideEnd))
                 .from(qProduct)
-                .where(regionEq(region),
-                        startDateBetween(start, end),
+                .where(regionEqAndStartDateBetween(region, start, end),
                         categoryIn(region, category),
                         qProduct.price.between(minPrice, maxPrice),
                         qProduct.guideTime.between(minDuration, maxDuration),
@@ -125,7 +125,7 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
 
         JPQLQuery<Long> count = jpaQueryFactory.select(qProduct.count())
                 .from(qProduct)
-                .where(regionEq(region),
+                .where(regionEqAndStartDateBetween(region, start, end),
                         startDateBetween(start, end),
                         categoryIn(region, category),
                         qProduct.price.between(minPrice, maxPrice),
@@ -148,6 +148,12 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
     private BooleanExpression hourEq(DayTime dayTime) {
         return Expressions.booleanTemplate("DATE_FORMAT(convert_tz({0}, '+00:00', '+09:00'), '%H:%i:%s') between {1} and {2}",
                 qProduct.guideStart, dayTime.getStart(), dayTime.getEnd());
+    }
+
+    private BooleanExpression regionEqAndStartDateBetween(MultiPolygon region, ZonedDateTime start, ZonedDateTime end) {
+        if (region != null && start != null && end != null) return Expressions.booleanTemplate("ST_CONTAINS({0}, {1})",
+                region, qProduct.location).and(qProduct.guideStart.between(start, end));
+        return null;
     }
 
     private BooleanExpression regionEq(MultiPolygon region) {
