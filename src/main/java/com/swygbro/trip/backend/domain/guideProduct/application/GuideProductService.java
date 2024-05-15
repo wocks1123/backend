@@ -101,7 +101,8 @@ public class GuideProductService {
                                               Optional<MultipartFile> modifyThumb, Optional<List<MultipartFile>> modifyImages) {
         GuideProduct product = guideProductRepository.findById(productId).orElseThrow(() -> new GuideProductNotFoundException(productId));
 
-        if (product.getUser() != user) throw new MismatchUserFromCreatorException("가이드 상품을 수정할 권한이 없습니다.");
+        if (product.getUser().equals(user))
+            throw new MismatchUserFromCreatorException("가이드 상품을 수정할 권한이 없습니다.");
 
         modifyThumb.ifPresent(image -> {
             s3Service.deleteImage(product.getThumb());
@@ -130,7 +131,7 @@ public class GuideProductService {
     public void deleteGuideProduct(Long productId, User user) {
         GuideProduct product = guideProductRepository.findById(productId).orElseThrow(() -> new GuideProductNotFoundException(productId));
 
-        if (product.getUser() != user) throw new MismatchUserFromCreatorException("가이드 상품을 삭제할 권한이 없습니다.");
+        if (product.getUser().equals(user)) throw new MismatchUserFromCreatorException("가이드 상품을 삭제할 권한이 없습니다.");
 
         s3Service.deleteImage(product.getThumb());
         product.getImages().forEach(s3Service::deleteImage);
