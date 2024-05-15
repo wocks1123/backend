@@ -91,6 +91,7 @@ public class LoginController {
             |name| 사용자의 이름 | 2~20자 | N | name01 |
             |phone| 사용자의 전화번호 | '-'를 제외한 숫자 | Y | 01012345678 |
             |nationality| 사용자의 국적 | 영문3자 국가 코드 | N | KOR |
+            |birthdate| 사용자의 생년월일 | `yyyy-MM-dd` 형식의 문자열 | N | 1990-01-01 |
             |gender| 성별 | Male, Female 중 하나 | N | Male |
             |password| 사용자의 비밀번호 | 영문(대소문자), 숫자, 특수문자를 포함한 8~32자 | N | password01! |
             |passwordCheck| 사용자의 비밀번호 확인 | password와 동일한 입력 | N | password01! |
