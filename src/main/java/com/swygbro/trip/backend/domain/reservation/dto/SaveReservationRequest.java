@@ -26,12 +26,12 @@ public class SaveReservationRequest {
     Long productId;
 
     @NotNull
-    @Schema(description = "가이드 시작 날짜", example = "2024-05-01 12:00:00")
+    @Schema(description = "가이드 시작 날짜", example = "2024-05-01 12:00:00", type = "string")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     ZonedDateTime guideStart;
 
     @NotNull
-    @Schema(description = "가이드 종료 날짜", example = "2024-05-01 12:00:00")
+    @Schema(description = "가이드 종료 날짜", example = "2024-05-01 12:00:00", type = "string")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     ZonedDateTime guideEnd;
 
