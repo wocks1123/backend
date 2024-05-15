@@ -5,12 +5,11 @@ import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
 import com.swygbro.trip.backend.domain.guideProduct.dto.SearchCategoriesRequest;
 import com.swygbro.trip.backend.domain.guideProduct.dto.SearchGuideProductResponse;
+import com.swygbro.trip.backend.domain.review.domain.QReview;
 import com.swygbro.trip.backend.domain.user.domain.Language;
 import com.swygbro.trip.backend.domain.user.domain.Nationality;
-import com.swygbro.trip.backend.domain.user.domain.QUser;
 import com.swygbro.trip.backend.domain.user.domain.QUserLanguage;
 import org.locationtech.jts.geom.*;
 import org.springframework.data.domain.Page;
@@ -28,6 +27,7 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
     private final QGuideProduct qProduct = QGuideProduct.guideProduct;
     private final QGuideCategory qCategory = QGuideCategory.guideCategory;
     private final QUserLanguage qUserLanguage = QUserLanguage.userLanguage;
+    private final QReview qReview = QReview.review;
 
     public GuideProductCustomRepositoryImpl(JPAQueryFactory jpaQueryFactory) {
         this.jpaQueryFactory = jpaQueryFactory;
@@ -37,6 +37,7 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
     public Optional<GuideProduct> findDetailById(Long productId) {
         return Optional.ofNullable(jpaQueryFactory.selectFrom(qProduct)
                 .join(qProduct.categories, qCategory).fetchJoin()
+                .join(qProduct.reviews, qReview).fetchJoin()
                 .where(qProduct.id.eq(productId))
                 .fetchOne());
     }
@@ -197,7 +198,7 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
         return null;
     }
 
-    private BooleanExpression languageIn(List<Language> languages){
+    private BooleanExpression languageIn(List<Language> languages) {
         if (languages != null) return qProduct.user.id.in(jpaQueryFactory.select(qUserLanguage.user.id)
                 .from(qUserLanguage)
                 .where(qUserLanguage.language.in(languages)));

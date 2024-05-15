@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideCategory;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideCategoryCode;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProduct;
-import com.swygbro.trip.backend.domain.review.dto.DetailReviewDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,13 +12,12 @@ import lombok.NoArgsConstructor;
 
 import java.time.ZonedDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class GuideProductDto {
+public class CreateGuideProductDto {
     @Schema(description = "유저 ID", example = "1")
     private Long userId;
     @Schema(description = "사용자 닉네임", example = "nickname01")
@@ -52,13 +50,11 @@ public class GuideProductDto {
     private String thumb;
     @Schema(description = "상품 이미지 url", example = "[\"https://S3저장소URL/저장위치/난수화된 이미지이름.이미지 타입\", \"...\"]")
     private List<String> images;
-    @Schema(description = "상품 리뷰")
-    private List<DetailReviewDto> reviews;
 
-    public static GuideProductDto fromEntity(GuideProduct product) {
+    public static CreateGuideProductDto fromEntity(GuideProduct product) {
         List<GuideCategoryCode> categories = product.getCategories().stream().map(GuideCategory::getCategoryCode).toList();
 
-        return GuideProductDto.builder().id(product.getId())
+        return CreateGuideProductDto.builder().id(product.getId())
                 .userId(product.getUser().getId())
                 .nickname(product.getUser().getNickname())
                 .title(product.getTitle())
@@ -67,7 +63,7 @@ public class GuideProductDto {
                 .guideStart(product.getGuideStart()).guideEnd(product.getGuideEnd())
                 .guideTime(product.getGuideTime()).categories(categories)
                 .thumb(product.getThumb()).images(product.getImages())
-                .reviews(product.getReviews().stream().map(DetailReviewDto::fromEntity).collect(Collectors.toList()))
                 .build();
+
     }
 }

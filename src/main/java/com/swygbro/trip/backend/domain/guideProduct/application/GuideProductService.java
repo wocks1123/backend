@@ -62,7 +62,7 @@ public class GuideProductService {
 
     // 가이드 상품 생성
     @Transactional
-    public GuideProductDto createGuideProduct(User user, CreateGuideProductRequest request, MultipartFile thumb, Optional<List<MultipartFile>> images) {
+    public CreateGuideProductDto createGuideProduct(User user, CreateGuideProductRequest request, MultipartFile thumb, Optional<List<MultipartFile>> images) {
         isValidLocation(request.getLatitude(), request.getLongitude());
 
         List<String> imageUrls = new ArrayList<>();
@@ -84,7 +84,7 @@ public class GuideProductService {
         });
 
         GuideProduct resultProduct = guideProductRepository.saveAndFlush(product);
-        return GuideProductDto.fromEntity(resultProduct);
+        return CreateGuideProductDto.fromEntity(resultProduct);
     }
 
     // 가이드 상품 조회

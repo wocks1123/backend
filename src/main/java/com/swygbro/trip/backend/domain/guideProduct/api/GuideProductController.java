@@ -88,6 +88,7 @@ public class GuideProductController {
             |title| 상품 제목 | 한글 기준 최대 30자, 영어 기준 최대 100자 | N | 신나는 서울 투어 |
             |description| 상품 설명 | 한글 기준 21000자, 영어 기준 65535  | N | 서울 *** 여행 가이드 합니다. |
             |price| 가이드 비용 | 한국 재화 기준 | N | 10000 |
+            |locationName| 가이드 가이드 위치 이름 |  | N | 서울 한강 공원 |
             |latitude| 가이드 위치(위도) | -90.0 이상, 90.0 이하 | N | 37.2 |
             |longitude| 가이드 위치(경도) | -180.0 이상, 180.0 이하 | N | 127.5 |
             |guideStart| 가이드 시작 날짜/시간 | yyyy-MM-dd HH:mm:ss 패턴 | N | 2024-05-01 12:00:00 |
@@ -148,10 +149,10 @@ public class GuideProductController {
     )
     @ForbiddenResponse
     @InvalidTokenResponse
-    public GuideProductDto createGuideProduct(@CurrentUser User user,
-                                              @Valid @RequestPart CreateGuideProductRequest request,
-                                              @RequestPart(value = "thumb") MultipartFile thumbImage,
-                                              @RequestPart(value = "file", required = false) Optional<List<MultipartFile>> images) {
+    public CreateGuideProductDto createGuideProduct(@CurrentUser User user,
+                                                    @Valid @RequestPart CreateGuideProductRequest request,
+                                                    @RequestPart(value = "thumb") MultipartFile thumbImage,
+                                                    @RequestPart(value = "file", required = false) Optional<List<MultipartFile>> images) {
         return guideProductService.createGuideProduct(user, request, thumbImage, images);
     }
 
@@ -218,6 +219,7 @@ public class GuideProductController {
             |title| 상품 제목 | 한글 기준 최대 30자, 영어 기준 최대 100자 | N | 신나는 서울 투어 |
             |description| 상품 설명 | 한글 기준 21000자, 영어 기준 65535  | N | 서울 *** 여행 가이드 합니다. |
             |price| 가이드 비용 | 한국 재화 기준 | N | 10000 |
+            |locationName| 가이드 가이드 위치 이름 |  | N | 서울 한강 공원 |
             |latitude| 가이드 위치(위도) | -90.0 이상, 90.0 이하 | N | 37.2 |
             |longitude| 가이드 위치(경도) | -180.0 이상, 180.0 이하 | N | 127.5 |
             |guideStart| 가이드 시작 날짜/시간 | yyyy-MM-dd HH:mm:ss 패턴 | N | 2024-05-01 12:00:00 |
@@ -354,7 +356,7 @@ public class GuideProductController {
     @GetMapping("/search")
     @Operation(summary = "검색 + 필터 ", description = """
             page=?&size=? 로 page(0부터 시작) 번호와 size(가져올 데이터 갯수)를 지정해주면 됩니다.
-            
+                        
             # 지역 + 날짜로 검색
                         
             지역과 날짜를 입력하면 두 조건에 만족하는 가이드 상품들을 검색합니다.<br>

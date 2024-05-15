@@ -27,6 +27,9 @@ public class ModifyGuideProductRequest {
     @Schema(description = "가이드 비용", example = "10000")
     private Long price;
     @NotNull
+    @Schema(description = "가이드 위치 이름", example = "한강 공원")
+    private String locationName;
+    @NotNull
     @Schema(description = "가이드 위치(위도)", example = "37")
     private double latitude;
     @NotNull
