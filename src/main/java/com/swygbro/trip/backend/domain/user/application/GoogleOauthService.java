@@ -3,8 +3,14 @@ package com.swygbro.trip.backend.domain.user.application;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.swygbro.trip.backend.domain.user.domain.User;
+import com.swygbro.trip.backend.domain.user.domain.UserRepository;
+import com.swygbro.trip.backend.domain.user.dto.CreateGoogleUserRequest;
 import com.swygbro.trip.backend.domain.user.dto.GoogleUserInfo;
+import com.swygbro.trip.backend.domain.user.dto.GoogleUserInfoDto;
+import com.swygbro.trip.backend.domain.user.dto.UserInfoDto;
 import com.swygbro.trip.backend.global.jwt.TokenService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -12,12 +18,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -34,10 +42,14 @@ public class GoogleOauthService {
     @Value("${google.client.scope}")
     private String scope;
 
+    private final UserRepository userRepository;
     private final UserService userService;
     private final TokenService tokenService;
 
     private final RestTemplate restTemplate;
+    private final UserValidationService userValidationService;
+
+    private final HttpSession httpSession;
 
 
     public String getGoogleLoginUrl() {
@@ -60,9 +72,35 @@ public class GoogleOauthService {
             return ResponseEntity.ok(tokenService.generateToken(userInfo.getEmail()));
         }
 
+        UUID uuid = UUID.randomUUID();
+        httpSession.setAttribute(String.valueOf(uuid), userInfo);
+
         return ResponseEntity
                 .status(HttpStatus.MOVED_PERMANENTLY)
-                .body(userInfo);
+                .body(new GoogleUserInfoDto(userInfo, uuid.toString()));
+    }
+
+    @Transactional
+    public UserInfoDto createUser(CreateGoogleUserRequest dto) throws JsonProcessingException {
+        userValidationService.checkUniqueUser(dto);
+
+        GoogleUserInfo userInfo = (GoogleUserInfo) httpSession.getAttribute(dto.getUuid());
+
+        userValidationService.checkEmailDupl(userInfo.getEmail());
+
+        User createdUser = userRepository.save(
+                new User(dto, userInfo)
+        );
+
+        return UserInfoDto.builder()
+                .id(createdUser.getId())
+                .email(createdUser.getEmail())
+                .nickname(createdUser.getNickname())
+                .name(createdUser.getName())
+                .birthdate(createdUser.getBirthdate())
+                .gender(createdUser.getGender())
+                .nationality(createdUser.getNationality())
+                .build();
     }
 
 

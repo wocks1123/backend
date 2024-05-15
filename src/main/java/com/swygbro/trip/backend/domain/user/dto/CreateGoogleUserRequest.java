@@ -3,27 +3,14 @@ package com.swygbro.trip.backend.domain.user.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.swygbro.trip.backend.domain.user.domain.Gender;
 import com.swygbro.trip.backend.domain.user.domain.Nationality;
-import com.swygbro.trip.backend.global.dto.RequestDto;
-import com.swygbro.trip.backend.global.validation.Password;
 import com.swygbro.trip.backend.global.validation.Phone;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.Data;
 
-@AllArgsConstructor
-@NoArgsConstructor
-@Getter
-public class CreateUserRequest extends RequestDto {
-
-    @NotBlank
-    @Email
-    @Schema(description = "사용자 이메일", example = "user01@email.com")
-    private String email;
-
+@Data
+public class CreateGoogleUserRequest {
     @NotBlank
     @Size(max = 20)
     @Schema(description = "사용자 닉네임", example = "nickname01")
@@ -35,7 +22,7 @@ public class CreateUserRequest extends RequestDto {
     private String name;
 
     @Size(max = 20)
-    @Phone // TODO 핸드폰번호 검증양식 추가
+    @Phone
     @Schema(description = "사용자 전화번호", example = "+01012345678")
     private String phone;
 
@@ -54,15 +41,6 @@ public class CreateUserRequest extends RequestDto {
     @Schema(description = "사용자 성별", example = "Male")
     private Gender gender;
 
-    @NotBlank
-    @Size(min = 8, max = 20)
-    @Password
-    @Schema(description = "사용자 비밀번호", example = "password123!")
-    private String password;
-
-    @NotBlank
-    @Schema(description = "비밀번호 확인", example = "password123!")
-    private String passwordCheck;
+    @Schema(description = "callback에서 전달한 uuid", example = "58effd3e-431b-4ec4-8240-a5636e3a47f7")
+    private String uuid;
 }
-
-

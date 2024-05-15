@@ -3,19 +3,25 @@ package com.swygbro.trip.backend.domain.user.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.swygbro.trip.backend.domain.user.application.GoogleOauthService;
+import com.swygbro.trip.backend.domain.user.dto.CreateGoogleUserRequest;
+import com.swygbro.trip.backend.domain.user.dto.GoogleUserInfoDto;
+import com.swygbro.trip.backend.domain.user.dto.UserInfoDto;
+import com.swygbro.trip.backend.global.document.ValidationErrorResponse;
+import com.swygbro.trip.backend.global.exception.ApiErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
@@ -82,7 +88,9 @@ public class Oauth2Controller {
               "locale": "ko",
               "email": "swyg46@gmail.com",
               "verified_email": true,
-              "picture": "https://lh3.googleusercontent.com/a/ACg8ocKrQm8D09Njibbo_vgeOQZt_oBdu63c6qOgxsWZ6QOJdcflxA=s96-c"
+              "picture": "https://lh3.googleusercontent.com/a/ACg8ocKrQm8D09Njibbo_vgeOQZt_oBdu63c6qOgxsWZ6QOJdcflxA=s96-c",
+              // 구글계정 회원가입 요청 시 필요한 uuid
+              "uuid": "58effd3e-431b-4ec4-8240-a5636e3a47f7"
             }
             """)
     @Parameter(name = "code", description = "구글 인가 코드", required = true)
@@ -93,9 +101,57 @@ public class Oauth2Controller {
     @ApiResponse(
             responseCode = "301",
             description = "회원가입 페이지",
-            content = @Content(mediaType = "application/json"))
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = GoogleUserInfoDto.class)))
     public ResponseEntity<?> callback(@RequestParam String code) throws JsonProcessingException {
         return googleOauthService.callback(code);
     }
+
+    @PostMapping("/google/signup")
+    @Operation(summary = "구글 계정으로 회원 가입", description = """
+            # 구글 계정 회원가입
+                        
+            구글 계정으로 회원가입을 수행합니다.. 회원 가입 시 닉네임, 이름, 전화번호, 국적, 성별, 비밀번호, 비밀번호 확인을 입력합니다.
+            각 필드의 제약 조건은 다음과 같습니다.
+
+            | 필드명 | 설명 | 제약조건 | 중복확인 | 예시 |
+            |--------|------|----------|----------|------|
+            | nickname | 다른 사용자들에게 보이는 닉네임 | 4~20자 | Y | nickname01 |
+            | name | 사용자의 이름 | 2~20자 | N | name01 |
+            | phone | 사용자의 전화번호 | '-'를 제외한 숫자, null 가능 | Y | 01012345678 |
+            | location | 사용자의 거주 지역 | 문자열(todo: 제약사항?), null 가능 | N | 서울 종로구 창신동 |
+            | nationality | 사용자의 국적 | 영문3자 국가 코드 | N | KOR |
+            | birthdate | 사용자의 생년월일 | `yyyy-MM-dd` 형식의 문자열 | N | 1990-01-01 |
+            | gender | 성별 | Male, Female 중 하나 | N | Male |
+            | uuid | 구글 로그인 시 callback에서 발급받은 uuid | 문자열 | N | 58effd3e-431b-4ec4-8240-a5636e3a47f7 |
+             
+            ## 응답
+                        
+            - 회원 가입 성공 시 `200` 코드와 함께 회원 이메일을 문자열로 반환합니다.
+            - 중복된 값이 있을 경우 `409` 에러를 반환합니다.
+            - 입력 양식에 오류가 있을 경우 `400` 에러를 반환합니다.
+             
+            """)
+    @ApiResponse(
+            responseCode = "200",
+            description = "생성한 계정 고유 번호를 반환합니다.",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = UserInfoDto.class)))
+    @ApiResponse(
+            responseCode = "409",
+            description = "입력 값 중 중복된 값이 있습니다.",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ApiErrorResponse.class),
+                    examples = @ExampleObject(value = "{\n  \"status\": \"CONFLICT\",\n  \"message\": \"데이터 중복\"\n}")
+            )
+    )
+    @ValidationErrorResponse
+    public UserInfoDto createUser(@Valid @RequestBody CreateGoogleUserRequest dto) throws JsonProcessingException {
+        return googleOauthService.createUser(dto);
+    }
+
 
 }

@@ -13,7 +13,8 @@ public class PhoneValidator implements ConstraintValidator<Phone, String> {
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
         if (value == null) {
-            return false;
+            // 핸드폰은 선택사항이기 때문에 null 허용
+            return true;
         }
         return value.matches(PHONE_PATTERN);
     }

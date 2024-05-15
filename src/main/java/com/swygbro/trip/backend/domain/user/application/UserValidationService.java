@@ -1,6 +1,7 @@
 package com.swygbro.trip.backend.domain.user.application;
 
 import com.swygbro.trip.backend.domain.user.domain.UserRepository;
+import com.swygbro.trip.backend.domain.user.dto.CreateGoogleUserRequest;
 import com.swygbro.trip.backend.domain.user.dto.CreateUserRequest;
 import com.swygbro.trip.backend.domain.user.excepiton.DuplicateDataException;
 import com.swygbro.trip.backend.domain.user.util.CheckDuplication;
@@ -32,9 +33,28 @@ public class UserValidationService {
         if (checkers.get(FieldName.Email).check(dto.getEmail())) {
             throw new DuplicateDataException(dto.getEmail());
         }
-        if (checkers.get(FieldName.Phone).check(dto.getPhone())) {
+        if (checkers.get(FieldName.Nickname).check(dto.getNickname())) {
+            throw new DuplicateDataException(dto.getNickname());
+        }
+        if (dto.getPhone() != null && checkers.get(FieldName.Phone).check(dto.getPhone())) {
             throw new DuplicateDataException(dto.getPhone());
         }
     }
+
+    public void checkUniqueUser(CreateGoogleUserRequest dto) {
+        if (checkers.get(FieldName.Nickname).check(dto.getNickname())) {
+            throw new DuplicateDataException(dto.getNickname());
+        }
+        if (dto.getPhone() != null && checkers.get(FieldName.Phone).check(dto.getPhone())) {
+            throw new DuplicateDataException(dto.getPhone());
+        }
+    }
+
+    public void checkEmailDupl(String email) {
+        if (checkers.get(FieldName.Email).check(email)) {
+            throw new DuplicateDataException(email);
+        }
+    }
+
 
 }
