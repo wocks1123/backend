@@ -21,7 +21,8 @@ public class ReviewImage {
     @Column(nullable = false, length = 250)
     private String imageUrl;
 
-    public ReviewImage(String imageUrl) {
+    public ReviewImage(String imageUrl, Review review) {
+        this.review = review;
         this.imageUrl = imageUrl;
     }
 }

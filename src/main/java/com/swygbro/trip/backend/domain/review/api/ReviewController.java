@@ -3,6 +3,7 @@ package com.swygbro.trip.backend.domain.review.api;
 
 import com.swygbro.trip.backend.domain.review.application.ReviewService;
 import com.swygbro.trip.backend.domain.review.dto.CreateReviewRequest;
+import com.swygbro.trip.backend.domain.review.dto.ReviewDetailDto;
 import com.swygbro.trip.backend.domain.review.dto.ReviewInfoDto;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import com.swygbro.trip.backend.global.document.ForbiddenResponse;
@@ -19,10 +20,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -35,8 +33,24 @@ import java.util.List;
         가이드 상품 리뷰 API
         """)
 public class ReviewController {
-    
+
     private final ReviewService reviewService;
+
+    @GetMapping("{reviewId}")
+    @Operation(summary = "", description = """
+                        
+            """)
+    @ApiResponse(
+            responseCode = "200",
+            description = "`200` 코드와 함께 생성한 리뷰 정보가 반환됩니다.",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ReviewDetailDto.class)
+            )
+    )
+    ReviewDetailDto getReviewById(@PathVariable Long reviewId) {
+        return reviewService.getReviewById(reviewId);
+    }
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('USER')")
