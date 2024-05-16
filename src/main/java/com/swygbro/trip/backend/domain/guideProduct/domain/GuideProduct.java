@@ -14,14 +14,11 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-/* TODO : 이미지와 양방향 매핑이 아니라 json 형태로 저장?
-          index 설정,
-          update시 delete???? or delete 사용?
- */
 @Entity
 @Builder
 @AllArgsConstructor
@@ -80,20 +77,12 @@ public class GuideProduct extends BaseEntity {
         Point point = geometryFactory.createPoint(new Coordinate(request.getLongitude(), request.getLatitude()));
         point.setSRID(4326);
 
-        if (images.size() == 1)
-            return GuideProduct.builder().user(user)
-                    .title(request.getTitle()).description(request.getDescription())
-                    .price(request.getPrice()).locationName(request.getLocationName()).location(point)
-                    .guideStart(request.getGuideStart()).guideEnd(request.getGuideEnd())
-                    .guideTime(request.getGuideTime()).thumb(images.get(0))
-                    .categories(new LinkedHashSet<>())
-                    .build();
-        else return GuideProduct.builder().user(user)
+        return GuideProduct.builder().user(user)
                 .title(request.getTitle()).description(request.getDescription())
                 .price(request.getPrice()).locationName(request.getLocationName()).location(point)
                 .guideStart(request.getGuideStart()).guideEnd(request.getGuideEnd())
                 .guideTime(request.getGuideTime()).thumb(images.get(0))
-                .images(images.subList(1, images.size()).stream().toList())
+                .images(images.size() == 1 ? new ArrayList<>() : images.subList(1, images.size()).stream().toList())
                 .categories(new LinkedHashSet<>())
                 .build();
     }
