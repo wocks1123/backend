@@ -65,8 +65,15 @@ public class UserDaoImpl implements UserDao {
 
         res.forEach(userProfileDto -> {
             var reviewRes = reviewQueryRes.fetchFirst();
-            userProfileDto.setReviewCount(reviewRes.get(0, Long.class).intValue());
-            userProfileDto.setReviewRating(reviewRes.get(1, Double.class).floatValue());
+            if (reviewRes == null) {
+                return;
+            }
+            Long reviewCount = reviewRes.get(0, Long.class);
+            if (reviewCount != null) {
+                userProfileDto.setReviewCount(reviewCount.intValue());
+            }
+            Float reviewRating = reviewRes.get(1, Float.class);
+            userProfileDto.setReviewRating(reviewRating != null ? reviewRating.floatValue() : 0.0f);
         });
 
         return res.stream().findFirst();
