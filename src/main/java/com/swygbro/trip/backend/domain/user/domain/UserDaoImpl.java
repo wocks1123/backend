@@ -4,6 +4,7 @@ import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.swygbro.trip.backend.domain.guideProduct.domain.QGuideProduct;
 import com.swygbro.trip.backend.domain.guideProduct.dto.SimpleGuideProductDto;
+import com.swygbro.trip.backend.domain.review.domain.QReview;
 import com.swygbro.trip.backend.domain.user.dto.UserProfileDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -25,6 +26,7 @@ public class UserDaoImpl implements UserDao {
 
         QUser qUser = QUser.user;
         QGuideProduct qGuideProduct = QGuideProduct.guideProduct;
+        QReview qReview = QReview.review;
 
         var res = queryFactory
                 .from(qUser)
@@ -41,6 +43,7 @@ public class UserDaoImpl implements UserDao {
                                                 qUser.name,
                                                 qUser.profile,
                                                 qUser.profileImageUrl,
+                                                qUser.createdAt,
                                                 list(Projections.fields(
                                                         SimpleGuideProductDto.class,
                                                         qGuideProduct.id,
@@ -53,6 +56,18 @@ public class UserDaoImpl implements UserDao {
                                         )
                                 )
                 );
+
+        var reviewQueryRes = queryFactory
+                .select(qReview.count(), qReview.rating.avg())
+                .from(qReview)
+                .innerJoin(qReview.guideProduct, qGuideProduct)
+                .where(qGuideProduct.user.eq(qUser));
+
+        res.forEach(userProfileDto -> {
+            var reviewRes = reviewQueryRes.fetchFirst();
+            userProfileDto.setReviewCount(reviewRes.get(0, Long.class).intValue());
+            userProfileDto.setReviewRating(reviewRes.get(1, Double.class).floatValue());
+        });
 
         return res.stream().findFirst();
     }

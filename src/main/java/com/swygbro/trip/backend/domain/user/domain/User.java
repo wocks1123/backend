@@ -1,6 +1,8 @@
 package com.swygbro.trip.backend.domain.user.domain;
 
+import com.swygbro.trip.backend.domain.user.dto.CreateGoogleUserRequest;
 import com.swygbro.trip.backend.domain.user.dto.CreateUserRequest;
+import com.swygbro.trip.backend.domain.user.dto.GoogleUserInfo;
 import com.swygbro.trip.backend.domain.user.dto.UpdateUserRequest;
 import com.swygbro.trip.backend.global.entity.BaseEntity;
 import jakarta.persistence.*;
@@ -29,15 +31,18 @@ public class User extends BaseEntity {
     @Column(length = 20, nullable = false)
     private String name;
 
-    @Column(length = 100, nullable = false)
+    @Column(length = 100)
     private String profile = "";
 
     @Setter
     @Column(length = 100, nullable = false)
-    private String profileImageUrl = "";
+    private String profileImageUrl = "https://metthew-s3.s3.us-east-2.amazonaws.com/guide/default_profile4x.png";
 
-    @Column(unique = true, length = 20, nullable = false)
+    @Column(unique = true, length = 20)
     private String phone;
+
+    @Column(length = 100)
+    private String location;
 
     @Enumerated(EnumType.STRING)
     private Nationality nationality;
@@ -48,7 +53,7 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @Column(nullable = false)
+    @Column
     private String password;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -65,12 +70,26 @@ public class User extends BaseEntity {
         this.nickname = dto.getNickname();
         this.name = dto.getName();
         this.phone = dto.getPhone();
+        this.location = dto.getLocation();
         this.nationality = dto.getNationality();
         this.birthdate = LocalDate.parse(dto.getBirthdate());
         this.gender = dto.getGender();
         this.password = encodedPassword;
-        this.signUpType = signUpType;
         this.userRole = UserRole.USER;
+        this.signUpType = signUpType;
+    }
+
+    public User(CreateGoogleUserRequest dto, GoogleUserInfo userInfo) {
+        this.email = userInfo.getEmail();
+        this.nickname = dto.getNickname();
+        this.name = dto.getName();
+        this.phone = dto.getPhone();
+        this.location = dto.getLocation();
+        this.nationality = dto.getNationality();
+        this.birthdate = LocalDate.parse(dto.getBirthdate());
+        this.gender = dto.getGender();
+        this.userRole = UserRole.USER;
+        this.signUpType = SignUpType.Google;
     }
 
     public void update(UpdateUserRequest dto) {

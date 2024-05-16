@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.locationtech.jts.geom.Point;
 
 import java.time.ZonedDateTime;
 import java.util.List;
@@ -25,6 +26,9 @@ public class CreateGuideProductRequest {
     @NotNull
     @Schema(description = "가이드 비용", example = "10000")
     private Long price;
+    @NotNull
+    @Schema(description = "가이드 위치 이름", example = "한강 공원")
+    private String locationName;
     @NotNull
     @Schema(description = "가이드 위치(위도)", example = "37")
     private double latitude;

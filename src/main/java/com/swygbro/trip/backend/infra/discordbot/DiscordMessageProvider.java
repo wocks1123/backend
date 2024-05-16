@@ -12,7 +12,7 @@ public class DiscordMessageProvider {
 
     public void sendMessage(String message) {
         try {
-            discordApiClient.sendMessage(new DiscordMessage(message));
+            // discordApiClient.sendMessage(new DiscordMessage(message));
         } catch (FeignException e) {
             throw new RuntimeException("디스코드 메시지 전송 실패");
         }
