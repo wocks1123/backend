@@ -72,7 +72,7 @@ public class UserDaoImpl implements UserDao {
             if (reviewCount != null) {
                 userProfileDto.setReviewCount(reviewCount.intValue());
             }
-            Float reviewRating = reviewRes.get(1, Float.class);
+            Double reviewRating = reviewRes.get(1, Double.class);
             userProfileDto.setReviewRating(reviewRating != null ? reviewRating.floatValue() : 0.0f);
         });
 
