@@ -13,6 +13,8 @@ import com.swygbro.trip.backend.domain.user.dto.UserProfileDto;
 import com.swygbro.trip.backend.domain.user.excepiton.PasswordNotMatchException;
 import com.swygbro.trip.backend.domain.user.excepiton.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,6 +75,11 @@ public class UserService {
         }
 
         user.update(dto);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<User> getUserPages(Pageable pageable) {
+        return userRepository.findAll(pageable);
     }
 
 }
