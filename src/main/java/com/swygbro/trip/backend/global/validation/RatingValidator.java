@@ -12,6 +12,9 @@ public class RatingValidator implements ConstraintValidator<Rating, Integer> {
 
     @Override
     public boolean isValid(Integer value, ConstraintValidatorContext context) {
+        if (value == null) {
+            return false;
+        }
         return value >= 1 && value <= 5;
     }
 }
