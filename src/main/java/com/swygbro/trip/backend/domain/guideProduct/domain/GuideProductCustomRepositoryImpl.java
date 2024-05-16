@@ -37,7 +37,7 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
     public Optional<GuideProduct> findDetailById(Long productId) {
         return Optional.ofNullable(jpaQueryFactory.selectFrom(qProduct)
                 .join(qProduct.categories, qCategory).fetchJoin()
-                .join(qProduct.reviews, qReview).fetchJoin()
+                .leftJoin(qProduct.reviews, qReview).fetchJoin()
                 .where(qProduct.id.eq(productId))
                 .fetchOne());
     }
