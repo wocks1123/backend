@@ -7,6 +7,7 @@ import com.swygbro.trip.backend.domain.guideProduct.exception.GuideProductNotInR
 import com.swygbro.trip.backend.domain.guideProduct.exception.MismatchUserFromCreatorException;
 import com.swygbro.trip.backend.domain.guideProduct.exception.NotValidLocationException;
 import com.swygbro.trip.backend.domain.s3.application.S3Service;
+import com.swygbro.trip.backend.domain.user.domain.Language;
 import com.swygbro.trip.backend.domain.user.domain.Nationality;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import lombok.RequiredArgsConstructor;
@@ -61,7 +62,7 @@ public class GuideProductService {
 
     // 가이드 상품 생성
     @Transactional
-    public GuideProductDto createGuideProduct(User user, CreateGuideProductRequest request, MultipartFile thumb, Optional<List<MultipartFile>> images) {
+    public CreateGuideProductDto createGuideProduct(User user, CreateGuideProductRequest request, MultipartFile thumb, Optional<List<MultipartFile>> images) {
         isValidLocation(request.getLatitude(), request.getLongitude());
 
         List<String> imageUrls = new ArrayList<>();
@@ -83,7 +84,7 @@ public class GuideProductService {
         });
 
         GuideProduct resultProduct = guideProductRepository.saveAndFlush(product);
-        return GuideProductDto.fromEntity(resultProduct);
+        return CreateGuideProductDto.fromEntity(resultProduct);
     }
 
     // 가이드 상품 조회
@@ -100,7 +101,8 @@ public class GuideProductService {
                                               Optional<MultipartFile> modifyThumb, Optional<List<MultipartFile>> modifyImages) {
         GuideProduct product = guideProductRepository.findById(productId).orElseThrow(() -> new GuideProductNotFoundException(productId));
 
-        if (product.getUser() != user) throw new MismatchUserFromCreatorException("가이드 상품을 수정할 권한이 없습니다.");
+        if (product.getUser().equals(user))
+            throw new MismatchUserFromCreatorException("가이드 상품을 수정할 권한이 없습니다.");
 
         modifyThumb.ifPresent(image -> {
             s3Service.deleteImage(product.getThumb());
@@ -129,7 +131,7 @@ public class GuideProductService {
     public void deleteGuideProduct(Long productId, User user) {
         GuideProduct product = guideProductRepository.findById(productId).orElseThrow(() -> new GuideProductNotFoundException(productId));
 
-        if (product.getUser() != user) throw new MismatchUserFromCreatorException("가이드 상품을 삭제할 권한이 없습니다.");
+        if (product.getUser().equals(user)) throw new MismatchUserFromCreatorException("가이드 상품을 삭제할 권한이 없습니다.");
 
         s3Service.deleteImage(product.getThumb());
         product.getImages().forEach(s3Service::deleteImage);
@@ -139,7 +141,10 @@ public class GuideProductService {
 
     // 지역, 날짜로 검색
     @Transactional(readOnly = true)
-    public Page<SearchGuideProductResponse> getSearchedGuideList(SearchGuideProductRequest request, SearchCategoriesRequest categories, Long minPrice, Long maxPrice, int minDuration, int maxDuration, DayTime dayTime, Nationality nationality, Pageable pageable) {
+    public Page<SearchGuideProductResponse> getSearchedGuideList(SearchGuideProductRequest request, SearchCategoriesRequest categories,
+                                                                 Long minPrice, Long maxPrice, int minDuration, int maxDuration,
+                                                                 DayTime dayTime, Nationality nationality, List<Language> languages,
+                                                                 Pageable pageable) {
         ZonedDateTime zonedDateStart;
         ZonedDateTime zonedDateEnd;
         MultiPolygon polygon;
@@ -154,7 +159,8 @@ public class GuideProductService {
             polygon = regionRepository.findByName("서울특별시").getPolygon();
         }
 
-        Page<SearchGuideProductResponse> guideProducts = guideProductRepository.findByFilter(polygon, zonedDateStart, zonedDateEnd, categories, minPrice, maxPrice, minDuration, maxDuration, dayTime, nationality, pageable);
+        Page<SearchGuideProductResponse> guideProducts = guideProductRepository.findByFilter(polygon, zonedDateStart,
+                zonedDateEnd, categories, minPrice, maxPrice, minDuration, maxDuration, dayTime, nationality, languages, pageable);
 
         if (guideProducts.isEmpty()) throw new GuideProductNotInRangeException("해당 조건에 부합하는 가이드 상품이 존재하지 않습니다.");
 

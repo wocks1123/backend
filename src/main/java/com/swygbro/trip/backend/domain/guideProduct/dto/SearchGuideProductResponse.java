@@ -1,7 +1,6 @@
 package com.swygbro.trip.backend.domain.guideProduct.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProduct;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,6 +20,8 @@ public class SearchGuideProductResponse {
     private String title;
     @Schema(description = "대표 이미지 url", example = "https://S3저장소URL/저장위치/난수화된 이미지이름.이미지 타입")
     private String thumb;
+    @Schema(description = "가이드 위치 이름", example = "한강 공원")
+    private String locationName;
     @Schema(description = "가이드 시작 날짜/시간", example = "2024-05-01 12:00:00")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
     private ZonedDateTime guideStart;

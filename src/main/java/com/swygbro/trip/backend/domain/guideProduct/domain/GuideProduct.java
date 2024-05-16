@@ -2,6 +2,7 @@ package com.swygbro.trip.backend.domain.guideProduct.domain;
 
 import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.dto.ModifyGuideProductRequest;
+import com.swygbro.trip.backend.domain.review.domain.Review;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import com.swygbro.trip.backend.global.entity.BaseEntity;
 import io.hypersistence.utils.hibernate.type.json.JsonType;
@@ -13,8 +14,9 @@ import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /* TODO : 이미지와 양방향 매핑이 아니라 json 형태로 저장?
           index 설정,
@@ -45,6 +47,9 @@ public class GuideProduct extends BaseEntity {
     @Column(nullable = false)
     private Long price;
 
+    @Column(name = "location_name", length = 100, nullable = false)
+    private String locationName;
+
     @Column(nullable = false, columnDefinition = "POINT SRID 4326")
     private Point location;
 
@@ -58,7 +63,7 @@ public class GuideProduct extends BaseEntity {
     private int guideTime;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<GuideCategory> categories;
+    private Set<GuideCategory> categories;
 
     @Column(name = "guide_thumbnail", nullable = false)
     private String thumb;
@@ -66,6 +71,9 @@ public class GuideProduct extends BaseEntity {
     @Type(JsonType.class)
     @Column(name = "guide_images", columnDefinition = "longtext")
     private List<String> images;
+
+    @OneToMany(mappedBy = "guideProduct", cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
+    private Set<Review> reviews;
 
     public static GuideProduct setGuideProduct(User user, CreateGuideProductRequest request, List<String> images) {
         GeometryFactory geometryFactory = new GeometryFactory();
@@ -75,18 +83,18 @@ public class GuideProduct extends BaseEntity {
         if (images.size() == 1)
             return GuideProduct.builder().user(user)
                     .title(request.getTitle()).description(request.getDescription())
-                    .price(request.getPrice()).location(point)
+                    .price(request.getPrice()).locationName(request.getLocationName()).location(point)
                     .guideStart(request.getGuideStart()).guideEnd(request.getGuideEnd())
                     .guideTime(request.getGuideTime()).thumb(images.get(0))
-                    .categories(new ArrayList<>())
+                    .categories(new LinkedHashSet<>())
                     .build();
         else return GuideProduct.builder().user(user)
                 .title(request.getTitle()).description(request.getDescription())
-                .price(request.getPrice()).location(point)
+                .price(request.getPrice()).locationName(request.getLocationName()).location(point)
                 .guideStart(request.getGuideStart()).guideEnd(request.getGuideEnd())
                 .guideTime(request.getGuideTime()).thumb(images.get(0))
                 .images(images.subList(1, images.size()).stream().toList())
-                .categories(new ArrayList<>())
+                .categories(new LinkedHashSet<>())
                 .build();
     }
 
@@ -96,13 +104,12 @@ public class GuideProduct extends BaseEntity {
     }
 
     public void setGuideCategory(List<GuideCategoryCode> categoryCodes) {
-        for (int i = 0; i < categoryCodes.size(); i++) {
-            if (i >= this.categories.size()) {
-                GuideCategory category = new GuideCategory(categoryCodes.get(i));
-                category.setProduct(this);
-                this.categories.add(category);
-            } else this.categories.get(i).setCategoryCode(categoryCodes.get(i));
-        }
+        this.categories.clear();
+        categoryCodes.forEach(categoryCode -> {
+            GuideCategory category = new GuideCategory(categoryCode);
+            this.categories.add(category);
+            category.setProduct(this);
+        });
     }
 
     public void setGuideProduct(ModifyGuideProductRequest request) {
@@ -113,6 +120,7 @@ public class GuideProduct extends BaseEntity {
         this.title = request.getTitle();
         this.description = request.getDescription();
         this.price = request.getPrice();
+        this.locationName = request.getLocationName();
         this.location = point;
         this.guideStart = request.getGuideStart();
         this.guideEnd = request.getGuideEnd();
