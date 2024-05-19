@@ -33,6 +33,7 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
         this.jpaQueryFactory = jpaQueryFactory;
     }
 
+    // test
     @Override
     public Optional<GuideProduct> findDetailById(Long productId) {
         return Optional.ofNullable(jpaQueryFactory.selectFrom(qProduct)
