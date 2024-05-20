@@ -167,12 +167,6 @@ public class GuideProductService {
         return guideProducts;
     }
 
-    @Transactional(readOnly = true)
-    public Page<GuideProductDto> getGuideProductPages(Pageable pageable) {
-        var guideProducts = guideProductRepository.findAll(pageable);
-        return guideProducts.map(GuideProductDto::fromEntity);
-    }
-
     // 가이드 위치 유효한지 검사
     private void isValidLocation(double latitude, double longitude) throws NotValidLocationException {
         if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180)
