@@ -50,10 +50,6 @@ public class UserProfileDto {
     @Schema(description = "사용자가 등록한 가이드 상품 목록")
     private List<SimpleGuideProductDto> guideProducts;
 
-    public void setReviewRating(Float reviewRating) {
-        this.reviewRating = Float.parseFloat(String.format("%.1f", reviewRating));
-    }
-
     public static UserProfileDto fromEntity(User user) {
         return UserProfileDto.builder()
                 .email(user.getEmail())

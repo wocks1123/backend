@@ -79,7 +79,7 @@ public class UserDaoImpl implements UserDao {
                 .createdAt(user.getCreatedAt())
                 .guideProducts(guideProducts.stream().map(UserProfileDto.SimpleGuideProductDto::fromEntity).toList())
                 .reviewCount(reviewCount)
-                .reviewRating(reviewRatingAvg)
+                .reviewRating(Float.parseFloat(String.format("%.1f", reviewRatingAvg)))
                 .build());
     }
 
