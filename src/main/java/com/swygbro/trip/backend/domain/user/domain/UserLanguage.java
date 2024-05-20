@@ -1,6 +1,7 @@
 package com.swygbro.trip.backend.domain.user.domain;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -16,6 +17,7 @@ public class UserLanguage {
     private Long id;
 
     @ManyToOne
+    @JsonIgnore
     private User user;
 
     @Enumerated(EnumType.STRING)
