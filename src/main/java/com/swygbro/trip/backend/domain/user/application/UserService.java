@@ -2,21 +2,19 @@ package com.swygbro.trip.backend.domain.user.application;
 
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProductRepository;
 import com.swygbro.trip.backend.domain.s3.application.S3Service;
-import com.swygbro.trip.backend.domain.user.domain.SignUpType;
-import com.swygbro.trip.backend.domain.user.domain.User;
-import com.swygbro.trip.backend.domain.user.domain.UserDao;
-import com.swygbro.trip.backend.domain.user.domain.UserRepository;
-import com.swygbro.trip.backend.domain.user.dto.CreateUserRequest;
-import com.swygbro.trip.backend.domain.user.dto.UpdateUserRequest;
-import com.swygbro.trip.backend.domain.user.dto.UserInfoDto;
-import com.swygbro.trip.backend.domain.user.dto.UserProfileDto;
+import com.swygbro.trip.backend.domain.user.domain.*;
+import com.swygbro.trip.backend.domain.user.dto.*;
 import com.swygbro.trip.backend.domain.user.excepiton.PasswordNotMatchException;
 import com.swygbro.trip.backend.domain.user.excepiton.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
@@ -24,8 +22,8 @@ public class UserService {
 
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
-    private final GuideProductRepository guideProductRepository;
     private final UserDao userDao;
+    private final GuideProductRepository guideProductRepository;
     private final UserValidationService userValidationService;
     private final S3Service s3Service;
 
@@ -73,6 +71,36 @@ public class UserService {
         }
 
         user.update(dto);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<User> getUserPages(Pageable pageable) {
+        return userRepository.findAll(pageable);
+    }
+
+    @Transactional
+    public Page<UserDetailDto> getUsersByFilter(Pageable pageable,
+                                                String email,
+                                                String nickname,
+                                                String name,
+                                                String phone,
+                                                String location,
+                                                Nationality nationality,
+                                                LocalDate birthdate,
+                                                Gender gender,
+                                                SignUpType signUpType) {
+        return userDao.findUsersByFilter(
+                pageable,
+                email,
+                nickname,
+                name,
+                phone,
+                location,
+                nationality,
+                birthdate,
+                gender,
+                signUpType
+        );
     }
 
 }

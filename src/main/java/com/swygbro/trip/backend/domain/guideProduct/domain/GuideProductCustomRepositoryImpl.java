@@ -10,6 +10,7 @@ import com.swygbro.trip.backend.domain.guideProduct.dto.SearchGuideProductRespon
 import com.swygbro.trip.backend.domain.review.domain.QReview;
 import com.swygbro.trip.backend.domain.user.domain.Language;
 import com.swygbro.trip.backend.domain.user.domain.Nationality;
+import com.swygbro.trip.backend.domain.user.domain.QUser;
 import com.swygbro.trip.backend.domain.user.domain.QUserLanguage;
 import org.locationtech.jts.geom.*;
 import org.springframework.data.domain.Page;
@@ -28,17 +29,20 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
     private final QGuideCategory qCategory = QGuideCategory.guideCategory;
     private final QUserLanguage qUserLanguage = QUserLanguage.userLanguage;
     private final QReview qReview = QReview.review;
+    private final QUser qUser = QUser.user;
 
     public GuideProductCustomRepositoryImpl(JPAQueryFactory jpaQueryFactory) {
         this.jpaQueryFactory = jpaQueryFactory;
     }
 
-    // test
     @Override
     public Optional<GuideProduct> findDetailById(Long productId) {
         return Optional.ofNullable(jpaQueryFactory.selectFrom(qProduct)
+                .join(qProduct.user, qUser).fetchJoin()
                 .join(qProduct.categories, qCategory).fetchJoin()
                 .leftJoin(qProduct.reviews, qReview).fetchJoin()
+                .leftJoin(qReview.reviewer).fetchJoin()
+                .leftJoin(qReview.images).fetchJoin()
                 .where(qProduct.id.eq(productId))
                 .fetchOne());
     }

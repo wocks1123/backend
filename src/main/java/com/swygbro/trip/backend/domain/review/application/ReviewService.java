@@ -14,6 +14,8 @@ import com.swygbro.trip.backend.domain.review.exception.ReviewNotFoundException;
 import com.swygbro.trip.backend.domain.s3.application.S3Service;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -82,4 +84,32 @@ public class ReviewService {
                 .build();
     }
 
+    @Transactional(readOnly = true)
+    public Page<ReviewInfoDto> getReviewPagesByGuideId(Pageable pageable, Long guideProductId, Long userId) {
+        if (guideProductId == null) {
+            return findAllReviewPages(pageable);
+        }
+        return findReviewPagesByGuideId(pageable, guideProductId);
+    }
+
+    private Page<ReviewInfoDto> findAllReviewPages(Pageable pageable) {
+        return reviewRepository.findAll(pageable)
+                .map(this::convertToReviewInfoDto);
+    }
+
+    private Page<ReviewInfoDto> findReviewPagesByGuideId(Pageable pageable, Long guideProductId) {
+        return reviewRepository.findAllByGuideProductId(guideProductId, pageable)
+                .map(this::convertToReviewInfoDto);
+    }
+
+    private ReviewInfoDto convertToReviewInfoDto(Review review) {
+        return ReviewInfoDto.builder()
+                .reviewId(review.getId())
+                .reviewer(review.getReviewer().getNickname())
+                .guideProductId(review.getGuideProduct().getId())
+                .content(review.getContent())
+                .rating(review.getRating())
+                .createdAt(review.getCreatedAt())
+                .build();
+    }
 }

@@ -2,7 +2,7 @@ package com.swygbro.trip.backend.domain.reservation.dto;
 
 import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
 import com.swygbro.trip.backend.domain.reservation.domain.Reservation;
-import com.swygbro.trip.backend.domain.user.dto.UserProfileDto;
+import com.swygbro.trip.backend.domain.user.dto.SimpleUserDto;
 import com.swygbro.trip.backend.global.status.PayStatus;
 import com.swygbro.trip.backend.global.status.ReservationStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -19,7 +19,7 @@ import java.time.ZonedDateTime;
 @NoArgsConstructor
 public class ReservationDto {
     @Schema(description = "가이드")
-    private UserProfileDto guide;
+    private SimpleUserDto guide;
 
     @Schema(description = "상품")
     private GuideProductDto product;
@@ -51,7 +51,7 @@ public class ReservationDto {
 
     public ReservationDto fromEntity(Reservation reservation) {
         return ReservationDto.builder()
-                .guide(UserProfileDto.fromEntity(reservation.getGuide()))
+                .guide(SimpleUserDto.fromEntity(reservation.getGuide()))
                 .product(GuideProductDto.fromEntity(reservation.getProduct()))
                 .guideStart(reservation.getGuideStart())
                 .guideEnd(reservation.getGuideEnd())

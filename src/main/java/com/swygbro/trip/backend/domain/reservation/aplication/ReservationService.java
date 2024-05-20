@@ -10,10 +10,7 @@ import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProductRepositor
 import com.swygbro.trip.backend.domain.guideProduct.exception.GuideProductNotFoundException;
 import com.swygbro.trip.backend.domain.reservation.domain.Reservation;
 import com.swygbro.trip.backend.domain.reservation.domain.ReservationRepository;
-import com.swygbro.trip.backend.domain.reservation.dto.ReservationDto;
-import com.swygbro.trip.backend.domain.reservation.dto.ReservationSearchCriteria;
-import com.swygbro.trip.backend.domain.reservation.dto.SavePaymentRequest;
-import com.swygbro.trip.backend.domain.reservation.dto.SaveReservationRequest;
+import com.swygbro.trip.backend.domain.reservation.dto.*;
 import com.swygbro.trip.backend.domain.reservation.exception.DuplicateCancelReservationException;
 import com.swygbro.trip.backend.domain.reservation.exception.ForeignKeyConstraintViolationException;
 import com.swygbro.trip.backend.domain.reservation.exception.ReservationNotFoundException;
@@ -22,6 +19,8 @@ import com.swygbro.trip.backend.global.status.ReservationStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -189,4 +188,18 @@ public class ReservationService {
         reservationRepository.save(reservation);
         return new ReservationDto().fromEntity(reservation);
     }
+
+    @Transactional(readOnly = true)
+    public Page<ReservationInfoDto> getReservationPages(Long userId, Boolean isGuide, Pageable pageable) {
+        var reservations = reservationRepository.findAll(pageable);
+
+        if (userId != null && isGuide) {
+            reservations = reservationRepository.findAllByGuideId(userId, pageable);
+        } else if (userId != null) {
+            reservations = reservationRepository.findAllByClient_Id(userId, pageable);
+        }
+
+        return reservations.map(ReservationInfoDto::fromEntity);
+    }
+
 }

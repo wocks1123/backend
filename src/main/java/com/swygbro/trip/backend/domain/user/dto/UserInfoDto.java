@@ -2,6 +2,7 @@ package com.swygbro.trip.backend.domain.user.dto;
 
 import com.swygbro.trip.backend.domain.user.domain.Gender;
 import com.swygbro.trip.backend.domain.user.domain.Nationality;
+import com.swygbro.trip.backend.domain.user.domain.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,4 +30,16 @@ public class UserInfoDto {
     private Gender gender;
     @Schema(description = "국적", example = "KOR")
     private Nationality nationality;
+
+    public static UserInfoDto fromEntity(User user) {
+        return UserInfoDto.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .name(user.getName())
+                .birthdate(user.getBirthdate())
+                .gender(user.getGender())
+                .nationality(user.getNationality())
+                .build();
+    }
 }
