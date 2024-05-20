@@ -6,13 +6,17 @@ import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.swygbro.trip.backend.domain.s3.exception.FailImageUploadException;
+import com.swygbro.trip.backend.domain.s3.exception.NotValidImageTypeException;
 import lombok.RequiredArgsConstructor;
+import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -20,11 +24,14 @@ import java.util.UUID;
 public class S3Service {
 
     private final AmazonS3 amazonS3;
+    private final static Tika tika = new Tika();
     @Value("${cloud.aws.s3.bucket}")
     private String bucketName;
 
     // S3에 이미지 업로드
     public String uploadImage(MultipartFile image) {
+        if (!validImgFile(image)) throw new NotValidImageTypeException();
+
         String imageName = createImageName(image.getOriginalFilename());
         ObjectMetadata objectMetadata = new ObjectMetadata();
         objectMetadata.setContentLength(image.getSize());
@@ -56,5 +63,18 @@ public class S3Service {
     // 이미지 확장자 추출
     public String getFileExtension(String imageName) {
         return imageName.substring(imageName.lastIndexOf("."));
+    }
+
+    // 이미지 검사
+    public static boolean validImgFile(MultipartFile image) {
+        try {
+            List<String> validTypeList = Arrays.asList("image/jpeg", "image/pjpeg", "image/gif", "image/bmp", "image/x-windows-bmp", "image/png");
+
+            String mimeType = tika.detect(image.getInputStream());
+
+            return validTypeList.stream().anyMatch(validType -> validType.equalsIgnoreCase(mimeType));
+        } catch (IOException e) {
+            return false;
+        }
     }
 }

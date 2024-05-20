@@ -136,6 +136,18 @@ public class GuideProductController {
             )
     )
     @ApiResponse(
+            responseCode = "415",
+            description = "지원하지 않는 이미지로 가이드 상품 등록 실패",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ApiErrorResponse.class),
+                    examples = @ExampleObject(
+                            name = "지원하지 않는 이미지",
+                            value = "{ \"status\" : \"UNSUPPORTED_MEDIA_TYPE\", \"message\" : \"지원하지 않는 이미지입니다. 다시 시도해주세요.\"}"
+                    )
+            )
+    )
+    @ApiResponse(
             responseCode = "500",
             description = "S3 에러로 인한 이미지 업로드 실패, 상품 등록 실패",
             content = @Content(
@@ -272,6 +284,30 @@ public class GuideProductController {
                             )
                     }
 
+            )
+    )
+    @ApiResponse(
+            responseCode = "415",
+            description = "지원하지 않는 이미지로 가이드 상품 수정 실패",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ApiErrorResponse.class),
+                    examples = @ExampleObject(
+                            name = "지원하지 않는 이미지",
+                            value = "{ \"status\" : \"UNSUPPORTED_MEDIA_TYPE\", \"message\" : \"지원하지 않는 이미지입니다. 다시 시도해주세요.\"}"
+                    )
+            )
+    )
+    @ApiResponse(
+            responseCode = "500",
+            description = "S3 에러로 인한 이미지 업로드 실패, 상품 수정 실패",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ApiErrorResponse.class),
+                    examples = @ExampleObject(
+                            name = "이미지 업로드 실패",
+                            value = "{ \"status\" : \"INTERNAL_SERVER_ERROR\", \"message\" : \"이미지 업로드에 실패했습니다.\"}"
+                    )
             )
     )
     @ForbiddenResponse
