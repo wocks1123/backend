@@ -6,9 +6,11 @@ import com.siot.IamportRestClient.response.Payment;
 import com.swygbro.trip.backend.domain.reservation.aplication.ReservationService;
 import com.swygbro.trip.backend.domain.reservation.dto.*;
 import com.swygbro.trip.backend.domain.user.domain.User;
+import com.swygbro.trip.backend.global.exception.ApiErrorResponse;
 import com.swygbro.trip.backend.global.jwt.CurrentUser;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -66,7 +68,12 @@ public class ReservationController {
             description = "외래 키 참조 에러",
             content = @Content(
                     mediaType = "application/json",
-                    schema = @Schema(implementation = String.class)))
+                    schema = @Schema(implementation = ApiErrorResponse.class),
+                    examples = @ExampleObject(
+                            name = "존재하지 않는 가이드 ID",
+                            value = "{ \"status\" : \"CONFLICT\", \"message\" : \"존재하지 않는 외래키입니다. : 테이블\"}")
+            )
+    )
     public ResponseEntity<String> saveReservation(@CurrentUser User user,
                                                   @RequestBody @Valid SaveReservationRequest orderDto) {
         log.info("Received orders: {}", orderDto.toString());
@@ -98,7 +105,11 @@ public class ReservationController {
             description = "존재하지 않는 결제 정보입니다.",
             content = @Content(
                     mediaType = "application/json",
-                    schema = @Schema(implementation = IamportResponse.class)))
+                    schema = @Schema(implementation = ApiErrorResponse.class),
+                    examples = @ExampleObject(
+                            name = "주문 번호가 유효하지 않음",
+                            value = "{ \"status\" : \"NOT_FOUND\", \"message\" : \"주문번호를 찾을 수 없습니다. : 주문번호\"}")
+            ))
     public IamportResponse<Payment> validateIamport(@RequestBody PayValidateRequest payValidateRequest) throws IamportResponseException, IOException {
         return reservationService.validateIamport(payValidateRequest.getImp_uid());
     }
@@ -140,7 +151,11 @@ public class ReservationController {
             description = "결제 정보 저장 실패",
             content = @Content(
                     mediaType = "application/json",
-                    schema = @Schema(implementation = ReservationDto.class)))
+                    schema = @Schema(implementation = ApiErrorResponse.class),
+                    examples = @ExampleObject(
+                            name = "주문 번호가 유효하지 않음",
+                            value = "{ \"status\" : \"NOT_FOUND\", \"message\" : \"예약 정보를 찾을 수 없습니다. : 주문번호\"}")
+            ))
     public ResponseEntity<ReservationDto> processOrder(@RequestBody @Valid SavePaymentRequest orderDto) throws IamportResponseException, IOException {
         log.info("Received orders: {}", orderDto.toString());
         return ResponseEntity.ok(reservationService.savePayment(orderDto));
@@ -172,7 +187,12 @@ public class ReservationController {
             description = "존재하지 않는 주문 정보",
             content = @Content(
                     mediaType = "application/json",
-                    schema = @Schema(implementation = ReservationDto.class)))
+                    schema = @Schema(implementation = ApiErrorResponse.class),
+                    examples = @ExampleObject(
+                            name = "주문 번호가 유효하지 않음",
+                            value = "{ \"status\" : \"NOT_FOUND\", \"message\" : \"예약 정보를 찾을 수 없습니다. : 주문번호\"}")
+            )
+    )
     public ResponseEntity<ReservationDto> cancelPayment(@PathVariable String merchant_uid) {
         return ResponseEntity.ok(reservationService.cancelReservation(merchant_uid));
     }
@@ -186,11 +206,11 @@ public class ReservationController {
             - 여행객의 예약 리스트를 조회합니다.            
                         
             | 필드명 | 설명 | 제약조건  | 예시 |
-            |--------|------|----------|----------|------|
-            |isPast| 과거 or 미래 조건 | Boolean  | ture |
-            |statusFilter| 예약 Status 조건 | 0(확정 대기), 1(확정 및 정산 완료), 2(취소) | 1 |
-            |offset| 조회 offset | -  | 0 |
-            |pageSize| 조회 페이지 크기 | -  | 10 |
+            |--------|------|----------|----------|
+            | isPast | 과거 or 미래 조건 | Boolean  | ture |
+            | statusFilter | 예약 Status 조건 | 0(확정 대기), 1(확정 및 정산 완료), 2(취소) | 1 |
+            | offset | 조회 offset | -  | 0 |
+            | pageSize | 조회 페이지 크기 | -  | 10 |
                         
             ## 응답
                         
@@ -216,11 +236,11 @@ public class ReservationController {
             - 가이드가 자신의 예약 리스트를 조회합니다.           
                         
             | 필드명 | 설명 | 제약조건  | 예시 |
-            |--------|------|----------|----------|------|
-            |isPast| 과거 or 미래 조건 | Boolean  | ture |
-            |statusFilter| 예약 Status 조건 | 0(확정 대기), 1(확정 및 정산 완료), 2(취소) | 1 |
-            |offset| 조회 offset | -  | 0 |
-            |pageSize| 조회 페이지 크기 | -  | 10 |
+            |--------|------|----------|----------|
+            | isPast | 과거 or 미래 조건 | Boolean  | ture |
+            | statusFilter | 예약 Status 조건 | 0(확정 대기), 1(확정 및 정산 완료), 2(취소) | 1 |
+            | offset | 조회 offset | -  | 0 |
+            | pageSize | 조회 페이지 크기 | -  | 10 |
                                     
             ## 응답
                         
@@ -262,7 +282,12 @@ public class ReservationController {
             description = "존재하지 않는 예약 정보",
             content = @Content(
                     mediaType = "application/json",
-                    schema = @Schema(implementation = ReservationDto.class)))
+                    schema = @Schema(implementation = ApiErrorResponse.class),
+                    examples = @ExampleObject(
+                            name = "주문 번호가 유효하지 않음",
+                            value = "{ \"status\" : \"NOT_FOUND\", \"message\" : \"예약 정보를 찾을 수 없습니다. : 주문번호\"}")
+            )
+    )
     public ResponseEntity<ReservationDto> confirmReservation(@PathVariable String merchant_uid) {
         return ResponseEntity.ok(reservationService.confirmReservation(merchant_uid));
     }
@@ -293,7 +318,12 @@ public class ReservationController {
             description = "존재하지 않는 예약 정보",
             content = @Content(
                     mediaType = "application/json",
-                    schema = @Schema(implementation = ReservationDto.class)))
+                    schema = @Schema(implementation = ApiErrorResponse.class),
+                    examples = @ExampleObject(
+                            name = "주문 번호가 유효하지 않음",
+                            value = "{ \"status\" : \"NOT_FOUND\", \"message\" : \"예약 정보를 찾을 수 없습니다. : 주문번호\"}")
+            )
+    )
     public ResponseEntity<ReservationDto> cancelReservation(@PathVariable String merchant_uid) {
         return ResponseEntity.ok(reservationService.cancelReservation(merchant_uid));
     }
@@ -322,7 +352,12 @@ public class ReservationController {
             description = "존재하지 않는 주문 정보",
             content = @Content(
                     mediaType = "application/json",
-                    schema = @Schema(implementation = ReservationDto.class)))
+                    schema = @Schema(implementation = ApiErrorResponse.class),
+                    examples = @ExampleObject(
+                            name = "주문 번호가 유효하지 않음",
+                            value = "{ \"status\" : \"NOT_FOUND\", \"message\" : \"예약 정보를 찾을 수 없습니다. : 주문번호\"}")
+            )
+    )
     public ResponseEntity<ReservationDto> getReservation(@PathVariable String merchant_uid) {
         return ResponseEntity.ok(reservationService.getReservation(merchant_uid));
     }
