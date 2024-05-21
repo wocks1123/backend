@@ -18,7 +18,7 @@ public class UpdateUserRequest extends RequestDto {
     private String profile;
 
     @NotBlank
-    @Size(min = 4, max = 20)
+    @Size(min = 2, max = 20)
     @Schema(description = "닉네임", example = "nickname_01")
     private String nickname;
 
