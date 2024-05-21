@@ -4,11 +4,11 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.swygbro.trip.backend.domain.user.domain.Gender;
 import com.swygbro.trip.backend.domain.user.domain.Nationality;
 import com.swygbro.trip.backend.global.dto.RequestDto;
-import com.swygbro.trip.backend.global.validation.Password;
 import com.swygbro.trip.backend.global.validation.Phone;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -25,7 +25,7 @@ public class CreateUserRequest extends RequestDto {
     private String email;
 
     @NotBlank
-    @Size(max = 20)
+    @Size(min = 2, max = 20)
     @Schema(description = "사용자 닉네임", example = "nickname01")
     private String nickname;
 
@@ -56,8 +56,8 @@ public class CreateUserRequest extends RequestDto {
 
     @NotBlank
     @Size(min = 8, max = 20)
-    @Password
-    @Schema(description = "사용자 비밀번호", example = "password123!")
+    @Pattern(regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$", message = "비밀번호는 영문과 숫자를 포함하여 8자 이상이어야 합니다.")
+    @Schema(description = "사용자 비밀번호", example = "password123")
     private String password;
 
     @NotBlank
