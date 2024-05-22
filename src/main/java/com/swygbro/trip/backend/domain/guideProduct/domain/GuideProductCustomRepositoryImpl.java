@@ -53,8 +53,8 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
                 .select(new QSearchGuideProductResponse(
                         qProduct.id,
                         qProduct.title,
-                        qProduct.thumb,
                         qProduct.locationName,
+                        qProduct.thumb,
                         qProduct.guideStart,
                         qProduct.guideEnd
                 ))
@@ -70,8 +70,8 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
                 .select(new QSearchGuideProductResponse(
                         qProduct.id,
                         qProduct.title,
-                        qProduct.thumb,
                         qProduct.locationName,
+                        qProduct.thumb,
                         qProduct.guideStart,
                         qProduct.guideEnd
                 ))
@@ -87,8 +87,8 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
                 .select(new QSearchGuideProductResponse(
                         qProduct.id,
                         qProduct.title,
-                        qProduct.thumb,
                         qProduct.locationName,
+                        qProduct.thumb,
                         qProduct.guideStart,
                         qProduct.guideEnd
                 ))
@@ -120,8 +120,8 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
                 .select(new QSearchGuideProductResponse(
                         qProduct.id,
                         qProduct.title,
-                        qProduct.thumb,
                         qProduct.locationName,
+                        qProduct.thumb,
                         qProduct.guideStart,
                         qProduct.guideEnd
                 ))
