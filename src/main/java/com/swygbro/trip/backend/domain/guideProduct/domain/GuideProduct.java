@@ -13,6 +13,9 @@ import org.locationtech.jts.geom.Coordinate;
 import org.locationtech.jts.geom.GeometryFactory;
 import org.locationtech.jts.geom.Point;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -56,6 +59,12 @@ public class GuideProduct extends BaseEntity {
     @Column(name = "guide_end", nullable = false)
     private ZonedDateTime guideEnd;
 
+    @Column(name = "guide_start_time", nullable = false)
+    private LocalTime guideStartTime;
+
+    @Column(name = "guide_end_time", nullable = false)
+    private LocalTime guideEndTime;
+
     @Column(name = "guide_time", nullable = false)
     private int guideTime;
 
@@ -77,10 +86,14 @@ public class GuideProduct extends BaseEntity {
         Point point = geometryFactory.createPoint(new Coordinate(request.getLongitude(), request.getLatitude()));
         point.setSRID(4326);
 
+        LocalDateTime startDate = request.getGuideStart().atStartOfDay();
+        LocalDateTime endDate = request.getGuideEnd().atTime(23, 59, 59);
+
         return GuideProduct.builder().user(user)
                 .title(request.getTitle()).description(request.getDescription())
                 .price(request.getPrice()).locationName(request.getLocationName()).location(point)
-                .guideStart(request.getGuideStart()).guideEnd(request.getGuideEnd())
+                .guideStart(ZonedDateTime.of(startDate, ZoneId.of("Asia/Seoul"))).guideEnd(ZonedDateTime.of(endDate, ZoneId.of("Asia/Seoul")))
+                .guideStartTime(request.getGuideStartTime()).guideEndTime(request.getGuideEndTime())
                 .guideTime(request.getGuideTime()).thumb(images.get(0))
                 .images(images.size() == 1 ? new ArrayList<>() : images.subList(1, images.size()).stream().toList())
                 .categories(new LinkedHashSet<>())
@@ -106,13 +119,18 @@ public class GuideProduct extends BaseEntity {
         Point point = geometryFactory.createPoint(new Coordinate(request.getLongitude(), request.getLatitude()));
         point.setSRID(4326);
 
+        LocalDateTime startDate = request.getGuideStart().atStartOfDay();
+        LocalDateTime endDate = request.getGuideEnd().atTime(23, 59, 59);
+
         this.title = request.getTitle();
         this.description = request.getDescription();
         this.price = request.getPrice();
         this.locationName = request.getLocationName();
         this.location = point;
-        this.guideStart = request.getGuideStart();
-        this.guideEnd = request.getGuideEnd();
+        this.guideStart = ZonedDateTime.of(startDate, ZoneId.of("Asia/Seoul"));
+        this.guideEnd = ZonedDateTime.of(endDate, ZoneId.of("Asia/Seoul"));
+        this.guideStartTime = request.getGuideStartTime();
+        this.guideEndTime = request.getGuideEndTime();
         this.guideTime = request.getGuideTime();
         this.thumb = request.getThumb();
         this.images = request.getImages();

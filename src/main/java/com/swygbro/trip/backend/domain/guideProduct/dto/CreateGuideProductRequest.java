@@ -8,9 +8,9 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.locationtech.jts.geom.Point;
 
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 @Data
@@ -36,13 +36,21 @@ public class CreateGuideProductRequest {
     @Schema(description = "가이드 위치(경도)", example = "127")
     private double longitude;
     @NotNull
-    @Schema(description = "가이드 시작 날짜/시간", example = "2024-05-01 12:00:00", type = "string")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
-    private ZonedDateTime guideStart;
+    @Schema(description = "가이드 시작 날짜", example = "2024-05-01", type = "string")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
+    private LocalDate guideStart;
     @NotNull
-    @Schema(description = "가이드 종료 날짜/시간", example = "2024-05-01 14:00:00", type = "string")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
-    private ZonedDateTime guideEnd;
+    @Schema(description = "가이드 종료 날짜", example = "2024-05-01", type = "string")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
+    private LocalDate guideEnd;
+    @NotNull
+    @Schema(description = "가이드 시작 시간", example = "12:00:00", type = "string")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss", timezone = "Asia/Seoul")
+    private LocalTime guideStartTime;
+    @NotNull
+    @Schema(description = "가이드 종료 시간", example = "20:00:00", type = "string")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "HH:mm:ss", timezone = "Asia/Seoul")
+    private LocalTime guideEndTime;
     @NotNull
     @Schema(description = "가이드 소요 시간", example = "3")
     private int guideTime;
