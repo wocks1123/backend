@@ -37,7 +37,7 @@ public class SearchGuideProductResponse {
         this.title = title;
         this.thumb = thumb;
         this.locationName = locationName;
-        this.guideStart = guideStart.toLocalDate();
-        this.guideEnd = guideEnd.toLocalDate();
+        this.guideStart = guideStart.plusHours(9).toLocalDate();
+        this.guideEnd = guideEnd.plusHours(9).toLocalDate();
     }
 }
