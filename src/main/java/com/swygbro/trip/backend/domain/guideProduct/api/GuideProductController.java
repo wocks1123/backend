@@ -53,7 +53,7 @@ public class GuideProductController {
                         
             ## 응답
                         
-            - 상품 등록 성공 시 `200` 코드와 함께 메인 페이지 정보를 json 형태로 반환합니다.
+            - 메인페이지 조회 성공 시 `200` 코드와 함께 메인 페이지 정보를 json 형태로 반환합니다.
             """, tags = "Search Guide Products")
     @ApiResponse(
             responseCode = "200",
@@ -91,8 +91,10 @@ public class GuideProductController {
             |locationName| 가이드 가이드 위치 이름 |  | N | 서울 한강 공원 |
             |latitude| 가이드 위치(위도) | -90.0 이상, 90.0 이하 | N | 37.2 |
             |longitude| 가이드 위치(경도) | -180.0 이상, 180.0 이하 | N | 127.5 |
-            |guideStart| 가이드 시작 날짜/시간 | yyyy-MM-dd HH:mm:ss 패턴 | N | 2024-05-01 12:00:00 |
-            |guideEnd| 가이드 종료 날짜/시간 | yyyy-MM-dd HH:mm:ss 패턴 | N | 2024-05-01 14:00:00 |
+            |guideStart| 가이드 시작 날짜 | yyyy-MM-dd | N | 2024-05-01 |
+            |guideEnd| 가이드 종료 날짜 | yyyy-MM-dd | N | 2024-05-01 |
+            |guideStartTime| 가이드 시작 시간 | HH:mm:ss | N | 14:00:00 |
+            |guideEndTime| 가이드 종료 시간 | HH:mm:ss | N | 14:00:00 |
             |guideTime| 가이드 소요 시간 | 시간 단위 | N | 3 (3시간 소요일 시) |
             |categories| 카테고리 | DINING,TOUR,OUTDOOR,ENTERTAINMENT,ART_CULTURE,SPORTS_FITNESS 중 여러개, 한개도 가능 | N | ["DINING", "OUTDOOR"]] |
                         
@@ -234,8 +236,10 @@ public class GuideProductController {
             |locationName| 가이드 가이드 위치 이름 |  | N | 서울 한강 공원 |
             |latitude| 가이드 위치(위도) | -90.0 이상, 90.0 이하 | N | 37.2 |
             |longitude| 가이드 위치(경도) | -180.0 이상, 180.0 이하 | N | 127.5 |
-            |guideStart| 가이드 시작 날짜/시간 | yyyy-MM-dd HH:mm:ss 패턴 | N | 2024-05-01 12:00:00 |
-            |guideEnd| 가이드 종료 날짜/시간 | yyyy-MM-dd HH:mm:ss 패턴 | N | 2024-05-01 14:00:00 |
+            |guideStart| 가이드 시작 날짜 | yyyy-MM-dd | N | 2024-05-01 |
+            |guideEnd| 가이드 종료 날짜 | yyyy-MM-dd | N | 2024-05-01 |
+            |guideStartTime| 가이드 시작 시간 | HH:mm:ss | N | 14:00:00 |
+            |guideEndTime| 가이드 종료 시간 | HH:mm:ss | N | 14:00:00 |
             |guideTime| 가이드 소요 시간 | 시간 단위 | N | 3 (3시간 소요일 시) |
             |categories| 카테고리 | DINING,TOUR,OUTDOOR,ENTERTAINMENT,ART_CULTURE,SPORTS_FITNESS 중 여러개, 한개도 가능 | N | ["DINING", "OUTDOOR"]] |
             |thumb| 대표 이미지 url | 문자열 | Y | https://S3저장소URL/저장위치/난수화된 이미지이름.이미지 타입 |
