@@ -75,6 +75,9 @@ public class Reservation extends BaseEntity {
         this.impUid = savePaymentRequest.getImpUid();
         this.paidAt = savePaymentRequest.getPaidAt();
         this.paymentStatus = PayStatus.COMPLETE;
+
+        // 예약 확정을 없앤 프로세스
+        this.reservationStatus = ReservationStatus.RESERVED;
     }
 
     public void setClientId(Long clientId) {
