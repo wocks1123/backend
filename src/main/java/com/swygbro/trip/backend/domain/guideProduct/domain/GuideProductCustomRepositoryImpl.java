@@ -159,8 +159,8 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
     }
 
     private BooleanExpression hourEq(DayTime dayTime) {
-        return Expressions.booleanTemplate("DATE_FORMAT(convert_tz({0}, '+00:00', '+09:00'), '%H:%i:%s') between {1} and {2}",
-                qProduct.guideStart, dayTime.getStart(), dayTime.getEnd());
+        return Expressions.booleanTemplate("DATE_FORMAT({0}, '%H:%i:%s') between {1} and {2}",
+                qProduct.guideStartTime, dayTime.getStart(), dayTime.getEnd());
     }
 
     private BooleanExpression regionEqAndStartDateBetween(MultiPolygon region, ZonedDateTime start, ZonedDateTime end) {
