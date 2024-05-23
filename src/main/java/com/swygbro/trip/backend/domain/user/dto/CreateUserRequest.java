@@ -61,7 +61,7 @@ public class CreateUserRequest extends RequestDto {
     private String password;
 
     @NotBlank
-    @Schema(description = "비밀번호 확인", example = "password123!")
+    @Schema(description = "비밀번호 확인", example = "password123")
     private String passwordCheck;
 }
 
