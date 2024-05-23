@@ -101,7 +101,7 @@ public class GuideProductService {
                                               Optional<MultipartFile> modifyThumb, Optional<List<MultipartFile>> modifyImages) {
         GuideProduct product = guideProductRepository.findById(productId).orElseThrow(() -> new GuideProductNotFoundException(productId));
 
-        if (product.getUser().equals(user))
+        if (!product.getUser().equals(user))
             throw new MismatchUserFromCreatorException("가이드 상품을 수정할 권한이 없습니다.");
 
         modifyThumb.ifPresent(image -> {
