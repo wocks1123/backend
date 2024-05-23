@@ -22,7 +22,7 @@ import java.time.ZonedDateTime;
 @NoArgsConstructor
 public class SaveReservationRequest {
     @NotNull
-    @Schema(description = "상품 ID", example = "1")
+    @Schema(description = "상품 ID", example = "11")
     Long productId;
 
     @NotNull

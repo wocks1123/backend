@@ -10,11 +10,11 @@ import lombok.Data;
 @Builder
 public class SavePaymentRequest {
     @NotNull
-    @Schema(description = "상품 ID", example = "1")
+    @Schema(description = "상품 ID", example = "20240523-be091be1")
     String merchantUid;
 
     @NotNull
-    @Schema(description = "결제 상품 ID", example = "1")
+    @Schema(description = "결제 상품 ID", example = "11")
     Long productId;
 
     @NotNull
