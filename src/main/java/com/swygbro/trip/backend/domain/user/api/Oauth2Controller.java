@@ -24,6 +24,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 @RestController
 @RequestMapping("/api/v1/oauth2")
@@ -105,7 +107,8 @@ public class Oauth2Controller {
                     mediaType = "application/json",
                     schema = @Schema(implementation = GoogleUserInfoDto.class)))
     public ResponseEntity<?> callback(@RequestParam String code) throws JsonProcessingException {
-        return googleOauthService.callback(code);
+        String decodedCode = URLDecoder.decode(code, StandardCharsets.UTF_8);
+        return googleOauthService.callback(decodedCode);
     }
 
     @PostMapping("/google/signup")
