@@ -1,6 +1,6 @@
 package com.swygbro.trip.backend.domain.reservation.dto;
 
-import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
+import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductSimpleDto;
 import com.swygbro.trip.backend.domain.reservation.domain.Reservation;
 import com.swygbro.trip.backend.domain.user.dto.SimpleUserDto;
 import com.swygbro.trip.backend.global.status.PayStatus;
@@ -22,7 +22,7 @@ public class ReservationDto {
     private SimpleUserDto guide;
 
     @Schema(description = "상품")
-    private GuideProductDto product;
+    private GuideProductSimpleDto product;
 
     @Schema(description = "가이드 시작 날짜", example = "2024-04-29T12:30:45Z")
     private ZonedDateTime guideStart;
@@ -52,7 +52,7 @@ public class ReservationDto {
     public ReservationDto fromEntity(Reservation reservation) {
         return ReservationDto.builder()
                 .guide(SimpleUserDto.fromEntity(reservation.getGuide()))
-                .product(GuideProductDto.fromEntity(reservation.getProduct()))
+                .product(GuideProductSimpleDto.fromEntity(reservation.getProduct()))
                 .guideStart(reservation.getGuideStart())
                 .guideEnd(reservation.getGuideEnd())
                 .personnel(reservation.getPersonnel())

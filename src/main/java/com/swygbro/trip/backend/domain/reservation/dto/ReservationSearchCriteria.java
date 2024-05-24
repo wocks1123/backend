@@ -7,8 +7,8 @@ import lombok.Getter;
 @Getter
 @Builder
 public class ReservationSearchCriteria {
-    @Schema(description = "과거/미래 여부", example = "false")
-    private boolean isPast;
+    @Schema(description = "시점 필터 {0: 과거, 1: 미래, null: all}", example = "0")
+    private int timeFilter;
 
     @Schema(description = "상태 필터 {0: 예약 확정 대기, 1: 예약 확정, 2: 예약 취소", example = "0")
     private int statusFilter = 0;
