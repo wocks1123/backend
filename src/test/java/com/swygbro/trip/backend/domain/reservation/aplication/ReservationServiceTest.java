@@ -225,7 +225,7 @@ class ReservationServiceTest {
 
         ReservationSearchCriteria criteria = ReservationSearchCriteria.builder()
                 .statusFilter(0)
-                .isPast(false)
+                .timeFilter(0)
                 .offset(0)
                 .pageSize(10)
                 .build();

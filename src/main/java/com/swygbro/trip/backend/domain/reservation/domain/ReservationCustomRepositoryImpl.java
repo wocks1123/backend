@@ -24,7 +24,7 @@ public class ReservationCustomRepositoryImpl implements ReservationCustomReposit
     public List<Reservation> findReservationsByClientId(Long clientId, ReservationSearchCriteria criteria) {
         BooleanBuilder builder = new BooleanBuilder();
 
-        timeFilter(criteria.isPast(), builder);
+        timeFilter(criteria.getTimeFilter(), builder);
         statusFilter(criteria.getStatusFilter(), builder);
 
         return queryFactory
@@ -41,7 +41,7 @@ public class ReservationCustomRepositoryImpl implements ReservationCustomReposit
     public List<Reservation> findReservationsByGuideId(Long guideId, ReservationSearchCriteria criteria) {
         BooleanBuilder builder = new BooleanBuilder();
 
-        timeFilter(criteria.isPast(), builder);
+        timeFilter(criteria.getTimeFilter(), builder);
         statusFilter(criteria.getStatusFilter(), builder);
 
         return queryFactory
@@ -70,10 +70,10 @@ public class ReservationCustomRepositoryImpl implements ReservationCustomReposit
         }
     }
 
-    private static void timeFilter(boolean isPast, BooleanBuilder builder) {
-        if (isPast) {
+    private static void timeFilter(int timeFilter, BooleanBuilder builder) {
+        if (timeFilter == 0) {
             builder.and(isBeforeFromNow());
-        } else {
+        } else if (timeFilter == 1) {
             builder.and(isAfterFromNow());
         }
     }

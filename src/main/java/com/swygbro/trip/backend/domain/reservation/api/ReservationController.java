@@ -211,7 +211,7 @@ public class ReservationController {
                         
             | 필드명 | 설명 | 제약조건  | 예시 |
             |--------|------|----------|----------|
-            | isPast | 과거 or 미래 조건 | Boolean  | ture |
+            | timeFilter | 과거 or 미래 조건 | 0(과거), 1(미래), null(all)  | ture |
             | statusFilter | 예약 Status 조건 | 0(확정 대기), 1(확정 및 정산 완료), 2(취소) | 1 |
             | offset | 조회 offset | -  | 0 |
             | pageSize | 조회 페이지 크기 | -  | 10 |
