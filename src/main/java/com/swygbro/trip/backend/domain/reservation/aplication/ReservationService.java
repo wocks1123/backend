@@ -11,9 +11,7 @@ import com.swygbro.trip.backend.domain.guideProduct.exception.GuideProductNotFou
 import com.swygbro.trip.backend.domain.reservation.domain.Reservation;
 import com.swygbro.trip.backend.domain.reservation.domain.ReservationRepository;
 import com.swygbro.trip.backend.domain.reservation.dto.*;
-import com.swygbro.trip.backend.domain.reservation.exception.DuplicateCancelReservationException;
-import com.swygbro.trip.backend.domain.reservation.exception.ForeignKeyConstraintViolationException;
-import com.swygbro.trip.backend.domain.reservation.exception.ReservationNotFoundException;
+import com.swygbro.trip.backend.domain.reservation.exception.*;
 import com.swygbro.trip.backend.global.status.PayStatus;
 import com.swygbro.trip.backend.global.status.ReservationStatus;
 import lombok.RequiredArgsConstructor;
@@ -52,6 +50,11 @@ public class ReservationService {
             );
             Reservation entity = reservation.toEntity(clientId, guideProduct.getUser().getId());
             entity.generateMerchantUid();
+
+            if (reservationRepository.findByMerchantUid(entity.getMerchantUid()) != null) {
+                throw new DuplicateMerchantUidException(entity.getMerchantUid());
+            }
+
             Reservation save = reservationRepository.save(entity);
             return save.getMerchantUid();
         } catch (DataIntegrityViolationException e) {
@@ -92,21 +95,20 @@ public class ReservationService {
      * @return
      */
     public ReservationDto savePayment(SavePaymentRequest request) throws IamportResponseException, IOException {
-        try {
-            Reservation reservation = reservationRepository.findByMerchantUid(request.getMerchantUid());
+        Reservation reservation = reservationRepository.findByMerchantUid(request.getMerchantUid());
 
-            if (reservation == null) {
-                throw new ReservationNotFoundException(request.getMerchantUid());
-            }
-
-            reservation.UpdatePaymentReservation(request);
-            reservationRepository.save(reservation);
-            return new ReservationDto().fromEntity(reservation);
-        } catch (Exception e) {
-            log.info(e.getMessage());
-            cancelPayment(request.getImpUid());
-            return null;
+        if (reservation == null) {
+            throw new ReservationNotFoundException(request.getMerchantUid());
         }
+
+        if (reservationRepository.findByImpUid(request.getImpUid()) != null) {
+            throw new DuplicateImpUidException(request.getImpUid());
+        }
+
+        reservation.UpdatePaymentReservation(request);
+
+        reservationRepository.save(reservation);
+        return new ReservationDto().fromEntity(reservation);
     }
 
     /**
@@ -115,28 +117,23 @@ public class ReservationService {
      * @param merchant_uid
      * @return
      */
-    public ReservationDto cancelReservation(String merchant_uid) {
-        try {
-            Reservation reservation = reservationRepository.findByMerchantUid(merchant_uid);
+    public ReservationDto cancelReservation(String merchant_uid) throws IamportResponseException, IOException {
+        Reservation reservation = reservationRepository.findByMerchantUid(merchant_uid);
 
-            if (reservation == null) {
-                throw new ReservationNotFoundException(merchant_uid);
-            }
-
-            if ((reservation.getGuideStart().equals(ReservationStatus.CANCELLED)) && (reservation.getPaymentStatus().equals(PayStatus.REFUNDED))) {
-                throw new DuplicateCancelReservationException(merchant_uid);
-            }
-
-            reservation.cancelReservation();
-            IamportResponse<Payment> paymentIamportResponse = cancelPayment(reservation.getImpUid());
-            reservation.refundPayment(paymentIamportResponse.getResponse().getCancelledAt());
-
-            reservationRepository.save(reservation);
-            return new ReservationDto().fromEntity(reservation);
-        } catch (Exception e) {
-            log.info(e.getMessage());
-            return null;
+        if (reservation == null) {
+            throw new ReservationNotFoundException(merchant_uid);
         }
+
+        if ((reservation.getGuideStart().equals(ReservationStatus.CANCELLED)) && (reservation.getPaymentStatus().equals(PayStatus.REFUNDED))) {
+            throw new DuplicateCancelReservationException(merchant_uid);
+        }
+
+        reservation.cancelReservation();
+        IamportResponse<Payment> paymentIamportResponse = cancelPayment(reservation.getImpUid());
+        reservation.refundPayment(paymentIamportResponse.getResponse().getCancelledAt());
+
+        reservationRepository.save(reservation);
+        return new ReservationDto().fromEntity(reservation);
     }
 
     /**

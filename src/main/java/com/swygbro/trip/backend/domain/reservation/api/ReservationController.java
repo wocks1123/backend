@@ -197,7 +197,7 @@ public class ReservationController {
                             value = "{ \"status\" : \"NOT_FOUND\", \"message\" : \"예약 정보를 찾을 수 없습니다. : 주문번호\"}")
             )
     )
-    public ResponseEntity<ReservationDto> cancelPayment(@PathVariable String merchant_uid) {
+    public ResponseEntity<ReservationDto> cancelPayment(@PathVariable String merchant_uid) throws IamportResponseException, IOException {
         return ResponseEntity.ok(reservationService.cancelReservation(merchant_uid));
     }
 
@@ -328,7 +328,7 @@ public class ReservationController {
                             value = "{ \"status\" : \"NOT_FOUND\", \"message\" : \"예약 정보를 찾을 수 없습니다. : 주문번호\"}")
             )
     )
-    public ResponseEntity<ReservationDto> cancelReservation(@PathVariable String merchant_uid) {
+    public ResponseEntity<ReservationDto> cancelReservation(@PathVariable String merchant_uid) throws IamportResponseException, IOException {
         return ResponseEntity.ok(reservationService.cancelReservation(merchant_uid));
     }
 

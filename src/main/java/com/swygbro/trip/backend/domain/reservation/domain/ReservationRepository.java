@@ -11,8 +11,9 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long>,
 
     Reservation findByMerchantUid(String merchantUid);
 
-    Page<Reservation> findAllByGuideId(Long guideId, Pageable pageable);
+    Reservation findByImpUid(String impUid);
 
+    Page<Reservation> findAllByGuideId(Long guideId, Pageable pageable);
 
     Page<Reservation> findAllByClient_Id(Long clientId, Pageable pageable);
 
