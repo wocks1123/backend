@@ -18,6 +18,6 @@ public class LoginRequest extends RequestDto {
 
     @NotBlank
     @Size(min = 8, max = 20)
-    @Schema(description = "사용자 비밀번호", example = "password123!")
+    @Schema(description = "사용자 비밀번호", example = "password123")
     private final String password;
 }

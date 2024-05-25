@@ -3,9 +3,10 @@ package com.swygbro.trip.backend.domain.user.application;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import com.swygbro.trip.backend.domain.user.domain.UserRepository;
 import com.swygbro.trip.backend.domain.user.dto.LoginRequest;
+import com.swygbro.trip.backend.domain.user.dto.LoginResponseDto;
+import com.swygbro.trip.backend.domain.user.dto.UserInfoDto;
 import com.swygbro.trip.backend.domain.user.excepiton.LoginFailException;
 import com.swygbro.trip.backend.global.jwt.TokenService;
-import com.swygbro.trip.backend.global.jwt.dto.TokenDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,7 +19,7 @@ public class LoginService {
     private final TokenService tokenService;
     private final PasswordEncoder passwordEncoder;
 
-    public TokenDto login(LoginRequest dto) {
+    public LoginResponseDto login(LoginRequest dto) {
         User user = userRepository.findByEmail(dto.getEmail())
                 .orElseThrow(LoginFailException::new);
 
@@ -26,6 +27,9 @@ public class LoginService {
             throw new LoginFailException();
         }
 
-        return tokenService.generateToken(user.getEmail());
+        return LoginResponseDto.builder()
+                .user(UserInfoDto.fromEntity(user))
+                .token(tokenService.generateToken(user.getEmail()))
+                .build();
     }
 }

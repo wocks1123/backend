@@ -4,10 +4,10 @@ import com.swygbro.trip.backend.domain.user.application.LoginService;
 import com.swygbro.trip.backend.domain.user.application.UserService;
 import com.swygbro.trip.backend.domain.user.dto.CreateUserRequest;
 import com.swygbro.trip.backend.domain.user.dto.LoginRequest;
+import com.swygbro.trip.backend.domain.user.dto.LoginResponseDto;
 import com.swygbro.trip.backend.domain.user.dto.UserInfoDto;
 import com.swygbro.trip.backend.global.document.ValidationErrorResponse;
 import com.swygbro.trip.backend.global.exception.ApiErrorResponse;
-import com.swygbro.trip.backend.global.jwt.dto.TokenDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -87,23 +87,18 @@ public class LoginController {
                         
             ## 응답
                         
-            - 로그인 성공 시 `200` 코드와 함께 토큰을 반환합니다.
-              - 토큰은 `access_token`과 `refresh_token`으로 구성되어 있습니다.
+            - 로그인 성공 시 `200` 코드와 함께 유저 정보 및 토큰을 반환합니다.
+              - 유저 정보엔는 id, email, nickname, name, birthdate, gender, nationality가 포함되어 있습니다.
+              - 토큰은 `accessToken`과 `refreshToken`으로 구성되어 있습니다.
             - 로그인 실패 시 `400` 에러를 반환합니다.
               - 계정이 존재하지 않거나 비밀번호가 일치하지 않을 경우 발생합니다.     
             """)
     @ApiResponse(
             responseCode = "200",
-            description = "로그인 성공 시 토큰을 반환합니다.",
+            description = "로그인 성공 시 유저 정보와 함께 토큰을 반환합니다.",
             content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
-                    schema = @Schema(implementation = TokenDto.class),
-                    examples = @ExampleObject(value = """
-                            {
-                                "accessToken": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyMDFAZW1haWwuY29tIiwiZXhwIjoxNzE1MDA2OTc4LCJpYXQiOjE3MTUwMDMzNzh9.4mVSMEiBNmbD0VXo0w5ZtOl45Qu5V1a4dZEArkibbIQ",
-                                "refreshToken": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyMDFAZW1haWwuY29tIiwiZXhwIjoxNzE1MDg5Nzc4LCJpYXQiOjE3MTUwMDMzNzh9.GK01DHHZYxYc5FXl_c5Aq0qJg9YbUoSl-U6YCj8L7ik"
-                            }
-                            """)
+                    schema = @Schema(implementation = LoginResponseDto.class)
             )
     )
     @ApiResponse(
@@ -120,7 +115,7 @@ public class LoginController {
                             """)
             )
     )
-    public TokenDto login(@Valid @RequestBody LoginRequest dto) {
+    public LoginResponseDto login(@Valid @RequestBody LoginRequest dto) {
         return loginService.login(dto);
     }
 

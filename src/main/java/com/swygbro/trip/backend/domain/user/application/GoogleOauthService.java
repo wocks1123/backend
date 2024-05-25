@@ -5,10 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import com.swygbro.trip.backend.domain.user.domain.UserRepository;
-import com.swygbro.trip.backend.domain.user.dto.CreateGoogleUserRequest;
-import com.swygbro.trip.backend.domain.user.dto.GoogleUserInfo;
-import com.swygbro.trip.backend.domain.user.dto.GoogleUserInfoDto;
-import com.swygbro.trip.backend.domain.user.dto.UserInfoDto;
+import com.swygbro.trip.backend.domain.user.dto.*;
 import com.swygbro.trip.backend.global.jwt.TokenService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +22,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -65,11 +63,15 @@ public class GoogleOauthService {
         String googleAccessToken = getGoogleAccessToken(code);
         GoogleUserInfo userInfo = getGoogleUserInfo(googleAccessToken);
 
-        boolean exists = userService.existsByEmail(userInfo.getEmail());
+        Optional<User> user = userRepository.findByEmail(userInfo.getEmail());
 
         // 등록된 회원이라면 로그인처리
-        if (exists) {
-            return ResponseEntity.ok(tokenService.generateToken(userInfo.getEmail()));
+        if (user.isPresent()) {
+            return ResponseEntity.ok(
+                    LoginResponseDto.builder()
+                            .user(UserInfoDto.fromEntity(user.get()))
+                            .token(tokenService.generateToken(userInfo.getEmail()))
+                            .build());
         }
 
         UUID uuid = UUID.randomUUID();
