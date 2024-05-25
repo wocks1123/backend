@@ -89,6 +89,7 @@ public class User extends BaseEntity {
         this.birthdate = LocalDate.parse(dto.getBirthdate());
         this.gender = dto.getGender();
         this.userRole = UserRole.USER;
+        this.profileImageUrl = userInfo.getPicture();
         this.signUpType = SignUpType.Google;
     }
 
