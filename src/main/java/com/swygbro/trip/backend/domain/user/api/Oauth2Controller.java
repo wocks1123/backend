@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.swygbro.trip.backend.domain.user.application.GoogleOauthService;
 import com.swygbro.trip.backend.domain.user.dto.CreateGoogleUserRequest;
 import com.swygbro.trip.backend.domain.user.dto.GoogleUserInfoDto;
+import com.swygbro.trip.backend.domain.user.dto.LoginResponseDto;
 import com.swygbro.trip.backend.domain.user.dto.UserInfoDto;
 import com.swygbro.trip.backend.global.document.ValidationErrorResponse;
 import com.swygbro.trip.backend.global.exception.ApiErrorResponse;
@@ -63,21 +64,14 @@ public class Oauth2Controller {
 
     @GetMapping("/callback")
     @Operation(summary = "구글 로그인 콜백", description = """
-                        
-            - 프론트엔드에서 테스트 필요
-              - 301 응답 시 회원가입 페이지로 이동 및 응답 데이터를 받아서 회원가입 페이지에서 사용할 수 있는지... 
-
-            ---
-
             # 구글 로그인 콜백
 
-                        
             - 구글 로그인 페이지에서 로그인을 완료하면 구글 인가 코드와 함께 이 API로 리다이렉트됩니다.
             - 구글 인가 코드를 사용해 계정의 정보를 조회 및 처리합니다.
             - DB에 등록된 이메일이면 로그인 처리, 등록되지 않은 이메일이면 회원가입 페이지로 이동 합니다.
-            - 로그인 시 200 코드와 함께 JWT 토큰을 반환합니다.
+            - 로그인 시 200 코드와 함께 유저정보, 토큰을 반환합니다.
             - 회원가입 시 301 코드와 함께 회원 정보를 반환합니다.
-              - 반환 정보는 추후 협의 필요 
+                - 서버에서 생성한 uuid를 추가로 전달하며, 이 구글 계정 회원가입 요청 시 이 uuid이 포함되어야합니다.
               
             회원정보 반환 예시:
                         
@@ -98,11 +92,14 @@ public class Oauth2Controller {
     @Parameter(name = "code", description = "구글 인가 코드", required = true)
     @ApiResponse(
             responseCode = "200",
-            description = "로그인 성공 시 JWT 토큰을 반환합니다.",
-            content = @Content(mediaType = "application/json"))
+            description = "등록된 구글 계정이라면 로그인 성공 응답을 반환합니다.",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = LoginResponseDto.class)
+            ))
     @ApiResponse(
             responseCode = "301",
-            description = "회원가입 페이지",
+            description = "등록되지 않은 구글계정이라면 구글 계정 정보와 함께 회원가입 페이지로 리다이렉트합니다.",
             content = @Content(
                     mediaType = "application/json",
                     schema = @Schema(implementation = GoogleUserInfoDto.class)))
