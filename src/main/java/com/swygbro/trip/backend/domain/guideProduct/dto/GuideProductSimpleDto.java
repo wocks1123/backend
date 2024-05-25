@@ -60,6 +60,7 @@ public class GuideProductSimpleDto {
                 .longitude(product.getLocation().getX()).latitude(product.getLocation().getY())
                 .guideStart(product.getGuideStart()).guideEnd(product.getGuideEnd())
                 .guideTime(product.getGuideTime()).categories(categories)
+                .thumb(product.getThumb())
                 .build();
     }
 }
