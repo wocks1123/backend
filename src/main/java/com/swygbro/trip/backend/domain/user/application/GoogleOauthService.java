@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import com.swygbro.trip.backend.domain.user.domain.UserRepository;
 import com.swygbro.trip.backend.domain.user.dto.*;
+import com.swygbro.trip.backend.domain.user.excepiton.UuidExpiredException;
 import com.swygbro.trip.backend.global.jwt.TokenService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -87,6 +88,10 @@ public class GoogleOauthService {
         userValidationService.checkUniqueUser(dto);
 
         GoogleUserInfo userInfo = (GoogleUserInfo) httpSession.getAttribute(dto.getUuid());
+
+        if (userInfo == null) {
+            throw new UuidExpiredException();
+        }
 
         userValidationService.checkEmailDupl(userInfo.getEmail());
 
