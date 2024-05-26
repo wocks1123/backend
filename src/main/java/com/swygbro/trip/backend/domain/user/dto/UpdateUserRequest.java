@@ -6,11 +6,13 @@ import com.swygbro.trip.backend.global.validation.EnumClass;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
 
 @Getter
+@Builder
 public class UpdateUserRequest extends RequestDto {
     @NotBlank
     @Size(max = 100)
