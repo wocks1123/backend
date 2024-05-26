@@ -1,10 +1,10 @@
 package com.swygbro.trip.backend.domain.guideProduct.domain;
 
-import com.querydsl.core.types.Projections;
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.swygbro.trip.backend.domain.guideProduct.dto.QSearchGuideProductResponse;
 import com.swygbro.trip.backend.domain.guideProduct.dto.SearchCategoriesRequest;
 import com.swygbro.trip.backend.domain.guideProduct.dto.SearchGuideProductResponse;
 import com.swygbro.trip.backend.domain.review.domain.QReview;
@@ -50,13 +50,14 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
     @Override
     public List<SearchGuideProductResponse> findByLocation(Geometry geometry, int radius) {
         return jpaQueryFactory
-                .select(Projections.fields(SearchGuideProductResponse.class,
+                .select(new QSearchGuideProductResponse(
                         qProduct.id,
                         qProduct.title,
                         qProduct.thumb,
                         qProduct.locationName,
                         qProduct.guideStart,
-                        qProduct.guideEnd))
+                        qProduct.guideEnd
+                ))
                 .from(qProduct)
                 .where(nearGuideProduct(geometry, radius))
                 .limit(4)
@@ -66,13 +67,14 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
     @Override
     public List<SearchGuideProductResponse> findByBest(MultiPolygon polygon) {
         return jpaQueryFactory
-                .select(Projections.fields(SearchGuideProductResponse.class,
+                .select(new QSearchGuideProductResponse(
                         qProduct.id,
                         qProduct.title,
                         qProduct.thumb,
                         qProduct.locationName,
                         qProduct.guideStart,
-                        qProduct.guideEnd))
+                        qProduct.guideEnd
+                ))
                 .from(qProduct)
                 .where(regionEq(polygon))
                 .limit(4)
@@ -82,13 +84,14 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
     @Override
     public Page<SearchGuideProductResponse> findAllWithMain(Pageable pageable) {
         List<SearchGuideProductResponse> fetch = jpaQueryFactory
-                .select(Projections.fields(SearchGuideProductResponse.class,
+                .select(new QSearchGuideProductResponse(
                         qProduct.id,
                         qProduct.title,
                         qProduct.thumb,
                         qProduct.locationName,
                         qProduct.guideStart,
-                        qProduct.guideEnd))
+                        qProduct.guideEnd
+                ))
                 .from(qProduct)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
@@ -114,13 +117,14 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
                                                          List<Language> languages,
                                                          Pageable pageable) {
         List<SearchGuideProductResponse> fetch = jpaQueryFactory
-                .select(Projections.fields(SearchGuideProductResponse.class,
+                .select(new QSearchGuideProductResponse(
                         qProduct.id,
                         qProduct.title,
                         qProduct.thumb,
                         qProduct.locationName,
                         qProduct.guideStart,
-                        qProduct.guideEnd))
+                        qProduct.guideEnd
+                ))
                 .from(qProduct)
                 .where(regionEqAndStartDateBetween(region, start, end),
                         categoryIn(region, category),
@@ -155,8 +159,8 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
     }
 
     private BooleanExpression hourEq(DayTime dayTime) {
-        return Expressions.booleanTemplate("DATE_FORMAT(convert_tz({0}, '+00:00', '+09:00'), '%H:%i:%s') between {1} and {2}",
-                qProduct.guideStart, dayTime.getStart(), dayTime.getEnd());
+        return Expressions.booleanTemplate("DATE_FORMAT({0}, '%H:%i:%s') between {1} and {2}",
+                qProduct.guideStartTime, dayTime.getStart(), dayTime.getEnd());
     }
 
     private BooleanExpression regionEqAndStartDateBetween(MultiPolygon region, ZonedDateTime start, ZonedDateTime end) {
@@ -190,11 +194,6 @@ public class GuideProductCustomRepositoryImpl implements GuideProductCustomRepos
                         .from(qCategory)
                         .where(qCategory.categoryCode.eq(request.getCategory())));
         }
-        return null;
-    }
-
-    private BooleanExpression startDateBetween(ZonedDateTime start, ZonedDateTime end) {
-        if (start != null && end != null) return qProduct.guideStart.between(start, end);
         return null;
     }
 
