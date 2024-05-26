@@ -48,7 +48,7 @@ public class UserDaoImpl implements UserDao {
                 .select(qGuideProduct)
                 .from(qGuideProduct)
                 .where(qGuideProduct.user.eq(user))
-                .orderBy(qGuideProduct.guideStart.desc())
+                .orderBy(qGuideProduct.createdAt.desc())
                 .limit(12) // 임의 지정 4 -> 12
                 .fetch();
 
