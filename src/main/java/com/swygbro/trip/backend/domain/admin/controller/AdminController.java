@@ -6,6 +6,7 @@ import com.swygbro.trip.backend.domain.admin.dao.ReviewDao;
 import com.swygbro.trip.backend.domain.admin.dto.GuideProductDetailDto;
 import com.swygbro.trip.backend.domain.admin.dto.ReservationDetailDto;
 import com.swygbro.trip.backend.domain.admin.dto.ReviewDetailDto;
+import com.swygbro.trip.backend.domain.admin.dto.UserInfoCard;
 import com.swygbro.trip.backend.domain.guideProduct.application.GuideProductService;
 import com.swygbro.trip.backend.domain.reservation.aplication.ReservationService;
 import com.swygbro.trip.backend.domain.review.application.ReviewService;
@@ -13,17 +14,16 @@ import com.swygbro.trip.backend.domain.user.application.UserService;
 import com.swygbro.trip.backend.domain.user.domain.Gender;
 import com.swygbro.trip.backend.domain.user.domain.Nationality;
 import com.swygbro.trip.backend.domain.user.domain.SignUpType;
+import com.swygbro.trip.backend.domain.user.domain.UserDao;
 import com.swygbro.trip.backend.domain.user.dto.UserDetailDto;
+import com.swygbro.trip.backend.domain.user.excepiton.UserNotFoundException;
 import com.swygbro.trip.backend.global.status.PayStatus;
 import com.swygbro.trip.backend.global.status.ReservationStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
 
@@ -37,6 +37,7 @@ public class AdminController {
     private final ReservationService reservationService;
     private final ReviewService reviewService;
 
+    private final UserDao userDao;
     private final GuideProductDao guideProductDao;
     private final ReservationDao reservationDao;
     private final ReviewDao reviewDao;
@@ -65,6 +66,12 @@ public class AdminController {
                 birthdate,
                 gender,
                 signUpType);
+    }
+
+    @GetMapping("/users/{userId}")
+    public UserInfoCard getUserInfoCard(@PathVariable Long userId) {
+        return userDao.getUserInfoCard(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
     }
 
     @GetMapping("/guideProducts")

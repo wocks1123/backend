@@ -1,8 +1,9 @@
-package com.swygbro.trip.backend.domain.admin.dao;
+package com.swygbro.trip.backend.domain.admin.infra;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.swygbro.trip.backend.domain.admin.dao.ReservationDao;
 import com.swygbro.trip.backend.domain.admin.dto.ReservationDetailDto;
 import com.swygbro.trip.backend.domain.guideProduct.domain.QGuideProduct;
 import com.swygbro.trip.backend.domain.reservation.domain.QReservation;

@@ -1,6 +1,7 @@
 package com.swygbro.trip.backend.domain.review.domain;
 
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProduct;
+import com.swygbro.trip.backend.domain.reservation.domain.Reservation;
 import com.swygbro.trip.backend.domain.review.dto.CreateReviewRequest;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import com.swygbro.trip.backend.global.entity.BaseEntity;
@@ -21,12 +22,14 @@ public class Review extends BaseEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    
     @ManyToOne
     private User reviewer;
 
     @ManyToOne
     private GuideProduct guideProduct;
+
+    @ManyToOne
+    private Reservation reservation;
 
     @Column
     private String content;

@@ -1,8 +1,9 @@
-package com.swygbro.trip.backend.domain.admin.dao;
+package com.swygbro.trip.backend.domain.admin.infra;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.swygbro.trip.backend.domain.admin.dao.GuideProductDao;
 import com.swygbro.trip.backend.domain.admin.dto.GuideProductDetailDto;
 import com.swygbro.trip.backend.domain.guideProduct.domain.QGuideProduct;
 import com.swygbro.trip.backend.domain.user.domain.QUser;
@@ -85,4 +86,8 @@ public class GuideProductImpl implements GuideProductDao {
         return builder;
     }
 
+
+    public void findGuideProduct(Long productId) {
+
+    }
 }

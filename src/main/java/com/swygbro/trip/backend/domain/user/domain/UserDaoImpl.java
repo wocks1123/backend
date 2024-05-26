@@ -3,7 +3,9 @@ package com.swygbro.trip.backend.domain.user.domain;
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.swygbro.trip.backend.domain.admin.dto.UserInfoCard;
 import com.swygbro.trip.backend.domain.guideProduct.domain.QGuideProduct;
+import com.swygbro.trip.backend.domain.reservation.domain.QReservation;
 import com.swygbro.trip.backend.domain.review.domain.QReview;
 import com.swygbro.trip.backend.domain.user.dto.UserDetailDto;
 import com.swygbro.trip.backend.domain.user.dto.UserProfileDto;
@@ -115,6 +117,7 @@ public class UserDaoImpl implements UserDao {
                         qUser.location,
                         qUser.nationality,
                         qUser.birthdate,
+                        qUser.profileImageUrl,
                         qUser.gender,
                         qUser.signUpType,
                         qUser.createdAt,
@@ -183,6 +186,93 @@ public class UserDaoImpl implements UserDao {
         }
 
         return builder;
+    }
+
+    public Optional<UserInfoCard> getUserInfoCard(Long userId) {
+        QUser qUser = QUser.user;
+        QUserLanguage qUserLanguage = QUserLanguage.userLanguage;
+        QGuideProduct qGuideProduct = QGuideProduct.guideProduct;
+        QReservation qReservation = QReservation.reservation;
+        QReview qReview = QReview.review;
+
+        var user = queryFactory
+                .select(qUser)
+                .from(qUser)
+                .leftJoin(qUser.userLanguages, qUserLanguage).fetchJoin()
+                .where(qUser.id.eq(userId))
+                .fetchOne();
+
+        if (user == null) {
+            return Optional.empty();
+        }
+
+        // 등록한 여행 수
+        var guideProductCount = queryFactory
+                .select(qGuideProduct.count())
+                .from(qGuideProduct)
+                .where(qGuideProduct.user.eq(user))
+                .fetchFirst();
+
+        // 등록한 여행의 예약 수
+        Long guideProductReservationCount = queryFactory
+                .select(qReservation.count())
+                .from(qReservation)
+                .where(qReservation.guide.eq(user))
+                .fetchFirst();
+
+        // 등록한 여행의 평점, 리뷰 수
+        var reviewInfo = queryFactory
+                .select(qReview.count(), qReview.rating.avg())
+                .from(qReview).leftJoin(qGuideProduct).on(qGuideProduct.eq(qReview.guideProduct))
+                .where(qGuideProduct.user.eq(qUser))
+                .where(qUser.id.eq(userId))
+                .groupBy(qUser);
+
+        var guideProductReviewRes = reviewInfo.fetchFirst();
+        long guideProductReviewCount = 0;
+        float guideProductReviewRatingAvg = 0.0f;
+        if (guideProductReviewRes != null) {
+            guideProductReviewCount = guideProductReviewRes.get(0, Long.class).longValue();
+            guideProductReviewRatingAvg = guideProductReviewRes.get(1, Double.class).floatValue();
+        }
+
+
+        // 예약한 여행 수
+        Long myReservationCount = queryFactory
+                .select(qReservation.count())
+                .from(qReservation)
+                .where(qReservation.client.eq(user))
+                .fetchFirst();
+
+        var myReviewInfo = queryFactory
+                .select(qReview.count(), qReview.rating.avg())
+                .from(qReview)
+                .where(qReview.reviewer.eq(user))
+                .groupBy(qUser)
+                .fetchFirst();
+        long myReviewCount = 0;
+        float myReviewRatingAvg = 0.0f;
+        if (myReviewInfo != null) {
+            myReviewCount = myReviewInfo.get(0, Long.class).longValue();
+            myReviewRatingAvg = myReviewInfo.get(1, Double.class).floatValue();
+        }
+
+        return Optional.of(UserInfoCard.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .nickname(user.getNickname())
+                .profileImageUrl(user.getProfileImageUrl())
+                .guideProductCount(guideProductCount)
+                .guideProductReservationCount(guideProductReservationCount)
+                .guideProductReviewRatingAvg(guideProductReviewRatingAvg)
+                .guideProductReviewCount(guideProductReviewCount)
+                .myReservationCount(myReservationCount)
+                .myReviewRatingAvg(myReviewRatingAvg)
+                .myReviewCount(myReviewCount)
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
+                .build());
+
     }
 
 
