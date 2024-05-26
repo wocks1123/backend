@@ -41,6 +41,8 @@ public class GuideProductImpl implements GuideProductDao {
                         qGuideProduct.price,
                         qGuideProduct.guideStart,
                         qGuideProduct.guideEnd,
+                        qGuideProduct.guideStartTime,
+                        qGuideProduct.guideEndTime,
                         qGuideProduct.guideTime,
                         qGuideProduct.createdAt,
                         qGuideProduct.updatedAt))

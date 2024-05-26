@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -36,12 +37,18 @@ public class GuideProductSimpleDto {
     private double latitude;
     @Schema(description = "가이드 위치(경도)", example = "127")
     private double longitude;
-    @Schema(description = "가이드 시작 날짜/시간", example = "2024-05-01 12:00:00")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Schema(description = "가이드 시작 날짜", example = "2024-05-01", type = "string")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
     private ZonedDateTime guideStart;
-    @Schema(description = "가이드 종료 날짜/시간", example = "2024-05-01 14:00:00")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")
+    @Schema(description = "가이드 종료 날짜", example = "2024-05-01", type = "string")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
     private ZonedDateTime guideEnd;
+    @Schema(description = "가이드 시작 시간", example = "00:00:00")
+    @JsonFormat(pattern = "HH:mm:ss")
+    private LocalTime guideStartTime;
+    @Schema(description = "가이드 종료 시간", example = "00:00:00")
+    @JsonFormat(pattern = "HH:mm:ss")
+    private LocalTime guideEndTime;
     @Schema(description = "가이드 소요 시간", example = "3")
     private int guideTime;
     @Schema(description = "상품 카테고리", example = "[\"DINING\", \"OUTDOOR\"]")
@@ -59,6 +66,7 @@ public class GuideProductSimpleDto {
                 .description(product.getDescription()).price(product.getPrice()).locationName(product.getLocationName())
                 .longitude(product.getLocation().getX()).latitude(product.getLocation().getY())
                 .guideStart(product.getGuideStart()).guideEnd(product.getGuideEnd())
+                .guideStartTime(product.getGuideStartTime()).guideEndTime(product.getGuideEndTime())
                 .guideTime(product.getGuideTime()).categories(categories)
                 .thumb(product.getThumb())
                 .build();
