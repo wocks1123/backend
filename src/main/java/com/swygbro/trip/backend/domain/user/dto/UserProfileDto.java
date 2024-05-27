@@ -7,6 +7,7 @@ import com.swygbro.trip.backend.domain.user.domain.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
 
+import java.time.LocalTime;
 import java.time.ZonedDateTime;
 import java.util.List;
 
@@ -74,12 +75,19 @@ public class UserProfileDto {
         private String thumb;
         @Schema(description = "가이드 상품 위치", example = "서울")
         private String locationName;
-        @Schema(description = "가이드 상품 시작 시간", example = "2024-05-05 00:00:00")
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+        @Schema(description = "가이드 상품 시작 일자", example = "2024-05-05", type = "string")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
         private ZonedDateTime guideStart;
-        @Schema(description = "가이드 상품 종료 시간", example = "2024-05-05 00:00:00")
-        @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+        @Schema(description = "가이드 상품 종료 일자", example = "2024-06-06", type = "string")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "Asia/Seoul")
         private ZonedDateTime guideEnd;
+        @Schema(description = "가이드 상품 시작 시간", example = "00:00:00")
+        @JsonFormat(pattern = "HH:mm:ss")
+        private LocalTime guideStartTime;
+        @Schema(description = "가이드 상품 종료 시간", example = "00:00:00")
+        @JsonFormat(pattern = "HH:mm:ss")
+        private LocalTime guideEndTime;
+        private int guideTime;
         @Schema(description = "가이드 상품 생성일", example = "2024-05-05 00:00:00")
         @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
         private ZonedDateTime createdAt;
@@ -93,6 +101,9 @@ public class UserProfileDto {
                     .locationName(guideProduct.getLocationName())
                     .guideStart(guideProduct.getGuideStart())
                     .guideEnd(guideProduct.getGuideEnd())
+                    .guideStartTime(guideProduct.getGuideStartTime())
+                    .guideEndTime(guideProduct.getGuideEndTime())
+                    .guideTime(guideProduct.getGuideTime())
                     .createdAt(guideProduct.getCreatedAt())
                     .build();
         }
