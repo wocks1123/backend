@@ -8,7 +8,9 @@ import com.swygbro.trip.backend.domain.admin.dto.ReservationDetailDto;
 import com.swygbro.trip.backend.domain.admin.dto.ReviewDetailDto;
 import com.swygbro.trip.backend.domain.admin.dto.UserInfoCard;
 import com.swygbro.trip.backend.domain.guideProduct.application.GuideProductService;
+import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
 import com.swygbro.trip.backend.domain.reservation.aplication.ReservationService;
+import com.swygbro.trip.backend.domain.reservation.dto.ReservationDto;
 import com.swygbro.trip.backend.domain.review.application.ReviewService;
 import com.swygbro.trip.backend.domain.user.application.UserService;
 import com.swygbro.trip.backend.domain.user.domain.Gender;
@@ -30,7 +32,7 @@ import java.time.LocalDate;
 @RestController
 @RequestMapping("/api/v1/admin")
 @RequiredArgsConstructor
-public class AdminController {
+public class AdminQueryController {
 
     private final UserService userService;
     private final GuideProductService guideProductService;
@@ -85,6 +87,11 @@ public class AdminController {
         return guideProductDao.findGuideProductsByFilter(PageRequest.of(offset, limit, Sort.by(sort)), id, title, nickname, locationName);
     }
 
+    @GetMapping("/guideProducts/{productId}")
+    public GuideProductDto getGuideProductDetail(@PathVariable Long productId) {
+        return guideProductService.getProduct(productId);
+    }
+
     @GetMapping("/reservations")
     public Page<ReservationDetailDto> getReservationsByFilter(@RequestParam(required = false, defaultValue = "0") int offset,
                                                               @RequestParam(required = false, defaultValue = "10") int limit,
@@ -99,6 +106,11 @@ public class AdminController {
         return reservationDao.findReservationsByFilter(PageRequest.of(offset, limit, Sort.by(sort)), id, merchantUid, productId, client, guide, payStatus, reservationStatus);
     }
 
+    @GetMapping("/reservations/{merchantUid}")
+    public ReservationDto getReservationDetail(@PathVariable String merchantUid) {
+        return reservationService.getReservation(merchantUid);
+    }
+
     @GetMapping("/reviews")
     public Page<ReviewDetailDto> getReviewsByFilter(@RequestParam(defaultValue = "0") int offset,
                                                     @RequestParam(defaultValue = "10") int limit,
@@ -107,6 +119,11 @@ public class AdminController {
                                                     @RequestParam(required = false) String reviewer,
                                                     @RequestParam(required = false) Long guideProductId) {
         return reviewDao.findReviewsByFilter(PageRequest.of(offset, limit, Sort.by(sort)), id, reviewer, guideProductId);
+    }
+
+    @GetMapping("/reviews/{reviewId}")
+    public com.swygbro.trip.backend.domain.review.dto.ReviewDetailDto getReviewDetail(@PathVariable Long reviewId) {
+        return reviewService.getReviewById(reviewId);
     }
 
 }

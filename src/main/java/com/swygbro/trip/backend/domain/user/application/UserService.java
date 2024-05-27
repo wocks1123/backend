@@ -61,6 +61,18 @@ public class UserService {
         return userRepository.existsByEmail(email);
     }
 
+    @Transactional(readOnly = true)
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException(email));
+    }
+
+    @Transactional(readOnly = true)
+    public User findByNickname(String nickname) {
+        return userRepository.findByNickname(nickname)
+                .orElseThrow(() -> new UserNotFoundException(nickname));
+    }
+
     @Transactional
     public void updateUser(Long id, UpdateUserRequest dto, MultipartFile imageFile) {
         User user = userRepository.findById(id)
