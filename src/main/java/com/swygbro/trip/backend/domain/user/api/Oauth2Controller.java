@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 import java.io.IOException;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/oauth2")
@@ -154,5 +155,9 @@ public class Oauth2Controller {
         return googleOauthService.createUser(dto);
     }
 
+    @GetMapping("/test")
+    public Map<String, Object> test() {
+        return googleOauthService.test();
+    }
 
 }

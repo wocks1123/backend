@@ -8,7 +8,7 @@ import com.swygbro.trip.backend.domain.user.domain.UserRepository;
 import com.swygbro.trip.backend.domain.user.dto.*;
 import com.swygbro.trip.backend.domain.user.excepiton.UuidExpiredException;
 import com.swygbro.trip.backend.global.jwt.TokenService;
-import jakarta.servlet.http.HttpSession;
+import com.swygbro.trip.backend.global.session.application.SessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -23,6 +23,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -48,8 +49,11 @@ public class GoogleOauthService {
     private final RestTemplate restTemplate;
     private final UserValidationService userValidationService;
 
-    private final HttpSession httpSession;
+    private final SessionService sessionService; // TODO 임시로 메모리에 저장
 
+    public Map<String, Object> test() {
+        return sessionService.getAttributes();
+    }
 
     public String getGoogleLoginUrl() {
         return UriComponentsBuilder.fromUriString(authorizationUri)
@@ -61,9 +65,10 @@ public class GoogleOauthService {
     }
 
     public ResponseEntity<?> callback(String code) throws JsonProcessingException {
+        System.out.println("code in callback:" + code);
         String googleAccessToken = getGoogleAccessToken(code);
         GoogleUserInfo userInfo = getGoogleUserInfo(googleAccessToken);
-
+        System.out.println("userInfo in callback:" + userInfo);
         Optional<User> user = userRepository.findByEmail(userInfo.getEmail());
 
         // 등록된 회원이라면 로그인처리
@@ -74,10 +79,12 @@ public class GoogleOauthService {
                             .token(tokenService.generateToken(userInfo.getEmail()))
                             .build());
         }
-
+        System.out.println("userInfo in callback:" + userInfo);
         UUID uuid = UUID.randomUUID();
-        httpSession.setAttribute(String.valueOf(uuid), userInfo);
-
+        sessionService.setAttribute(String.valueOf(uuid), userInfo);
+        var res = sessionService.getAttribute(String.valueOf(uuid));
+        System.out.println("uuid in callback:" + uuid);
+        System.out.println("res in callback:" + res);
         return ResponseEntity
                 .status(HttpStatus.MOVED_PERMANENTLY)
                 .body(new GoogleUserInfoDto(userInfo, uuid.toString()));
@@ -86,9 +93,10 @@ public class GoogleOauthService {
     @Transactional
     public UserInfoDto createUser(CreateGoogleUserRequest dto) throws JsonProcessingException {
         userValidationService.checkUniqueUser(dto);
+        System.out.println("userInfo in createUser:" + dto);
 
-        GoogleUserInfo userInfo = (GoogleUserInfo) httpSession.getAttribute(dto.getUuid());
-
+        GoogleUserInfo userInfo = (GoogleUserInfo) sessionService.getAttribute(dto.getUuid());
+        System.out.println("userInfo in createUser:" + userInfo);
         if (userInfo == null) {
             throw new UuidExpiredException();
         }
