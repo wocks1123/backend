@@ -9,6 +9,7 @@ import com.swygbro.trip.backend.domain.review.domain.ReviewRepository;
 import com.swygbro.trip.backend.domain.review.dto.CreateReviewRequest;
 import com.swygbro.trip.backend.domain.review.dto.ReviewDetailDto;
 import com.swygbro.trip.backend.domain.review.dto.ReviewInfoDto;
+import com.swygbro.trip.backend.domain.review.dto.UpdateReviewRequest;
 import com.swygbro.trip.backend.domain.review.exception.InvalidReviewRequestException;
 import com.swygbro.trip.backend.domain.review.exception.ReviewNotFoundException;
 import com.swygbro.trip.backend.domain.s3.application.S3Service;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 
 
 @Service
@@ -65,11 +67,11 @@ public class ReviewService {
 //            throw new InvalidReviewRequestException();
 //        }
 
-        Review review = new Review(dto, reviewer, reservation.getProduct());
+        Review review = new Review(dto, reviewer, reservation);
 
         if (images != null) {
             images.forEach(image -> {
-                review.addReviewImage(new ReviewImage(s3Service.uploadImage(image), review));
+                review.addReviewImage(new ReviewImage(s3Service.uploadImage(image)));
             });
         }
 
@@ -91,6 +93,36 @@ public class ReviewService {
         }
         return findReviewPagesByGuideId(pageable, guideProductId);
     }
+
+    @Transactional
+    public void updateReview(Long reviewId, UpdateReviewRequest request, Optional<List<MultipartFile>> imageFiles) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(ReviewNotFoundException::new);
+        var notIncluded = review.getImages().stream()
+                .filter(image -> !request.getImages().contains(image.getImageUrl()))
+                .toList();
+
+        notIncluded.forEach(image -> {
+            s3Service.deleteImage(image.getImageUrl());
+        });
+        review.getImages().removeIf(notIncluded::contains);
+
+        imageFiles.ifPresent(images -> {
+            images.forEach(img -> {
+                review.addReviewImage(new ReviewImage(s3Service.uploadImage(img)));
+            });
+        });
+
+        review.update(request);
+    }
+
+    @Transactional
+    public void deleteReview(Long reviewId) {
+        Review review = reviewRepository.findById(reviewId)
+                .orElseThrow(ReviewNotFoundException::new);
+        reviewRepository.delete(review);
+    }
+
 
     private Page<ReviewInfoDto> findAllReviewPages(Pageable pageable) {
         return reviewRepository.findAll(pageable)

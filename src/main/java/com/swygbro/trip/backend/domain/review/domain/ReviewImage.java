@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 
 @Entity
@@ -15,14 +16,14 @@ public class ReviewImage {
     private Long id;
 
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn
+    @JoinColumn(name = "review_id")
+    @Setter
     private Review review;
 
     @Column(nullable = false, length = 250)
     private String imageUrl;
 
-    public ReviewImage(String imageUrl, Review review) {
-        this.review = review;
+    public ReviewImage(String imageUrl) {
         this.imageUrl = imageUrl;
     }
 }

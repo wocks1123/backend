@@ -1,9 +1,11 @@
-package com.swygbro.trip.backend.domain.admin.dao;
+package com.swygbro.trip.backend.domain.admin.infra;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
+import com.swygbro.trip.backend.domain.admin.dao.ReviewDao;
 import com.swygbro.trip.backend.domain.admin.dto.ReviewDetailDto;
+import com.swygbro.trip.backend.domain.admin.dto.ReviewInfoDto;
 import com.swygbro.trip.backend.domain.review.domain.QReview;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -41,7 +43,10 @@ public class ReviewDaoImpl implements ReviewDao {
         var reviews = queryFactory
                 .select(Projections.fields(ReviewDetailDto.class,
                         qReview.id,
-                        qReview.reviewer.nickname.as("reviewer"),
+                        qReview.reviewer.id.as("reviewerId"),
+                        qReview.reviewer.nickname.as("reviewerNickname"),
+                        qReview.reviewer.email.as("reviewerEmail"),
+                        qReview.reviewer.profileImageUrl.as("profileImageUrl"),
                         qReview.guideProduct.id.as("guideProductId"),
                         qReview.rating,
                         qReview.content,
@@ -59,5 +64,23 @@ public class ReviewDaoImpl implements ReviewDao {
                 .fetchOne()).orElse(0L);
 
         return new PageImpl<>(reviews, pageable, total);
+    }
+
+    public Optional<ReviewInfoDto> findReviewById(Long id) {
+        return Optional.ofNullable(queryFactory
+                .select(Projections.fields(ReviewInfoDto.class,
+                        qReview.id,
+                        qReview.reviewer.id.as("reviewerId"),
+                        qReview.reviewer.nickname.as("reviewer"),
+                        qReview.guideProduct.id.as("guideProductId"),
+                        qReview.reservation.id.as("reservationId"),
+                        qReview.rating,
+                        qReview.content,
+                        qReview.images,
+                        qReview.createdAt,
+                        qReview.updatedAt))
+                .from(qReview)
+                .where(qReview.id.eq(id))
+                .fetchOne());
     }
 }

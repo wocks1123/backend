@@ -19,6 +19,7 @@ public class UserDetailDto {
     private String location;
     private Nationality nationality;
     private LocalDate birthdate;
+    private String profileImageUrl;
     private Gender gender;
     private SignUpType signUpType;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss", timezone = "Asia/Seoul")

@@ -1,5 +1,6 @@
 package com.swygbro.trip.backend.domain.user.domain;
 
+import com.swygbro.trip.backend.domain.admin.dto.UserInfoCard;
 import com.swygbro.trip.backend.domain.user.dto.UserDetailDto;
 import com.swygbro.trip.backend.domain.user.dto.UserProfileDto;
 import org.springframework.data.domain.Page;
@@ -22,4 +23,6 @@ public interface UserDao {
                                           LocalDate birthdate,
                                           Gender gender,
                                           SignUpType signUpType);
+
+    Optional<UserInfoCard> getUserInfoCard(Long userId);
 }
