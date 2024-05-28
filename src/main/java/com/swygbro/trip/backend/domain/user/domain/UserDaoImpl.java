@@ -248,7 +248,7 @@ public class UserDaoImpl implements UserDao {
                 .select(qReview.count(), qReview.rating.avg())
                 .from(qReview)
                 .where(qReview.reviewer.eq(user))
-                .groupBy(qUser)
+                .groupBy(qReview.reviewer)
                 .fetchFirst();
         long myReviewCount = 0;
         float myReviewRatingAvg = 0.0f;
@@ -262,6 +262,13 @@ public class UserDaoImpl implements UserDao {
                 .email(user.getEmail())
                 .nickname(user.getNickname())
                 .profileImageUrl(user.getProfileImageUrl())
+                .nationality(user.getNationality())
+                .profile(user.getProfile())
+                .phone(user.getPhone())
+                .location(user.getLocation())
+                .birthdate(user.getBirthdate())
+                .signUpType(user.getSignUpType())
+                .languages(user.getUserLanguages().stream().map(UserLanguage::getLanguage).toList())
                 .guideProductCount(guideProductCount)
                 .guideProductReservationCount(guideProductReservationCount)
                 .guideProductReviewRatingAvg(guideProductReviewRatingAvg)

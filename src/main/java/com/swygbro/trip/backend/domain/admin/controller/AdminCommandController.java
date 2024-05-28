@@ -12,6 +12,7 @@ import com.swygbro.trip.backend.domain.review.dto.CreateReviewRequest;
 import com.swygbro.trip.backend.domain.review.dto.UpdateReviewRequest;
 import com.swygbro.trip.backend.domain.user.application.UserService;
 import com.swygbro.trip.backend.domain.user.domain.User;
+import com.swygbro.trip.backend.domain.user.dto.UpdateUserRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -32,6 +33,12 @@ public class AdminCommandController {
     private final ReservationService reservationService;
     private final ReviewService reviewService;
 
+    @PutMapping(value = "/users/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public void updateUserByAdmin(@PathVariable Long userId,
+                                  @RequestPart @Valid UpdateUserRequest dto,
+                                  @RequestPart(required = false) MultipartFile imageFile) {
+        userService.updateUser(userId, dto, imageFile);
+    }
 
     @PostMapping(value = "/guideProducts", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public void createGuideProduct(String nickname,
