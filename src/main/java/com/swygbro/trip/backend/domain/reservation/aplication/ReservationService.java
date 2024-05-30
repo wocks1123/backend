@@ -43,7 +43,7 @@ public class ReservationService {
      * @param reservation
      * @return
      */
-    public String saveReservation(Long clientId, SaveReservationRequest reservation) {
+    public MerchantDto saveReservation(Long clientId, SaveReservationRequest reservation) {
         try {
             GuideProduct guideProduct = guideProductRepository.findById(reservation.getProductId()).orElseThrow(
                     () -> new GuideProductNotFoundException(reservation.getProductId())
@@ -56,13 +56,15 @@ public class ReservationService {
             }
 
             Reservation save = reservationRepository.save(entity);
-            return save.getMerchantUid();
+
+            return MerchantDto.builder().
+                    merchantUid(save.getMerchantUid()).build();
         } catch (DataIntegrityViolationException e) {
             log.info(e.getMessage());
             throw new ForeignKeyConstraintViolationException("GuideProduct or User");
         } catch (Exception e) {
             log.info(e.getMessage());
-            return "예약 정보 저장에 실패했습니다.";
+            return null;
         }
     }
 
