@@ -74,8 +74,8 @@ public class ReservationController {
                             value = "{ \"status\" : \"CONFLICT\", \"message\" : \"존재하지 않는 외래키입니다. : 테이블\"}")
             )
     )
-    public ResponseEntity<String> saveReservation(@CurrentUser User user,
-                                                  @RequestBody @Valid SaveReservationRequest orderDto) {
+    public ResponseEntity<MerchantDto> saveReservation(@CurrentUser User user,
+                                                       @RequestBody @Valid SaveReservationRequest orderDto) {
         log.info("Received orders: {}", orderDto.toString());
         return ResponseEntity.ok(reservationService.saveReservation(user.getId(), orderDto));
     }
