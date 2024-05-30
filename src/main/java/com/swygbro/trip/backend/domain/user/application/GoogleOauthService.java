@@ -8,7 +8,7 @@ import com.swygbro.trip.backend.domain.user.domain.UserRepository;
 import com.swygbro.trip.backend.domain.user.dto.*;
 import com.swygbro.trip.backend.domain.user.excepiton.UuidExpiredException;
 import com.swygbro.trip.backend.global.jwt.TokenService;
-import jakarta.servlet.http.HttpSession;
+import com.swygbro.trip.backend.global.session.application.SessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -48,7 +48,7 @@ public class GoogleOauthService {
     private final RestTemplate restTemplate;
     private final UserValidationService userValidationService;
 
-    private final HttpSession httpSession;
+    private final SessionService sessionService; // TODO 임시로 메모리에 저장
 
 
     public String getGoogleLoginUrl() {
@@ -63,7 +63,6 @@ public class GoogleOauthService {
     public ResponseEntity<?> callback(String code) throws JsonProcessingException {
         String googleAccessToken = getGoogleAccessToken(code);
         GoogleUserInfo userInfo = getGoogleUserInfo(googleAccessToken);
-
         Optional<User> user = userRepository.findByEmail(userInfo.getEmail());
 
         // 등록된 회원이라면 로그인처리
@@ -74,10 +73,8 @@ public class GoogleOauthService {
                             .token(tokenService.generateToken(userInfo.getEmail()))
                             .build());
         }
-
         UUID uuid = UUID.randomUUID();
-        httpSession.setAttribute(String.valueOf(uuid), userInfo);
-
+        sessionService.setAttribute(String.valueOf(uuid), userInfo);
         return ResponseEntity
                 .status(HttpStatus.MOVED_PERMANENTLY)
                 .body(new GoogleUserInfoDto(userInfo, uuid.toString()));
@@ -87,7 +84,7 @@ public class GoogleOauthService {
     public UserInfoDto createUser(CreateGoogleUserRequest dto) throws JsonProcessingException {
         userValidationService.checkUniqueUser(dto);
 
-        GoogleUserInfo userInfo = (GoogleUserInfo) httpSession.getAttribute(dto.getUuid());
+        GoogleUserInfo userInfo = (GoogleUserInfo) sessionService.getAttribute(dto.getUuid());
 
         if (userInfo == null) {
             throw new UuidExpiredException();

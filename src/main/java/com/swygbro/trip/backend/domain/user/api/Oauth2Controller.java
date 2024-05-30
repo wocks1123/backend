@@ -154,5 +154,4 @@ public class Oauth2Controller {
         return googleOauthService.createUser(dto);
     }
 
-
 }

@@ -3,6 +3,7 @@ package com.swygbro.trip.backend.domain.user.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProduct;
 import com.swygbro.trip.backend.domain.user.domain.Language;
+import com.swygbro.trip.backend.domain.user.domain.Nationality;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.*;
@@ -34,6 +35,15 @@ public class UserProfileDto {
 
     @Schema(description = "사용자 프로필 이미지 URL", example = "/images/profile.jpg")
     private String profileImageUrl;
+
+    @Schema(description = "사용자 전화번호", example = "+8201011112222")
+    private String phone;
+
+    @Schema(description = "사용자 위치", example = "서울")
+    private String location;
+
+    @Schema(description = "사용자 국적", example = "KOR")
+    private Nationality nationality;
 
     @Schema(description = "리뷰 수", example = "10")
     private Integer reviewCount;
