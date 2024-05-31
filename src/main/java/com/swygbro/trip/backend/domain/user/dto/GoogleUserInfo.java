@@ -14,4 +14,5 @@ public class GoogleUserInfo {
     private String email;
     private boolean verified_email;
     private String picture;
+    private String hd;
 }
