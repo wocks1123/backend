@@ -35,3 +35,9 @@ out/
 
 ### VS Code ###
 .vscode/
+
+application-dev.properties
+/src/main/resources/application-local.yml
+
+.env
+/src/test/resources/application-test.yml

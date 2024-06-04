@@ -8,56 +8,76 @@
 name: Java CI with Gradle
 
 on:
-  push:
-    branches: [ "master" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "dev" ]
 
-env:
-  AWS_REGION: ap-northeast-2
 
 jobs:
   build:
-
+    environment: aws
+    
     runs-on: ubuntu-latest
     permissions:
       contents: read
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'corretto'
+      - uses: actions/checkout@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'corretto'
 
-    - name: gradlew permmision
-      run: chmod +x ./gradlew
-    # Configure Gradle for optimal use in GiHub Actions, including caching of downloaded dependencies.
-    # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
+      - name: gradlew permmision
+        run: chmod +x ./gradlew
+      # Configure Gradle for optimal use in GiHub Actions, including caching of downloaded dependencies.
+      # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
 
-    - name: Build with Gradle Wrapper
-      run: ./gradlew clean build -x test
+      - name: Build with Gradle Wrapper
+        run: ./gradlew clean build -x test
 
-    - name: Docker build
-      run: |
-        docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
-        docker build -t app .
-        docker tag app ${{ secrets.DOCKER_USERNAME }}/cicd_docker
-        docker push ${{ secrets.DOCKER_USERNAME }}/cicd_docker
+      - name: Docker build
+        run: |
+          docker login -u ${{ secrets.DOCKER_USERNAME }} -p ${{ secrets.DOCKER_PASSWORD }}
+          docker build -t app .
+          docker tag app ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
+          docker push ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
 
-    - name: Deploy
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USERNAME }}
-        key: ${{ secrets.SSH_KEY }}
-        script: |
-          docker pull ${{ secrets.DOCKER_USERNAME }}/cicd_docker
-          docker stop $(docker ps -a -q)
-          docker rm $(docker ps -a -q)
-          docker run -d --log-driver=syslog -p 8080:8080 ${{ secrets.DOCKER_USERNAME }}/cicd_docker
-          docker rm $(docker ps --filter 'status=exited' -a -q)
-          docker image prune -a -f
+      - name: Deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            docker pull ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
+            docker stop matthew
+            docker rm matthew
+            docker ps -q --filter "name=matthew" | xargs --no-run-if-empty docker stop
+            docker ps -q --filter "name=matthew" | xargs --no-run-if-empty docker rm
+            docker run -d --log-driver=syslog -p 8080:8080 --name matthew \
+                    -e DATASOURCE_URL=${{ secrets.DATASOURCE_URL }} \
+                    -e DATASOURCE_USERNAME=${{ secrets.DATASOURCE_USERNAME }} \
+                    -e DATASOURCE_PASSWORD=${{ secrets.DATASOURCE_PASSWORD }} \
+                    -e JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }} \
+                    -e GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} \
+                    -e GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} \
+                    -e GOOGLE_AUTHORIZATION_URI=${{ secrets.GOOGLE_AUTHORIZATION_URI }} \
+                    -e GOOGLE_REDIRECT_URI=${{ secrets.GOOGLE_REDIRECT_URI }} \
+                    -e AWS_CREDENTIAL_ACCESS_KEY=${{ secrets.AWS_CREDENTIAL_ACCESS_KEY }} \
+                    -e AWS_CREDENTIAL_SECRET_KEY=${{ secrets.AWS_CREDENTIAL_SECRET_KEY }} \
+                    -e AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }} \
+                    -e AWS_REGION_STATIC=${{ secrets.AWS_REGION_STATIC }} \
+                    -e IMP_API_KEY=${{ secrets.IMP_API_KEY }} \
+                    -e IMP_API_SECRET=${{ secrets.IMP_API_SECRET }} \
+                    -e LOG_PATH=${{ secrets.LOG_PATH }} \
+                    -e LOG_LEVEL=${{ secrets.LOG_LEVEL }} \
+                    -e DISCORD_WEB_HOOK_URL=${{ secrets.DISCORD_WEB_HOOK_URL }} \
+                    -e MONGODB_URI=${{ secrets.MONGODB_URI }} \
+                    -v ${{ secrets.DOCKER_MOUNT_PATH }}:${{ secrets.LOG_PATH }} \
+                    ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
+            docker rm $(docker ps --filter 'status=exited' -a -q)
+            docker image prune -a -f
+   
