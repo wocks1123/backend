@@ -15,6 +15,7 @@ on:
 jobs:
   build:
     environment: aws
+    
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -79,3 +80,4 @@ jobs:
                     ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
             docker rm $(docker ps --filter 'status=exited' -a -q)
             docker image prune -a -f
+   
