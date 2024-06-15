@@ -57,7 +57,7 @@ jobs:
             docker rm matthew
             docker ps -q --filter "name=matthew" | xargs --no-run-if-empty docker stop
             docker ps -q --filter "name=matthew" | xargs --no-run-if-empty docker rm
-            docker run -d --log-driver=syslog -p 8080:8080 --name matthew \
+            docker run -d --log-driver=syslog -p 8080:8080 -p 8090:8090 --name matthew \
                     -e DATASOURCE_URL=${{ secrets.DATASOURCE_URL }} \
                     -e DATASOURCE_USERNAME=${{ secrets.DATASOURCE_USERNAME }} \
                     -e DATASOURCE_PASSWORD=${{ secrets.DATASOURCE_PASSWORD }} \
