@@ -68,6 +68,10 @@ dependencies {
     // 이미지 검사
     implementation 'org.apache.tika:tika-core:1.4'
 
+    // actuator
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
