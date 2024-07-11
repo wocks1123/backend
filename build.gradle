@@ -73,6 +73,12 @@ dependencies {
     runtimeOnly 'io.micrometer:micrometer-registry-prometheus'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    // test container
+    testImplementation "org.testcontainers:testcontainers:1.19.8"
+    testImplementation 'org.testcontainers:junit-jupiter:1.19.8'
+    testImplementation "org.testcontainers:mysql"
+    testImplementation "org.testcontainers:mongodb"
 }
 
 dependencyManagement {
@@ -88,6 +94,12 @@ tasks.named('test') {
 
 processResources {
     filesMatching('**/application.properties') {
+        expand(project.properties)
+    }
+}
+
+processResources {
+    filesMatching('**/application.yml') {
         expand(project.properties)
     }
 }

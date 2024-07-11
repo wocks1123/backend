@@ -36,7 +36,7 @@ public class UserService {
         }
 
         User createdUser = userRepository.save(
-                new User(dto, SignUpType.Local, passwordEncoder.encode(dto.getPassword()))
+                new User(dto, passwordEncoder.encode(dto.getPassword()))
         );
 
         return UserInfoDto.builder()

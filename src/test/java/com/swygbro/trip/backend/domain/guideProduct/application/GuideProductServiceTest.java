@@ -3,6 +3,7 @@ package com.swygbro.trip.backend.domain.guideProduct.application;
 
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProduct;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProductRepository;
+import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductDto;
 import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
 import com.swygbro.trip.backend.domain.guideProduct.dto.ModifyGuideProductRequest;
@@ -11,9 +12,11 @@ import com.swygbro.trip.backend.domain.guideProduct.exception.MismatchUserFromCr
 import com.swygbro.trip.backend.domain.guideProduct.fixture.GuideProductFixture;
 import com.swygbro.trip.backend.domain.guideProduct.fixture.GuideProductRequestFixture;
 import com.swygbro.trip.backend.domain.s3.application.S3Service;
+import com.swygbro.trip.backend.domain.user.TestUserFactory;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import com.swygbro.trip.backend.domain.user.domain.UserRepository;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,6 +49,13 @@ public class GuideProductServiceTest {
     @Mock
     S3Service s3Service;
 
+    private User user;
+
+    @BeforeEach
+    void setup() {
+        user = TestUserFactory.createTestUser();
+    }
+
     @DisplayName("게시물 생성 성공")
     @Test
     void createProduct() {
@@ -66,10 +76,10 @@ public class GuideProductServiceTest {
         given(guideProductRepository.saveAndFlush(any())).willReturn(product);
 
         // when
-        GuideProductDto result = guideProductService.createGuideProduct(request, mockMultipartFileThumb, Optional.of(images));
+        CreateGuideProductDto result = guideProductService.createGuideProduct(user, request, mockMultipartFileThumb, Optional.of(images));
 
         // then
-        assertThat(result.getEmail()).isEqualTo(product.getUser().getEmail());
+        assertThat(result.getUserId()).isEqualTo(product.getUser().getId());
         assertThat(result.getTitle()).isEqualTo(product.getTitle());
         assertThat(result.getDescription()).isEqualTo(product.getDescription());
         assertThat(result.getPrice()).isEqualTo(product.getPrice());
@@ -77,7 +87,7 @@ public class GuideProductServiceTest {
         assertThat(result.getLongitude()).isEqualTo(product.getLocation().getY());
         assertThat(result.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))).isEqualTo(product.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
         assertThat(result.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))).isEqualTo(product.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
-        assertThat(result.getCategories().get(0).name()).isEqualTo(product.getCategories().get(0).getCategoryCode().name());
+        assertThat(result.getCategories().get(0).name()).isEqualTo(product.getCategories().stream().toList().get(0).getCategoryCode().name());
         assertThat(result.getThumb()).isEqualTo(product.getThumb());
         assertThat(result.getImages().get(0)).isEqualTo(product.getImages().get(0));
     }
@@ -96,7 +106,7 @@ public class GuideProductServiceTest {
         GuideProductDto result = guideProductService.getProduct(productId);
 
         // then
-        assertThat(result.getEmail()).isEqualTo(product.getUser().getEmail());
+        assertThat(result.getUserId()).isEqualTo(product.getUser().getId());
         assertThat(result.getTitle()).isEqualTo(product.getTitle());
         assertThat(result.getDescription()).isEqualTo(product.getDescription());
         assertThat(result.getPrice()).isEqualTo(product.getPrice());
@@ -104,7 +114,7 @@ public class GuideProductServiceTest {
         assertThat(result.getLongitude()).isEqualTo(product.getLocation().getY());
         assertThat(result.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))).isEqualTo(product.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
         assertThat(result.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"))).isEqualTo(product.getGuideStart().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")));
-        assertThat(result.getCategories().get(0).name()).isEqualTo(product.getCategories().get(0).getCategoryCode().name());
+        assertThat(result.getCategories().get(0).name()).isEqualTo(product.getCategories().stream().toList().get(0).getCategoryCode().name());
         assertThat(result.getThumb()).isEqualTo(product.getThumb());
         assertThat(result.getImages().get(0)).isEqualTo(product.getImages().get(0));
     }
@@ -150,7 +160,7 @@ public class GuideProductServiceTest {
         given(guideProductRepository.saveAndFlush(any())).willReturn(product);
 
         // when
-        GuideProductDto result = guideProductService.modifyGuideProduct(productId, edit, Optional.of(mockMultipartFileThumb), Optional.of(images));
+        GuideProductDto result = guideProductService.modifyGuideProduct(user, productId, edit, Optional.of(mockMultipartFileThumb), Optional.of(images));
 
         // then
         assertThat(result.getTitle()).isEqualTo(edit.getTitle());
@@ -181,7 +191,7 @@ public class GuideProductServiceTest {
 
         // when
         Throwable throwable = catchThrowable(() -> {
-            guideProductService.modifyGuideProduct(productId, edit, Optional.of(mockMultipartFileThumb), Optional.of(images));
+            guideProductService.modifyGuideProduct(user, productId, edit, Optional.of(mockMultipartFileThumb), Optional.of(images));
         });
 
         // then
@@ -203,7 +213,7 @@ public class GuideProductServiceTest {
         given(userRepository.findByEmail(email)).willReturn(Optional.of(user));
 
         // when && then
-        Assertions.assertDoesNotThrow(() -> guideProductService.deleteGuideProduct(productId, email));
+        Assertions.assertDoesNotThrow(() -> guideProductService.deleteGuideProduct(productId, user));
     }
 
     @DisplayName("상품 삭제 권한이 없을 경우")
@@ -221,7 +231,7 @@ public class GuideProductServiceTest {
 
         // when
         Throwable throwable = catchThrowable(() -> {
-            guideProductService.deleteGuideProduct(productId, email);
+            guideProductService.deleteGuideProduct(productId, user);
         });
 
         // then

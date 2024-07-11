@@ -65,18 +65,19 @@ public class User extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private UserRole userRole;
 
-    public User(CreateUserRequest dto, SignUpType signUpType, String encodedPassword) {
+    // 이메일로 회원가입
+    public User(CreateUserRequest dto, String encodedPassword) {
         this.email = dto.getEmail();
         this.nickname = dto.getNickname();
         this.name = dto.getName();
         this.phone = dto.getPhone();
         this.location = dto.getLocation();
         this.nationality = dto.getNationality();
-        this.birthdate = LocalDate.parse(dto.getBirthdate());
+        this.birthdate = dto.getBirthdate();
         this.gender = dto.getGender();
         this.password = encodedPassword;
         this.userRole = UserRole.USER;
-        this.signUpType = signUpType;
+        this.signUpType = SignUpType.Local;
     }
 
     public User(CreateGoogleUserRequest dto, GoogleUserInfo userInfo) {

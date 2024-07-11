@@ -3,12 +3,16 @@ package com.swygbro.trip.backend.domain.guideProduct.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.swygbro.trip.backend.domain.guideProduct.application.GuideProductService;
+import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductDto;
 import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.dto.GuideProductDto;
 import com.swygbro.trip.backend.domain.guideProduct.dto.ModifyGuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.exception.GuideProductNotFoundException;
 import com.swygbro.trip.backend.domain.guideProduct.exception.MismatchUserFromCreatorException;
 import com.swygbro.trip.backend.domain.guideProduct.fixture.GuideProductRequestFixture;
+import com.swygbro.trip.backend.domain.user.TestUserFactory;
+import com.swygbro.trip.backend.domain.user.domain.User;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +53,13 @@ public class GuideProductControllerTest {
     @MockBean
     private GuideProductService guideProductService;
 
+    private User user;
+
+    @BeforeEach
+    void setup() {
+        user = TestUserFactory.createTestUser();
+    }
+
     @DisplayName("이미지 등록 API")
     @Test
     void createProduct() throws Exception {
@@ -66,7 +77,7 @@ public class GuideProductControllerTest {
         images.add(mockMultipartFile1);
         images.add(mockMultipartFile2);
 
-        given(guideProductService.createGuideProduct(request, mockMultipartFileThumb, Optional.of(images))).willReturn(new GuideProductDto());
+        given(guideProductService.createGuideProduct(user, request, mockMultipartFileThumb, Optional.of(images))).willReturn(new CreateGuideProductDto());
 
         mockMvc.perform(
                         multipart("/api/v1/products")
@@ -126,7 +137,7 @@ public class GuideProductControllerTest {
         images.add(mockMultipartFile1);
         images.add(mockMultipartFile2);
 
-        given(guideProductService.modifyGuideProduct(productId, edit, Optional.of(mockMultipartFileThumb), Optional.of(images))).willReturn(new GuideProductDto());
+        given(guideProductService.modifyGuideProduct(user, productId, edit, Optional.of(mockMultipartFileThumb), Optional.of(images))).willReturn(new GuideProductDto());
 
         MockMultipartHttpServletRequestBuilder builder = MockMvcRequestBuilders.multipart("/api/v1/products/" + productId);
         builder.with(new RequestPostProcessor() {
@@ -164,7 +175,7 @@ public class GuideProductControllerTest {
         images.add(mockMultipartFile1);
         images.add(mockMultipartFile2);
 
-        doThrow(new MismatchUserFromCreatorException("가이드 상품을 수정할 권한이 없습니다.")).when(guideProductService).modifyGuideProduct(any(), any(), any(), any());
+        doThrow(new MismatchUserFromCreatorException("가이드 상품을 수정할 권한이 없습니다.")).when(guideProductService).modifyGuideProduct(any(), any(), any(), any(), any());
 
         MockMultipartHttpServletRequestBuilder builder = MockMvcRequestBuilders.multipart("/api/v1/products/" + productId);
         builder.with(new RequestPostProcessor() {
