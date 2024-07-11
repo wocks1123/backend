@@ -36,7 +36,10 @@ jobs:
         uses: gradle/actions/setup-gradle@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
 
       - name: Build with Gradle Wrapper
-        run: ./gradlew clean build -x test
+        run: |
+          touch ./src/main/resources/application.yml
+          echo "${{secrets.APPLICATION}}" > ./src/main/resources/application.yml
+          ./gradlew clean build -x test
 
       - name: Docker build
         run: |
@@ -58,24 +61,6 @@ jobs:
             docker ps -q --filter "name=matthew" | xargs --no-run-if-empty docker stop
             docker ps -q --filter "name=matthew" | xargs --no-run-if-empty docker rm
             docker run -d --log-driver=syslog -p 8080:8080 -p 8090:8090 --name matthew \
-                    -e DATASOURCE_URL=${{ secrets.DATASOURCE_URL }} \
-                    -e DATASOURCE_USERNAME=${{ secrets.DATASOURCE_USERNAME }} \
-                    -e DATASOURCE_PASSWORD=${{ secrets.DATASOURCE_PASSWORD }} \
-                    -e JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }} \
-                    -e GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} \
-                    -e GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }} \
-                    -e GOOGLE_AUTHORIZATION_URI=${{ secrets.GOOGLE_AUTHORIZATION_URI }} \
-                    -e GOOGLE_REDIRECT_URI=${{ secrets.GOOGLE_REDIRECT_URI }} \
-                    -e AWS_CREDENTIAL_ACCESS_KEY=${{ secrets.AWS_CREDENTIAL_ACCESS_KEY }} \
-                    -e AWS_CREDENTIAL_SECRET_KEY=${{ secrets.AWS_CREDENTIAL_SECRET_KEY }} \
-                    -e AWS_S3_BUCKET_NAME=${{ secrets.AWS_S3_BUCKET_NAME }} \
-                    -e AWS_REGION_STATIC=${{ secrets.AWS_REGION_STATIC }} \
-                    -e IMP_API_KEY=${{ secrets.IMP_API_KEY }} \
-                    -e IMP_API_SECRET=${{ secrets.IMP_API_SECRET }} \
-                    -e LOG_PATH=${{ secrets.LOG_PATH }} \
-                    -e LOG_LEVEL=${{ secrets.LOG_LEVEL }} \
-                    -e DISCORD_WEB_HOOK_URL=${{ secrets.DISCORD_WEB_HOOK_URL }} \
-                    -e MONGODB_URI=${{ secrets.MONGODB_URI }} \
                     -v ${{ secrets.DOCKER_MOUNT_PATH }}:${{ secrets.LOG_PATH }} \
                     ${{ secrets.DOCKER_USERNAME }}/${{ secrets.PROJECT_NAME }}
             docker rm $(docker ps --filter 'status=exited' -a -q)

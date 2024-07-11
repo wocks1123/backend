@@ -5,5 +5,5 @@
 |  |  |  |\ '-'  |  |  |    |  |  |  | |  \   --.|   .'.   |
 `--`--`--' `--`--'  `--'    `--'  `--' `--'`----''--'   '--'
 
-${spring.application.name}-backend v${version}
+${project.name}-backend v${project.version}
 Powered by Spring Boot ${spring-boot.version}
