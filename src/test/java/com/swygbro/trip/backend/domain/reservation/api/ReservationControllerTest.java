@@ -2,6 +2,7 @@ package com.swygbro.trip.backend.domain.reservation.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.swygbro.trip.backend.domain.reservation.aplication.ReservationService;
+import com.swygbro.trip.backend.domain.reservation.dto.MerchantDto;
 import com.swygbro.trip.backend.domain.reservation.dto.SavePaymentRequest;
 import com.swygbro.trip.backend.domain.reservation.dto.SaveReservationRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +50,7 @@ class ReservationControllerTest {
                 .build();
         String impUid = "imp_1234567890";
 
-        given(reservationService.saveReservation(any(), any())).willReturn(impUid);
+        given(reservationService.saveReservation(any(), any())).willReturn(MerchantDto.builder().merchantUid(impUid).build());
 
         // when
         ResultActions result = mockMvc.perform(post("/api/v1/reservation/client/save")
@@ -77,7 +78,7 @@ class ReservationControllerTest {
                 .build();
         String impUid = "imp_1234567890";
 
-        given(reservationService.saveReservation(any(), any())).willReturn(impUid);
+        given(reservationService.saveReservation(any(), any())).willReturn(MerchantDto.builder().merchantUid(impUid).build());
 
         // when
         ResultActions result = mockMvc.perform(post("/api/v1/reservation/client/save")

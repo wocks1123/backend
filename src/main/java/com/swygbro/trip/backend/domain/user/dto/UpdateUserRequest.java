@@ -1,7 +1,6 @@
 package com.swygbro.trip.backend.domain.user.dto;
 
 import com.swygbro.trip.backend.domain.user.domain.Language;
-import com.swygbro.trip.backend.global.dto.RequestDto;
 import com.swygbro.trip.backend.global.validation.EnumClass;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
@@ -13,7 +12,7 @@ import java.util.List;
 
 @Getter
 @Builder
-public class UpdateUserRequest extends RequestDto {
+public class UpdateUserRequest {
     @NotBlank
     @Size(max = 100)
     @Schema(description = "자기소개", example = "안녕하세요!")

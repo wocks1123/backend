@@ -4,8 +4,8 @@ import com.swygbro.trip.backend.domain.guideProduct.domain.GuideCategoryCode;
 import com.swygbro.trip.backend.domain.guideProduct.dto.CreateGuideProductRequest;
 import com.swygbro.trip.backend.domain.guideProduct.dto.ModifyGuideProductRequest;
 
-import java.time.Year;
-import java.time.ZoneId;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,14 +17,17 @@ public class GuideProductRequestFixture {
         categories.add(GuideCategoryCode.ART_CULTURE);
 
         return new CreateGuideProductRequest(
-                "test@gmail.com",
                 "test title",
                 "test description",
                 20000L,
+                "Seoul",
                 50.2,
                 100.1,
-                Year.of(2024).atMonth(4).atDay(28).atTime(23, 0).atZone(ZoneId.of("Asia/Seoul")),
-                Year.of(2024).atMonth(4).atDay(28).atTime(23, 0).atZone(ZoneId.of("Asia/Seoul")),
+                LocalDate.of(2024, 4, 28),
+                LocalDate.of(2024, 4, 28),
+                LocalTime.of(12, 0),
+                LocalTime.of(20, 0),
+                2,
                 categories
         );
     }
@@ -35,14 +38,17 @@ public class GuideProductRequestFixture {
         categories.add(GuideCategoryCode.ART_CULTURE);
 
         return new ModifyGuideProductRequest(
-                "test@gmail.com",
                 "modify title1",
                 "modify description1",
                 20000L,
+                "Seoul",
                 50.2,
                 100.1,
-                Year.of(2024).atMonth(4).atDay(28).atTime(23, 0).atZone(ZoneId.of("Asia/Seoul")),
-                Year.of(2024).atMonth(4).atDay(28).atTime(23, 0).atZone(ZoneId.of("Asia/Seoul")),
+                LocalDate.of(2024, 4, 28),
+                LocalDate.of(2024, 4, 28),
+                LocalTime.of(12, 0),
+                LocalTime.of(20, 0),
+                3,
                 categories,
                 null,
                 new ArrayList<>()

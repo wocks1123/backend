@@ -4,10 +4,7 @@ import com.siot.IamportRestClient.exception.IamportResponseException;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProduct;
 import com.swygbro.trip.backend.domain.reservation.domain.Reservation;
 import com.swygbro.trip.backend.domain.reservation.domain.ReservationRepository;
-import com.swygbro.trip.backend.domain.reservation.dto.ReservationDto;
-import com.swygbro.trip.backend.domain.reservation.dto.ReservationSearchCriteria;
-import com.swygbro.trip.backend.domain.reservation.dto.SavePaymentRequest;
-import com.swygbro.trip.backend.domain.reservation.dto.SaveReservationRequest;
+import com.swygbro.trip.backend.domain.reservation.dto.*;
 import com.swygbro.trip.backend.domain.reservation.exception.ForeignKeyConstraintViolationException;
 import com.swygbro.trip.backend.domain.user.domain.User;
 import com.swygbro.trip.backend.global.status.PayStatus;
@@ -55,10 +52,10 @@ class ReservationServiceTest {
         Long userId = 1L;
 
         // when
-        String result = reservationService.saveReservation(userId, saveReservationRequest);
+        MerchantDto result = reservationService.saveReservation(userId, saveReservationRequest);
 
         // then
-        Reservation reservation = reservationRepository.findByMerchantUid(result);
+        Reservation reservation = reservationRepository.findByMerchantUid(result.getMerchantUid());
         log.info("reservation merchantUid: {}", reservation.getMerchantUid());
 
         assertThat(reservation.getProduct().getId()).isEqualTo(saveReservationRequest.getProductId());
@@ -100,11 +97,11 @@ class ReservationServiceTest {
         Long userId = 1L;
 
 
-        String merchantUid = reservationService.saveReservation(userId, saveReservationRequest);
+        MerchantDto merchantUid = reservationService.saveReservation(userId, saveReservationRequest);
 
         SavePaymentRequest savePaymentRequest = SavePaymentRequest.builder()
                 .impUid("imp_1234567890")
-                .merchantUid(merchantUid)
+                .merchantUid(merchantUid.getMerchantUid())
                 .price(10000)
                 .personnel(1)
                 .paidAt(1648344363L)
@@ -114,7 +111,7 @@ class ReservationServiceTest {
         ReservationDto result = reservationService.savePayment(savePaymentRequest);
 
         // then
-        Reservation reservation = reservationRepository.findByMerchantUid(merchantUid);
+        Reservation reservation = reservationRepository.findByMerchantUid(merchantUid.getMerchantUid());
 
         log.info("result : {}", result);
         log.info("reservation : {}", reservation);
@@ -151,7 +148,7 @@ class ReservationServiceTest {
 
     @Test
     @DisplayName("결제 후 예약 취소 (실제 uid 필요)")
-    void cancelReservation() {
+    void cancelReservation() throws IamportResponseException, IOException {
         // given
 
         // 실제 PortOne test merchantUid

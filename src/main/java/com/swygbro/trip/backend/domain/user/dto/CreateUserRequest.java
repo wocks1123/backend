@@ -3,7 +3,6 @@ package com.swygbro.trip.backend.domain.user.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.swygbro.trip.backend.domain.user.domain.Gender;
 import com.swygbro.trip.backend.domain.user.domain.Nationality;
-import com.swygbro.trip.backend.global.dto.RequestDto;
 import com.swygbro.trip.backend.global.validation.Phone;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
@@ -14,10 +13,12 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-public class CreateUserRequest extends RequestDto {
+public class CreateUserRequest {
 
     @NotBlank
     @Email
@@ -46,10 +47,9 @@ public class CreateUserRequest extends RequestDto {
     @Schema(description = "사용자 국적", example = "KOR")
     private Nationality nationality;
 
-    @NotBlank
-    @JsonFormat(pattern = "yyyy-MM-dd")
-    @Schema(description = "사용자 생년월일", example = "1990-01-01")
-    private String birthdate;
+    @Schema(description = "사용자 생년월일", example = "1990-01-01", type = "string")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    private LocalDate birthdate;
 
     @Schema(description = "사용자 성별", example = "Male")
     private Gender gender;

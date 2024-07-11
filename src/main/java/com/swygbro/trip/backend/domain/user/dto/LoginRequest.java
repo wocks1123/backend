@@ -1,16 +1,13 @@
 package com.swygbro.trip.backend.domain.user.dto;
 
-import com.swygbro.trip.backend.global.dto.RequestDto;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import lombok.Data;
 
-@Getter
-@AllArgsConstructor
-public class LoginRequest extends RequestDto {
+@Data
+public class LoginRequest {
     @NotBlank
     @Email
     @Schema(description = "사용자 이메일", example = "user01@email.com")

@@ -77,7 +77,7 @@ class IntegratedTest {
                 "+01012345678",
                 "경기도 화성시",
                 Nationality.KOR,
-                "1999-01-01",
+                LocalDate.of(2000, 1, 1),
                 Gender.Male,
                 "testpassword1",
                 "testpassword1"
@@ -112,7 +112,7 @@ class IntegratedTest {
                 phone,
                 "경기도 화성시",
                 Nationality.KOR,
-                "1999-01-01",
+                LocalDate.of(2000, 1, 1),
                 Gender.Male,
                 "testpassword1",
                 "testpassword1"
@@ -1106,7 +1106,6 @@ class IntegratedTest {
         // given
         ReservationSearchCriteria request = ReservationSearchCriteria
                 .builder()
-                .isPast(false)
                 .statusFilter(1)
                 .offset(0)
                 .pageSize(5)
