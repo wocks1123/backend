@@ -5,6 +5,12 @@ import com.siot.IamportRestClient.exception.IamportResponseException;
 import com.siot.IamportRestClient.request.CancelData;
 import com.siot.IamportRestClient.response.IamportResponse;
 import com.siot.IamportRestClient.response.Payment;
+import com.swygbro.trip.backend.domain.alarm.application.AlarmService;
+import com.swygbro.trip.backend.domain.alarm.domain.Alarm;
+import com.swygbro.trip.backend.domain.alarm.domain.AlarmArgs;
+import com.swygbro.trip.backend.domain.alarm.domain.AlarmRepository;
+import com.swygbro.trip.backend.domain.alarm.domain.AlarmType;
+import com.swygbro.trip.backend.domain.alarm.dto.AlarmDto;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProduct;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProductRepository;
 import com.swygbro.trip.backend.domain.guideProduct.exception.GuideProductNotFoundException;
@@ -35,6 +41,8 @@ public class ReservationService {
     private final IamportClient iamportClient;
     private final ReservationRepository reservationRepository;
     private final GuideProductRepository guideProductRepository;
+    private final AlarmRepository alarmRepository;
+    private final AlarmService alarmService;
 
     /**
      * 예약 정보 저장
@@ -56,6 +64,15 @@ public class ReservationService {
             }
 
             Reservation save = reservationRepository.save(entity);
+
+            // 가이드에게 예약 요청 알림 발송
+            Alarm alarm = alarmRepository.save(Alarm.of(entity.getGuide(),
+                    AlarmType.NEW_RESERVATION_ALARM,
+                    new AlarmArgs(entity.getClient().getId(),
+                            entity.getProduct().getId()),
+                    false));
+            System.out.println(alarm.getId() + ", " + alarm.getAlarmType().getAlarmText());
+            alarmService.send(alarm.getId(), entity.getGuide().getId(), AlarmDto.fromEntity(alarm));
 
             return MerchantDto.builder().
                     merchantUid(save.getMerchantUid()).build();
@@ -135,6 +152,15 @@ public class ReservationService {
         reservation.refundPayment(paymentIamportResponse.getResponse().getCancelledAt());
 
         reservationRepository.save(reservation);
+
+        // 유저에게 예약 취소 알림 발송
+        Alarm alarm = alarmRepository.save(Alarm.of(reservation.getClient(),
+                AlarmType.RESERVATION_CANCEL,
+                new AlarmArgs(reservation.getGuide().getId(),
+                        reservation.getProduct().getId()),
+                false));
+        alarmService.send(alarm.getId(), reservation.getClient().getId(), AlarmDto.fromEntity(alarm));
+
         return new ReservationDto().fromEntity(reservation);
     }
 
@@ -185,6 +211,15 @@ public class ReservationService {
         }
         reservation.confirmReservation();
         reservationRepository.save(reservation);
+
+        // 유저에게 예약 확정 알림 발송
+        Alarm alarm = alarmRepository.save(Alarm.of(reservation.getClient(),
+                AlarmType.RESERVATION_CONFIRMED,
+                new AlarmArgs(reservation.getGuide().getId(),
+                        reservation.getProduct().getId()),
+                false));
+        alarmService.send(alarm.getId(), reservation.getClient().getId(), AlarmDto.fromEntity(alarm));
+
         return new ReservationDto().fromEntity(reservation);
     }
 
