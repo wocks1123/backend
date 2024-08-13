@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @AllArgsConstructor
 @Getter
-public class AlarmArgs {
+public class AlarmArgs<T> {
     private Long fromUserId;
-    private Long targetId;
+    private T targetId;
 }

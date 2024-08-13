@@ -36,6 +36,10 @@ public class Alarm extends BaseEntity {
     @Column(name = "is_read", columnDefinition = "TINYINT(1)", nullable = false)
     private Boolean isRead;
 
+    public void setIsRead() {
+        this.isRead = true;
+    }
+
     public static Alarm of(User user, AlarmType alarmType, AlarmArgs args, boolean isRead) {
         return Alarm
                 .builder()

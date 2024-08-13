@@ -68,10 +68,9 @@ public class ReservationService {
             // 가이드에게 예약 요청 알림 발송
             Alarm alarm = alarmRepository.save(Alarm.of(entity.getGuide(),
                     AlarmType.NEW_RESERVATION_ALARM,
-                    new AlarmArgs(entity.getClient().getId(),
-                            entity.getProduct().getId()),
+                    new AlarmArgs<>(entity.getClient().getId(),
+                            entity.getMerchantUid()),
                     false));
-            System.out.println(alarm.getId() + ", " + alarm.getAlarmType().getAlarmText());
             alarmService.send(alarm.getId(), entity.getGuide().getId(), AlarmDto.fromEntity(alarm));
 
             return MerchantDto.builder().
@@ -156,8 +155,8 @@ public class ReservationService {
         // 유저에게 예약 취소 알림 발송
         Alarm alarm = alarmRepository.save(Alarm.of(reservation.getClient(),
                 AlarmType.RESERVATION_CANCEL,
-                new AlarmArgs(reservation.getGuide().getId(),
-                        reservation.getProduct().getId()),
+                new AlarmArgs<>(reservation.getGuide().getId(),
+                        reservation.getMerchantUid()),
                 false));
         alarmService.send(alarm.getId(), reservation.getClient().getId(), AlarmDto.fromEntity(alarm));
 
@@ -215,8 +214,8 @@ public class ReservationService {
         // 유저에게 예약 확정 알림 발송
         Alarm alarm = alarmRepository.save(Alarm.of(reservation.getClient(),
                 AlarmType.RESERVATION_CONFIRMED,
-                new AlarmArgs(reservation.getGuide().getId(),
-                        reservation.getProduct().getId()),
+                new AlarmArgs<>(reservation.getGuide().getId(),
+                        reservation.getMerchantUid()),
                 false));
         alarmService.send(alarm.getId(), reservation.getClient().getId(), AlarmDto.fromEntity(alarm));
 

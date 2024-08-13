@@ -1,10 +1,12 @@
 package com.swygbro.trip.backend.domain.alarm.application;
 
+import com.swygbro.trip.backend.domain.alarm.domain.Alarm;
 import com.swygbro.trip.backend.domain.alarm.domain.AlarmRepository;
 import com.swygbro.trip.backend.domain.alarm.domain.AlarmStorage;
 import com.swygbro.trip.backend.domain.alarm.domain.EmitterRepository;
 import com.swygbro.trip.backend.domain.alarm.dto.AlarmDto;
 import com.swygbro.trip.backend.domain.alarm.exception.AlarmNotConnectException;
+import com.swygbro.trip.backend.domain.alarm.exception.NotFoundAlarmException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -32,7 +34,7 @@ public class AlarmService {
         sseEmitter.onTimeout(() -> emitterRepository.delete(userId));
 
         try {
-            sseEmitter.send(SseEmitter.event().id("id").name("Alarm").data("connect completed"));
+            sseEmitter.send(SseEmitter.event().id("id").name("open").data("connect completed"));
         } catch (IOException e) {
             throw new AlarmNotConnectException(userId);
         }
@@ -45,7 +47,7 @@ public class AlarmService {
     public void send(Long alarmId, Long receiveUserId, AlarmDto alarm) {
         emitterRepository.get(receiveUserId).ifPresentOrElse(sseEmitter -> {
             try {
-                sseEmitter.send(SseEmitter.event().id(alarmId.toString()).name("Alarm").data(alarm.toString()));
+                sseEmitter.send(SseEmitter.event().id(alarmId.toString()).name("alarm").data(alarm.toString()));
                 log.info("send alarm");
             } catch (IOException e) {
                 alarmStorage.addAlarm(receiveUserId, alarm);
@@ -62,7 +64,7 @@ public class AlarmService {
         if (alarms != null) {
             alarms.forEach(alarm -> {
                 try {
-                    emitter.send(SseEmitter.event().id(alarm.getId().toString()).name("Alarm").data(alarm.toString()));
+                    emitter.send(SseEmitter.event().id(alarm.getId().toString()).name("alarm").data(alarm.toString()));
                 } catch (IOException e) {
                     alarmStorage.addAlarm(userId, alarm);
                     throw new AlarmNotConnectException(userId);
@@ -71,7 +73,16 @@ public class AlarmService {
         }
     }
 
-    public Page<AlarmDto> getAlarms(Long userId, Pageable pageable) {
-        return alarmRepository.findAllByUserId(userId, pageable);
+    public Page<AlarmDto> getAlarmList(Long userId, Integer isRead, Pageable pageable) {
+        return alarmRepository.findAllByUserId(userId, isRead, pageable);
+    }
+
+    public AlarmDto getAlarm(Long alarmId) {
+        Alarm alarm = alarmRepository.findById(alarmId).orElseThrow(NotFoundAlarmException::new);
+
+        alarm.setIsRead();
+        Alarm modifyAlarm = alarmRepository.saveAndFlush(alarm);
+
+        return AlarmDto.fromEntity(modifyAlarm);
     }
 }

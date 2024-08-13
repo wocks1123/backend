@@ -5,5 +5,5 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 public interface AlarmCustomRepository {
-    Page<AlarmDto> findAllByUserId(Long userId, Pageable pageable);
+    Page<AlarmDto> findAllByUserId(Long userId, Integer isRead, Pageable pageable);
 }

@@ -88,8 +88,8 @@ public class ReviewService {
         // 가이드에게 리뷰 작성 알림 발송
         Alarm alarm = alarmRepository.save(Alarm.of(reservation.getGuide(),
                 AlarmType.NEW_REVIEW,
-                new AlarmArgs(reservation.getClient().getId(),
-                        reservation.getProduct().getId()),
+                new AlarmArgs<>(reservation.getClient().getId(),
+                        review.getId()),
                 false));
         alarmService.send(alarm.getId(), reservation.getGuide().getId(), AlarmDto.fromEntity(alarm));
 

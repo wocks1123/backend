@@ -1,6 +1,7 @@
 package com.swygbro.trip.backend.domain.alarm.domain;
 
 import com.querydsl.core.types.Projections;
+import com.querydsl.core.types.dsl.BooleanExpression;
 import com.querydsl.jpa.JPQLQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import com.swygbro.trip.backend.domain.alarm.dto.AlarmDto;
@@ -23,14 +24,17 @@ public class AlarmCustomRepositoryImpl implements AlarmCustomRepository {
     }
 
     @Override
-    public Page<AlarmDto> findAllByUserId(Long userId, Pageable pageable) {
+    public Page<AlarmDto> findAllByUserId(Long userId, Integer isRead, Pageable pageable) {
+        BooleanExpression isReadCondition = isRead != null ? qAlarm.isRead.eq(isRead == 1) : null;
+
         List<AlarmDto> fetch = jpaQueryFactory
                 .select(Projections.fields(AlarmDto.class,
                         qAlarm.id,
                         qAlarm.alarmType,
-                        qAlarm.args))
+                        qAlarm.args,
+                        qAlarm.createdAt))
                 .from(qAlarm)
-                .where(qAlarm.user.id.eq(userId))
+                .where(qAlarm.user.id.eq(userId), isReadCondition)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .distinct().fetch();

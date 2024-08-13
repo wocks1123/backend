@@ -13,6 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.ZonedDateTime;
+
 @DisplayName("비즈니스 로직 - 알람")
 @ExtendWith(MockitoExtension.class)
 public class AlarmServiceTest {
@@ -49,7 +51,7 @@ public class AlarmServiceTest {
         AlarmDto alarmDto = new AlarmDto(alarmId,
                 AlarmType.NEW_RESERVATION_ALARM,
                 new AlarmArgs(userId, productId),
-                false);
+                false, ZonedDateTime.now());
 
         alarmService.connectAlarm(guideId);
 
