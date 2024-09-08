@@ -3,58 +3,39 @@
 
     <property resource="application.yml"/>
 
-    <property name="CONSOLE_LOG_PATTERN"
+    <property name="CONSOLE_PATTERN"
               value="%d{yyyy-MM-dd HH:mm:ss.SSS} %magenta([%thread]) %highlight([%-3level]) %logger{5} - %msg %n"/>
-    <property name="FILE_LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %5level %logger - %msg%n"/>
-
-    <property name="LOG_PATH" value="${logging.file.path:-/logs}"/>
-
-    <property name="MAX_FILE_SIZE" value="100MB"/>
-    <property name="TOTAL_SIZE" value="3GB"/>
-    <property name="MAX_HISTORY" value="30"/>
-
-    <property name="LOG_LEVEL" value="${logging.level.root:-INFO}"/>
-    <property name="LOG_ROLLING_PATH" value="${LOG_PATH}/logs/app-%d{yyyy-MM-dd, Asia/Seoul}.%i.log"/>
-    <property name="LOG_FILE_PATH" value="${LOG_PATH}/logs/app.log"/>
+    <property name="ROLLING_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS, Asia/Seoul}  %logger{5} - %msg %n"/>
+    <property name="LOG_PATH" value="${logging.log-path:-logs}"/>
+    <property name="LOG_LEVEL" value="${logging.log-level:-INFO}"/>
+    <property name="FILE_NAME" value="matthew-%d{yyyy-MM-dd-HH-mm, Asia/Seoul}.log"/>
+    <property name="LOG_NAME_PATTERN" value="matthew-%d{yyyy-MM-dd-HH, Asia/Seoul}.%i.log"/>
+    <property name="MAX_FILE_SIZE" value="10MB"/>
+    <property name="TOTAL_SIZE" value="50MB"/>
+    <property name="MAX_HISTORY" value="2"/>
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+            <Pattern>${CONSOLE_PATTERN}</Pattern>
         </encoder>
     </appender>
 
     <appender name="ROLLING_LOG_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <encoder>
-            <pattern>${FILE_LOG_PATTERN}</pattern>
+            <pattern>${ROLLING_PATTERN}</pattern>
         </encoder>
-        <file>${LOG_FILE_PATH}</file>
+        <file>${LOG_PATH}/matthew.log</file>
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
-            <fileNamePattern>${LOG_ROLLING_PATH}</fileNamePattern>
+            <fileNamePattern>${LOG_PATH}/${LOG_NAME_PATTERN}</fileNamePattern>
             <maxHistory>${MAX_HISTORY}</maxHistory>
             <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
             <totalSizeCap>${TOTAL_SIZE}</totalSizeCap>
         </rollingPolicy>
     </appender>
 
-    <springProfile name="dev">
-        <root level="${LOG_LEVEL}">
-            <appender-ref ref="STDOUT"/>
-            <appender-ref ref="ROLLING_LOG_FILE"/>
-        </root>
-        <!--        <logger level="INFO" name="com.swygbro.trip.backend.global.config.LoggingFilter" additivity="false">-->
-        <!--            <appender-ref ref="ROLLING_LOG_FILE"/>-->
-        <!--        </logger>-->
-    </springProfile>
-
-    <springProfile name="deploy">
-        <root level="${LOG_LEVEL}">
-            <appender-ref ref="STDOUT"/>
-            <appender-ref ref="ROLLING_LOG_FILE"/>
-        </root>
-        <!--        <logger level="INFO" name="com.swygbro.trip.backend.global.config.LoggingFilter" additivity="false">-->
-        <!--            <appender-ref ref="ROLLING_LOG_FILE"/>-->
-        <!--        </logger>-->
-    </springProfile>
+    <root level="${LOG_LEVEL}">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="ROLLING_LOG_FILE"/>
+    </root>
 
 </configuration>
-

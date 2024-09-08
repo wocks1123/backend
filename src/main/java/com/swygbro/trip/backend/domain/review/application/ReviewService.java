@@ -1,5 +1,11 @@
 package com.swygbro.trip.backend.domain.review.application;
 
+import com.swygbro.trip.backend.domain.alarm.application.AlarmService;
+import com.swygbro.trip.backend.domain.alarm.domain.Alarm;
+import com.swygbro.trip.backend.domain.alarm.domain.AlarmArgs;
+import com.swygbro.trip.backend.domain.alarm.domain.AlarmRepository;
+import com.swygbro.trip.backend.domain.alarm.domain.AlarmType;
+import com.swygbro.trip.backend.domain.alarm.dto.AlarmDto;
 import com.swygbro.trip.backend.domain.guideProduct.domain.GuideProductRepository;
 import com.swygbro.trip.backend.domain.reservation.domain.Reservation;
 import com.swygbro.trip.backend.domain.reservation.domain.ReservationRepository;
@@ -32,6 +38,8 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final ReservationRepository reservationRepository;
     private final GuideProductRepository guideProductRepository;
+    private final AlarmService alarmService;
+    private final AlarmRepository alarmRepository;
     private final S3Service s3Service;
 
     @Transactional(readOnly = true)
@@ -76,6 +84,15 @@ public class ReviewService {
         }
 
         Review createdReview = reviewRepository.save(review);
+
+        // 가이드에게 리뷰 작성 알림 발송
+        Alarm alarm = alarmRepository.save(Alarm.of(reservation.getGuide(),
+                AlarmType.NEW_REVIEW,
+                new AlarmArgs<>(reservation.getClient().getId(),
+                        review.getId()),
+                false));
+        alarmService.send(alarm.getId(), reservation.getGuide().getId(), AlarmDto.fromEntity(alarm));
+
         return ReviewInfoDto.builder()
                 .reviewId(createdReview.getId())
                 .reviewer(createdReview.getReviewer().getNickname())
